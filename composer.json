@@ -1,6 +1,7 @@
 {
     "name": "rvvup/module-magento-payments",
     "description": "Rvvup payment gateway for Magento 2",
+    "license": "MIT",
     "type": "magento2-module",
     "minimum-stability": "dev",
     "require": {
