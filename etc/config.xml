@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <rvvup>
+                <active>0</active>
+                <title>Rvvup</title>
+                <jwt backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                <model>RvvupFacade</model>
+                <order_status>pending</order_status>
+                <allowspecific>0</allowspecific>
+                <can_use_internal>0</can_use_internal>
+                <can_use_checkout>1</can_use_checkout>
+                <can_sale>1</can_sale>
+                <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_fetch_transaction_info>1</can_fetch_transaction_info>
+                <can_fetch_transaction_information>1</can_fetch_transaction_information>
+                <can_initialize>1</can_initialize>
+                <group>rvvup_group</group>
+                <debug>0</debug>
+                <payment_action>initialize</payment_action>
+                <paymentInfoKeys>id,method_title</paymentInfoKeys>
+                <product_restrictions>
+                    <pdp_message>This item has restrictions so not all payment methods may be available</pdp_message>
+                    <checkout_message>You have some restricted items in your cart, not all payment methods may be available</checkout_message>
+                </product_restrictions>
+                <clearpay_mesaging>
+                    <active>0</active>
+                    <icon_type>badge</icon_type>
+                    <badge_theme>black-on-mint</badge_theme>
+                    <modal_theme>mint</modal_theme>
+                </clearpay_mesaging>
+            </rvvup>
+        </payment>
+    </default>
+</config>

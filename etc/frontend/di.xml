@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Plugins -->
+    <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
+        <plugin name="injectRvvupPaymentMethods" type="Rvvup\Payments\Plugin\JsLayout"/>
+    </type>
+
+    <!-- DI arguments -->
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="rvvup_config_provider" xsi:type="object">Rvvup\Payments\Model\ConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\ViewModel\Clearpay">
+        <arguments>
+            <argument name="session" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Observer\CartRestrictionsWarning">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\ConfigProvider">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+</config>

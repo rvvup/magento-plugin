@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+            <group id="rvvup" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <label>Rvvup Payments</label>
+                <field id="account_dashboard_link" type="button" sortOrder="1" showInWebsite="1" showInStore="1"
+                       showInDefault="1" translate="label">
+                    <frontend_model>Rvvup\Payments\Block\Adminhtml\System\Config\Form\Field\AccountDashboardLink</frontend_model>
+                </field>
+                <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="jwt" type="obscure" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>API Keys</label>
+                    <backend_model>Rvvup\Payments\Model\Config\Jwt\Validator</backend_model>
+                </field>
+                <field id="environment" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Current Environment</label>
+                    <backend_model>Rvvup\Payments\Model\Config\Env\Indicator</backend_model>
+                </field>
+                <field id="order_status" type="select" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>New Order Status</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+                </field>
+                <field id="allowspecific" type="allowspecific" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Payment from Applicable Countries</label>
+                    <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                </field>
+                <field id="specificcountry" type="multiselect" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Payment from Applicable Countries</label>
+                    <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="debug" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Debug Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="key_validation" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <frontend_model>\Rvvup\Payments\Block\Adminhtml\CredentialValidator</frontend_model>
+                </field>
+                <field id="log_link" translate="label" type="text" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <frontend_model>Rvvup\Payments\Block\Adminhtml\System\Config\Form\Field\LogLink</frontend_model>
+                </field>
+                <field id="sort_order" translate="label" type="text" sortOrder="97" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sort Order</label>
+                    <frontend_class>validate-number</frontend_class>
+                </field>
+                <group id="product_restrictions" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Product Restrictions</label>
+                    <field id="pdp_message" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>PDP Restriction Message</label>
+                    </field>
+                    <field id="checkout_message" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Checkout Restriction Message</label>
+                    </field>
+                </group>
+                <group id="clearpay_messaging" sortOrder="200" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Clearpay Messaging</label>
+                    <comment>These setting will require cleaning full-page-cache before changes take effect</comment>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="icon_type" type="select" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Icon Type</label>
+                        <source_model>Rvvup\Payments\Model\Source\IconType</source_model>
+                    </field>
+                    <field id="badge_theme" type="select" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Badge Theme</label>
+                        <source_model>Rvvup\Payments\Model\Source\BadgeTheme</source_model>
+                        <comment>Only applies to "Button" icon type</comment>
+                    </field>
+                    <field id="modal_theme" type="select" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Modal Theme</label>
+                        <source_model>Rvvup\Payments\Model\Source\ModalTheme</source_model>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

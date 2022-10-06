@@ -1,0 +1,31 @@
+<?php
+/**
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Rvvup\Payments\Block\Info $block
+ */
+$specificInfo = $block->getSpecificInformation();
+$paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->getOrder()->getStoreId());
+?>
+<?= $escaper->escapeHtml($paymentTitle) ?>
+
+<?php if ($specificInfo): ?>
+    <table class="data-table admin__table-secondary">
+        <?php foreach ($specificInfo as $label => $value): ?>
+            <tr>
+                <th><?= $escaper->escapeHtml($label) ?>:</th>
+                <td>
+                    <?= /* @noEscape */ nl2br($escaper->escapeHtml(implode("\n", $block->getValueAsArray($value, true)))) ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        <?php if ($block->getInfo()->getAdditionalInformation('dashboard_url')): ?>
+        <tr>
+            <th><?= $escaper->escapeHtml('Payment Link') ?>:</th>
+            <td>
+                <a href="<?= $escaper->escapeUrl($block->getInfo()->getAdditionalInformation('dashboard_url')) ?>"
+                   target="_blank"><?= $escaper->escapeHtml($block->getInfo()->getLastTransId()) ?></a>
+            </td>
+        </tr>
+        <?php endif; ?>
+    </table>
+<?php endif;?>

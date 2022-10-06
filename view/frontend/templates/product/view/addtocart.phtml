@@ -1,0 +1,69 @@
+<?php
+/**
+ * @var \Magento\Catalog\Block\Product\View $block
+ * @var \Rvvup\Payments\ViewModel\Clearpay $clearpay
+ * @var \Rvvup\Payments\ViewModel\Restrictions $restrictions
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Bundle\Model\Product\Type as Bundle;
+
+$clearpay = $block->getClearpay();
+$restrictions = $block->getRestrictions();
+$product = $block->getProduct();
+$thresholds = $clearpay->getThresholds($product);
+?>
+<?php if ($restrictions->showRestrictionMessage($product)): ?>
+    <?= $escaper->escapeHtml($restrictions->getMessages()->getPdpMessage()) ?>
+<?php endif; ?>
+<?php
+// Nothing to display if not in threshold.
+if (!is_array($thresholds) || !$clearpay->isInThreshold($product, $thresholds)) {
+    return;
+}
+?>
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Rvvup_Payments/js/method/clearpay": {
+                "storeCode": "<?= /** @noEscape */ $clearpay->getStoreCode() ?>"
+            }
+        }
+    }
+</script>
+<div class="clearpay">
+    <afterpay-placement style="display:none" id="clearpay-summary"
+                        data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
+                        data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
+                        data-amount="<?= $escaper->escapeHtmlAttr($product->getFinalPrice()) ?>"
+                        data-logo-type="<?= $escaper->escapeHtmlAttr($clearpay->getLogoType()) ?>"
+                        data-badge-theme="<?= $escaper->escapeHtmlAttr($clearpay->getBadgeTheme()) ?>"
+                        data-modal-theme="<?= $escaper->escapeHtmlAttr($clearpay->getModalTheme()) ?>"
+    ></afterpay-placement>
+</div>
+
+<?php if ($product->getTypeId() === Configurable::TYPE_CODE): // Load thresholds for configurable products ?>
+    <script type="text/x-magento-init">
+        {
+            "[data-role=swatch-options]": {
+                "Magento_Swatches/js/swatch-renderer": {
+                    "rvvupMin": "<?= $escaper->escapeHtml($thresholds['min']) ?>",
+                    "rvvupMax": "<?= $escaper->escapeHtml($thresholds['max']) ?>"
+                }
+            }
+        }
+    </script>
+<?php endif; ?>
+<?php if ($product->getTypeId() === Bundle::TYPE_CODE): // Load thresholds for bundle products ?>
+    <script type="text/x-magento-init">
+        {
+            "#product_addtocart_form": {
+                "priceBundle": {
+                    "rvvupMin": "<?= $escaper->escapeHtml($thresholds['min']) ?>",
+                    "rvvupMax": "<?= $escaper->escapeHtml($thresholds['max']) ?>"
+                }
+            }
+        }
+    </script>
+<?php endif; ?>

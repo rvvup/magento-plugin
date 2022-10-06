@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- DI preferences -->
+    <preference for="Rvvup\Payments\Model\ConfigInterface" type="Rvvup\Payments\Model\Config" />
+    <preference for="Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface"
+                type="Rvvup\Payments\Model\PaymentMethodsAssetsGet" />
+
+    <!-- Custom Rvvup Logger -->
+    <virtualType name="RvvupLogHandler" type="\Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+            <argument name="fileName" xsi:type="string">/var/log/rvvup.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="RvvupLog" type="Monolog\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">Rvvup</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">RvvupLogHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="RvvupFacade" type="Rvvup\Payments\Gateway\Method">
+        <arguments>
+            <argument name="code" xsi:type="string">rvvup</argument>
+            <argument name="title" xsi:type="string">Rvvup</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form\Cc</argument>
+            <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">RvvupValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">RvvupCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Rvvup\Payments\Block\Info">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item name="methodCode" xsi:type="string">rvvup</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <virtualType name="RvvupValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">RvvupConfigValueHandler</item>
+                <item name="can_refund" xsi:type="string">Rvvup\Payments\Gateway\Command\CanRefund</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">RvvupConfigValueHandlerConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupConfigValueHandlerConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">rvvup</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment Commands -->
+    <virtualType name="RvvupCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="initialize" xsi:type="string">Rvvup\Payments\Gateway\Command\InitializeCommand</item>
+                <item name="sale" xsi:type="string">Rvvup\Payments\Gateway\Command\Sale</item>
+                <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
+                <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="fetch_transaction_information"
+                      xsi:type="string">Rvvup\Payments\Gateway\Command\FetchUpdate</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Initialize Command -->
+    <type name="Rvvup\Payments\Gateway\Command\InitializeCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">RvvupInitializeRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Rvvup\Payments\Gateway\Http\TransferFactory</argument>
+            <argument name="client"
+                      xsi:type="object">Rvvup\Payments\Gateway\Http\Client\TransactionInitialize</argument>
+            <argument name="handler"
+                      xsi:type="object">\Rvvup\Payments\Gateway\Response\InitializeResponseHandler</argument>
+            <argument name="validator"
+                      xsi:type="object">Rvvup\Payments\Gateway\Validator\InitializeResponseValidator</argument>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="RvvupInitializeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="initialize" xsi:type="string">Rvvup\Payments\Gateway\Request\InitializeDataBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <!-- End of Initialize command -->
+
+    <type name="Rvvup\Payments\Model\SdkProxy">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\Checks\HasCartRestrictedProduct">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Payment\Helper\Data">
+        <plugin name="Rvvup_Payments::loadMethods" type="Rvvup\Payments\Plugin\LoadMethods"/>
+    </type>
+
+    <type name="Rvvup\Payments\Model\Payment\Rvvup">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Controller\Redirect\Out">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Controller\Redirect\In">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Controller\Redirect\Cancel">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Controller\Webhook\Index">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\ViewModel\Clearpay">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\PaymentMethodsAssetsGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\ViewModel\Assets">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <!-- Payment Methods List Additional Checks. Checks whether payment method is available for quote -->
+    <type name="Magento\Payment\Model\MethodList">
+        <arguments>
+            <argument name="additionalChecks" xsi:type="array">
+                <item name="rvvup_payment_methods_restricted_product_specification"
+                      xsi:type="string">rvvup_payment_methods_restricted_product_specification</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Cart has restricted products specification. Used in payment method checks -->
+    <type name="Magento\Payment\Model\Checks\SpecificationFactory">
+        <arguments>
+            <argument name="mapping" xsi:type="array">
+                <item name="rvvup_payment_methods_restricted_product_specification"
+                      xsi:type="object">Rvvup\Payments\Model\Checks\HasCartRestrictedProduct</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Plugin\LoadMethods">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ComplexProductTypePool">
+        <arguments>
+            <argument name="productTypes" xsi:type="array">
+                <item name="configurable" xsi:type="string">configurable</item>
+                <item name="grouped" xsi:type="string">grouped</item>
+                <item name="bundle" xsi:type="string">bundle</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\ProcessorPool">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+                <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
+                <item name="REQUIRES_ACTION" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
+                <item name="CANCELLED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Canceled</item>
+                <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Declined</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\Declined">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\Canceled">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+</config>

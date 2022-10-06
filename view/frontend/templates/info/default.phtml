@@ -1,0 +1,23 @@
+<?php
+/**
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Rvvup\Payments\Block\Info $block
+ */
+
+use Rvvup\Payments\Block\Info;
+
+$specificInfo = $block->getSpecificInformation();
+$paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->getOrder()->getStoreId());
+
+$paymentMethodTitle = null
+?>
+
+<?php if ($specificInfo): ?>
+    <?php foreach ($specificInfo as $label => $value): ?>
+        <?php if ($label === Info::LABEL_METHOD_TITLE): ?>
+            <?php $paymentMethodTitle = implode(' ', $block->getValueAsArray($value, true)); ?>
+        <?php endif; ?>
+    <?php endforeach; ?>
+<?php endif;?>
+
+<?= $escaper->escapeHtml($paymentTitle) . ($paymentMethodTitle !== null ? ' - ' . $escaper->escapeHtml($paymentMethodTitle) : '') ?>

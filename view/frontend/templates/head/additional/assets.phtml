@@ -1,0 +1,18 @@
+<?php
+/**
+ * Load available assets on any template, currently used for PayPal only
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Rvvup\Payments\ViewModel\Assets $assetsViewModel
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$assetsViewModel = $block->getData('rvvup_payments_assets_view_model');
+
+$paymentMethodsScriptAssets = $assetsViewModel !== null ? $assetsViewModel->getPaymentMethodsScriptAssets() : [];
+?>
+<?php foreach ($paymentMethodsScriptAssets as $method => $scripts): ?>
+     <?php foreach ($scripts as $key => $script): ?>
+        <script id="<?= $escaper->escapeHtmlAttr($method) ?>_script_<?= $escaper->escapeHtmlAttr($key) ?>"
+                src="<?= isset($script['url']) ? $escaper->escapeUrl($script['url']) : '' ?>"></script>
+    <?php endforeach; ?>
+<?php endforeach; ?>

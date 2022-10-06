@@ -1,0 +1,11 @@
+parameters:
+    reportUnmatchedIgnoredErrors: false
+    level: 0
+    paths:
+        - .
+    excludePaths:
+        - 'vendor'
+
+    ignoreErrors:
+        - '#has invalid type#'
+        - '#has invalid return type#'

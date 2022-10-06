@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @var \Rvvup\Payments\Block\Adminhtml\System\Config\Form\Field\AccountDashboardLink $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="buttons-container">
+    <button id="<?= $escaper->escapeHtmlAttr($block->getData('id')) ?>"
+            onclick="<?= $escaper->escapeHtmlAttr($block->getData('onclick')) ?>"
+    ><?= $escaper->escapeHtml($block->getData('link_title')) ?></button>
+</div>
