@@ -4,6 +4,7 @@ namespace Rvvup\Payments\Model;
 
 use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
 use Rvvup\Sdk\GraphQlSdkFactory;
 use Rvvup\Sdk\GraphQlSdk;
 
@@ -19,6 +20,12 @@ class SdkProxy
     private $logger;
     /** @var GraphQlSdk */
     private $subject;
+
+    /**
+     * @var \Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface
+     */
+    private $getEnvironmentVersions;
+
     /** @var array */
     private $methods;
 
@@ -26,17 +33,20 @@ class SdkProxy
      * @param ConfigInterface $config
      * @param UserAgentBuilder $userAgent
      * @param GraphQlSdkFactory $sdkFactory
+     * @param \Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface $getEnvironmentVersions
      * @param LoggerInterface $logger
      */
     public function __construct(
         ConfigInterface $config,
         UserAgentBuilder $userAgent,
         GraphQlSdkFactory $sdkFactory,
+        GetEnvironmentVersionsInterface $getEnvironmentVersions,
         LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->userAgent = $userAgent;
         $this->sdkFactory = $sdkFactory;
+        $this->getEnvironmentVersions = $getEnvironmentVersions;
         $this->logger = $logger;
     }
 
@@ -128,5 +138,27 @@ class SdkProxy
     public function registerWebhook(string $url): void
     {
         $this->getSubject()->registerWebhook($url);
+    }
+
+    /**
+     * @param string $eventType
+     * @param string $reason
+     * @param array $additionalData
+     * @return void
+     * @throws \Exception
+     */
+    public function createEvent(string $eventType, string $reason, array $additionalData = []): void
+    {
+        $environmentVersions = $this->getEnvironmentVersions->execute();
+
+        $data = [
+            'plugin' => $environmentVersions['rvvp_module_version'],
+            'php' => $environmentVersions['php_version'],
+            'magento_edition' => $environmentVersions['magento_version']['edition'],
+            'magento' => $environmentVersions['magento_version']['version'],
+        ];
+
+        // Add any data send by the event, but keep core data untouched.
+        $this->getSubject()->createEvent($eventType, $reason, array_merge($additionalData, $data));
     }
 }

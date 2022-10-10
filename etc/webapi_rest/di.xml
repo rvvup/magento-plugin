@@ -1,5 +1,26 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <preference for="Rvvup\Payments\Api\ClearpayAvailabilityInterface" type="Rvvup\Payments\Model\ClearpayAvailability"/>
-    <preference for="Rvvup\Payments\Api\PaymentRedirectInterface" type="Rvvup\Payments\Model\PaymentRedirect"/>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Preferences -->
+    <preference for="Rvvup\Payments\Api\ClearpayAvailabilityInterface"
+                type="Rvvup\Payments\Model\ClearpayAvailability"/>
+    <!-- Currently this services & Data objects are used only on WebAPI context, move to central di.xml if required -->
+    <preference for="Rvvup\Payments\Api\GuestPaymentActionsGetInterface"
+                type="Rvvup\Payments\Model\GuestPaymentActionsGet" />
+    <preference for="Rvvup\Payments\Api\PaymentActionsGetInterface"
+                type="Rvvup\Payments\Model\PaymentActionsGet" />
+    <preference for="Rvvup\Payments\Api\Data\PaymentActionInterface"
+                type="Rvvup\Payments\Model\PaymentAction" />
+
+    <!-- DI -->
+    <type name="Rvvup\Payments\Model\GuestPaymentActionsGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\PaymentActionsGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
 </config>

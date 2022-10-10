@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Rvvup\Sdk\Test\Unit;
+namespace Rvvup\Payments\Test\Unit\Model;
 
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;

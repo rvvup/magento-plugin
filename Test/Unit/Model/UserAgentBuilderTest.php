@@ -1,30 +1,21 @@
 <?php declare(strict_types=1);
 
-namespace Rvvup\Sdk\Test\Unit;
+namespace Rvvup\Payments\Test\Unit\Model;
 
 use Magento\Framework\App\CacheInterface;
-use Magento\Framework\App\ProductMetadataInterface;
-use Magento\Framework\Composer\ComposerInformation;
-use Magento\Framework\Filesystem\Io\File;
-use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\TestCase;
+use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
 use Rvvup\Payments\Model\UserAgentBuilder;
 
 /**
  * @covers \Rvvup\Payments\Model\UserAgentBuilder
  */
-class UserAgentStringTest extends TestCase
+class UserAgentBuilderTest extends TestCase
 {
     /** @var string */
     private $phpVersion;
     /** @var CacheInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $cacheMock;
-    /** @var File|\PHPUnit\Framework\MockObject\MockObject */
-    private $fileIoMock;
-    /** @var SerializerInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $serializerMock;
-    /** @var ComposerInformation|\PHPUnit\Framework\MockObject\MockObject */
-    private $composerInfoMock;
     /** @var UserAgentBuilder */
     private $systemUnderTest;
 
@@ -35,20 +26,24 @@ class UserAgentStringTest extends TestCase
     {
         $this->phpVersion = phpversion();
         $this->cacheMock = $this->getMockBuilder(CacheInterface::class)->disableOriginalConstructor()->getMock();
-        $this->composerInfoMock = $this->getMockBuilder(ComposerInformation::class)->disableOriginalConstructor()->getMock();
-        $this->fileIoMock = $this->getMockBuilder(File::class)->disableOriginalConstructor()->getMock();
-        $this->serializerMock = $this->getMockBuilder(SerializerInterface::class)->disableOriginalConstructor()->getMock();
-        $productMetadataMock = $this->getMockBuilder(ProductMetadataInterface::class)->disableOriginalConstructor()->getMock();
-        $productMetadataMock->expects($this->once())->method('getName')->willReturn('Magento');
-        $productMetadataMock->expects($this->once())->method('getEdition')->willReturn('Community');
-        $productMetadataMock->expects($this->once())->method('getVersion')->willReturn('2.4.4');
-        $this->systemUnderTest = new UserAgentBuilder(
-            $this->cacheMock,
-            $this->composerInfoMock,
-            $this->fileIoMock,
-            $this->serializerMock,
-            $productMetadataMock
-        );
+
+        $getEnvironmentVersionsMock = $this->getMockBuilder(GetEnvironmentVersionsInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $getEnvironmentVersionsMock->expects($this->once())
+            ->method('execute')
+            ->willReturn([
+                'rvvp_module_version' => '0.1.0',
+                'php_version' => $this->phpVersion,
+                'magento_version' => [
+                    'name' => 'Magento',
+                    'edition' => 'Community',
+                    'version' => '2.4.4'
+                ]
+            ]);
+
+        $this->systemUnderTest = new UserAgentBuilder($this->cacheMock, $getEnvironmentVersionsMock);
     }
 
     /**
@@ -58,19 +53,11 @@ class UserAgentStringTest extends TestCase
     {
         $this->phpVersion = null;
         $this->cacheMock = null;
-        $this->composerInfoMock = null;
-        $this->fileIoMock = null;
-        $this->serializerMock = null;
         $this->systemUnderTest = null;
     }
 
-    public function testEverythingIsWorkingInstalledViaComposer()
+    public function testEverythingIsWorking(): void
     {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([
-            'rvvup/module-magento-payments' => [
-                'version' => '0.1.0'
-            ],
-        ]);
         $this->assertEquals(
             'RvvupMagentoPayments/0.1.0; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
             $this->systemUnderTest->get(),
@@ -78,81 +65,11 @@ class UserAgentStringTest extends TestCase
         );
     }
 
-    public function testEverythingIsWorkingInstalledInAppCode()
-    {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
-        $path = dirname((new \ReflectionClass(UserAgentBuilder::class))->getFileName()) . '/composer.json';
-        $this->fileIoMock->expects($this->once())->method('fileExists')->with($path)->willReturn(true);
-        $this->fileIoMock->expects($this->once())->method('read')->with($path)->willReturn('{"version": "0.0.1"}');
-        $this->serializerMock->expects($this->once())->method('unserialize')->willReturn(['version' => '0.1.0']);
-
-        $this->assertEquals(
-            'RvvupMagentoPayments/0.1.0; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
-            $this->systemUnderTest->get(),
-            "Unexpected value when testing app/code-based install UA string"
-        );
-    }
-
-    public function testComposerJsonMissingVersionInAppCode()
-    {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
-        $path = dirname((new \ReflectionClass(UserAgentBuilder::class))->getFileName()) . '/composer.json';
-        $this->fileIoMock->expects($this->once())->method('fileExists')->with($path)->willReturn(true);
-        $this->fileIoMock->expects($this->once())->method('read')->with($path)->willReturn('{}');
-        $this->serializerMock->expects($this->once())->method('unserialize')->willReturn([]);
-
-        $this->assertEquals(
-            'RvvupMagentoPayments/unknown; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
-            $this->systemUnderTest->get(),
-            "Unexpected value when testing missing composer file UA string"
-        );
-    }
-
-    public function testCorruptComposerJsonInAppCode()
-    {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
-        $path = dirname((new \ReflectionClass(UserAgentBuilder::class))->getFileName()) . '/composer.json';
-        $this->fileIoMock->expects($this->once())->method('fileExists')->with($path)->willReturn(true);
-        $this->fileIoMock->expects($this->once())->method('read')->with($path)->willReturn('some currput data');
-        $this->serializerMock->expects($this->once())->method('unserialize')->willThrowException(new \InvalidArgumentException());
-
-        $this->assertEquals(
-            'RvvupMagentoPayments/unknown; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
-            $this->systemUnderTest->get(),
-            "Unexpected value when testing corrupt composer file fallback"
-        );
-    }
-
-    public function testEmptyComposerJsonInAppCode()
-    {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
-        $path = dirname((new \ReflectionClass(UserAgentBuilder::class))->getFileName()) . '/composer.json';
-        $this->fileIoMock->expects($this->once())->method('fileExists')->with($path)->willReturn(true);
-        $this->fileIoMock->expects($this->once())->method('read')->with($path)->willReturn('');
-        $this->assertEquals(
-            'RvvupMagentoPayments/unknown; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
-            $this->systemUnderTest->get(),
-            "Unexpected value when testing corrupt composer file fallback"
-        );
-    }
-
-    public function testSuccessfulFallbackIfUnableToLocateVersion()
-    {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
-        $path = dirname((new \ReflectionClass(UserAgentBuilder::class))->getFileName()) . '/composer.json';
-        $this->fileIoMock->expects($this->once())->method('fileExists')->with($path)->willReturn(false);
-        $this->assertEquals(
-            'RvvupMagentoPayments/unknown; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
-            $this->systemUnderTest->get(),
-            "Unexpected value when testing missing composer version key fallback"
-        );
-    }
-
-    public function testGeneratedStringIsRetrievedFromCache()
+    public function testGeneratedStringIsRetrievedFromCache(): void
     {
         $uaString =  'RvvupMagentoPayments/0.1.0; Magento-Community/2.4.4; PHP/' . $this->phpVersion;
-        $this->cacheMock->expects($this->exactly(2))
+        $this->cacheMock
+            ->expects($this->exactly(2))
             ->method('load')
             ->with(UserAgentBuilder::RVVUP_USER_AGENT_STRING)
             ->willReturnOnConsecutiveCalls(
@@ -164,11 +81,7 @@ class UserAgentStringTest extends TestCase
             $uaString,
             UserAgentBuilder::RVVUP_USER_AGENT_STRING
         );
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([
-            'rvvup/module-magento-payments' => [
-                'version' => '0.1.0'
-            ],
-        ]);
+
         $this->assertEquals(
             $uaString,
             $this->systemUnderTest->get(),

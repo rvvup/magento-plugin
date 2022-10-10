@@ -6,14 +6,14 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
-    <route url="/V1/rvvup/redirect/:cartId" method="POST">
-        <service class="Rvvup\Payments\Api\PaymentRedirectInterface" method="getGuestRedirectUrl"/>
+    <route url="/V1/rvvup/payments/:cartId/payment-actions" method="GET">
+        <service class="Rvvup\Payments\Api\GuestPaymentActionsGetInterface" method="execute"/>
         <resources>
             <resource ref="anonymous" />
         </resources>
     </route>
-    <route url="/V1/rvvup/redirect" method="POST">
-        <service class="Rvvup\Payments\Api\PaymentRedirectInterface" method="getCustomerRedirectUrl"/>
+    <route url="/V1/rvvup/payments/mine/:cartId/payment-actions" method="GET">
+        <service class="Rvvup\Payments\Api\PaymentActionsGetInterface" method="execute"/>
         <resources>
             <resource ref="self" />
         </resources>

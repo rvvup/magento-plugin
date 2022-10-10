@@ -1,8 +1,15 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- DI -->
     <type name="Rvvup\Payments\Model\Config\Env\Indicator">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Base64Json</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Observer\ConfigSaveObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
 </config>

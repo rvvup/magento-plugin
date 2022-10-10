@@ -40,18 +40,11 @@ class InitializeResponseHandler implements HandlerInterface
             $response['data']['orderCreate']['dashboardUrl'] ?? null
         );
 
-        $paymentActions = [];
-
-        if (isset($response['data']['orderCreate']['paymentSummary']['paymentActions'])) {
-            foreach ($response['data']['orderCreate']['paymentSummary']['paymentActions'] as $paymentAction) {
-                $paymentActions[mb_strtolower($paymentAction['type'])] = [
-                    mb_strtolower($paymentAction['method']) => $paymentAction['value'],
-                ];
-            }
-        }
-
         // Add the payment actions (that include the redirect values).
-        $paymentInfo->setAdditionalInformation('payment_actions', $paymentActions);
+        $paymentInfo->setAdditionalInformation(
+            'paymentActions',
+            $response['data']['orderCreate']['paymentSummary']['paymentActions'] ?? []
+        );
 
         // Don't send customer email.
         if (method_exists($paymentInfo, 'getOrder')) {
