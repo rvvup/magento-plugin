@@ -6,7 +6,8 @@
             <block class="Magento\Catalog\Block\Product\View"
                    name="product.info.addtocart.rvvup-clearpay"
                    as="form_top"
-                   template="Rvvup_Payments::product/view/addtocart.phtml">
+                   template="Rvvup_Payments::product/view/addtocart.phtml"
+                   ifconfig="payment/rvvup/active">
                 <arguments>
                     <argument name="clearpay" xsi:type="object">Rvvup\Payments\ViewModel\Clearpay</argument>
                     <argument name="restrictions" xsi:type="object">Rvvup\Payments\ViewModel\Restrictions</argument>

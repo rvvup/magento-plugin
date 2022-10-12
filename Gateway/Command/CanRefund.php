@@ -23,7 +23,7 @@ class CanRefund implements ValueHandlerInterface
     {
         try {
             $payment = $subject['payment']->getPayment();
-            return $this->sdkProxy->isOrderRefundable($payment->getAdditionalInformation('id'));
+            return $this->sdkProxy->isOrderRefundable($payment->getAdditionalInformation('rvvup_order_id'));
         } catch (\Exception $e) {
             return false;
         }

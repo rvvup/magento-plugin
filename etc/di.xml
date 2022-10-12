@@ -7,6 +7,8 @@
                 type="Rvvup\Payments\Model\PaymentMethodsAssetsGet" />
     <preference for="Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface"
                 type="Rvvup\Payments\Model\Environment\GetEnvironmentVersions" />
+    <preference for="Rvvup\Payments\Model\PaymentActionsGetInterface"
+                type="Rvvup\Payments\Model\PaymentActionsGet" />
 
     <!-- Custom Rvvup Logger -->
     <virtualType name="RvvupLogHandler" type="\Magento\Framework\Logger\Handler\Base">
@@ -231,6 +233,12 @@
     <type name="Rvvup\Payments\Model\Environment\GetEnvironmentVersions">
         <arguments>
             <argument name="fileIo" xsi:type="object">Magento\Framework\Filesystem\Io\File</argument>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\PaymentActionsGet">
+        <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>

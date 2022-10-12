@@ -160,7 +160,7 @@ define([
                                     return reject();
                                 });
                         }).then(() => {
-                            return self.token;
+                            return self.paymentToken;
                         });
                     },
                     /**
@@ -332,9 +332,9 @@ define([
                             ? cancelAction.value
                             : null;
 
-                        self.token = paymentAction.value;
+                        self.paymentToken = paymentAction.value;
 
-                        return self.token;
+                        return self.paymentToken;
                     }
 
                     /* Otherwise, this should be standard redirect authorization, so show the modal */

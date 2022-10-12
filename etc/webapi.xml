@@ -6,6 +6,7 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <!-- Get Rvvup Payment Actions for an Order-->
     <route url="/V1/rvvup/payments/:cartId/payment-actions" method="GET">
         <service class="Rvvup\Payments\Api\GuestPaymentActionsGetInterface" method="execute"/>
         <resources>
@@ -13,7 +14,7 @@
         </resources>
     </route>
     <route url="/V1/rvvup/payments/mine/:cartId/payment-actions" method="GET">
-        <service class="Rvvup\Payments\Api\PaymentActionsGetInterface" method="execute"/>
+        <service class="Rvvup\Payments\Api\CustomerPaymentActionsGetInterface" method="execute"/>
         <resources>
             <resource ref="self" />
         </resources>
@@ -21,5 +22,4 @@
             <parameter name="customerId" force="true">%customer_id%</parameter>
         </data>
     </route>
-
 </routes>

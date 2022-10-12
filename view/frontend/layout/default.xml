@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name="head.additional">
-            <block class="Magento\Framework\View\Element\Template" name="head.sprite" template="Rvvup_Payments::clearpay-script.phtml" />
+            <block class="Magento\Framework\View\Element\Template"
+                   name="rvvup_payments.checkout_index_index.head.additional.clearpay-script"
+                   template="Rvvup_Payments::head/additional/clearpay-script.phtml"
+                   ifconfig="payment/rvvup/active" />
         </referenceBlock>
     </body>
 </page>

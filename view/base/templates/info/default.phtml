@@ -18,12 +18,12 @@ $paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->g
                 </td>
             </tr>
         <?php endforeach; ?>
-        <?php if ($block->getInfo()->getAdditionalInformation('dashboard_url')): ?>
+        <?php if ($block->getInfo()->getAdditionalInformation('dashboardUrl')): ?>
         <tr>
             <th><?= $escaper->escapeHtml('Payment Link') ?>:</th>
             <td>
-                <a href="<?= $escaper->escapeUrl($block->getInfo()->getAdditionalInformation('dashboard_url')) ?>"
-                   target="_blank"><?= $escaper->escapeHtml($block->getInfo()->getLastTransId()) ?></a>
+                <a href="<?= $escaper->escapeUrl($block->getInfo()->getAdditionalInformation('dashboardUrl')) ?>"
+                   target="_blank"><?= $escaper->escapeHtml($block->getInfo()->getAdditionalInformation('rvvup_order_id')) ?></a>
             </td>
         </tr>
         <?php endif; ?>

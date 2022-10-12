@@ -13,7 +13,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
-use Rvvup\Payments\Api\PaymentActionsGetInterface;
 use Throwable;
 
 class PaymentActionsGet implements PaymentActionsGetInterface
@@ -68,17 +67,17 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     }
 
     /**
-     * Get the payment actions for the customer ID & cart ID.
+     * Get the payment actions for the cart ID & customer ID if provided.
      *
-     * @param string $customerId
      * @param string $cartId
+     * @param string|null $customerId
      * @return PaymentActionInterface[]
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute(string $customerId, string $cartId): array
+    public function execute(string $cartId, ?string $customerId = null): array
     {
-        $order = $this->getOrderByCustomerIdAndQuoteId($customerId, $cartId);
-        $paymentActions = $this->getOrderPaymentActions($order, $customerId, $cartId);
+        $order = $this->getOrderByCartIdAndCustomerId($cartId, $customerId);
+        $paymentActions = $this->getOrderPaymentActions($order, $cartId, $customerId);
 
         $paymentActionsDataArray = [];
 
@@ -102,10 +101,9 @@ class PaymentActionsGet implements PaymentActionsGetInterface
             $this->logger->error(
                 'Error loading Payment Actions for user. Failed return result with message: ' . $t->getMessage(),
                 [
-                    'masked_quote_id' => $cartId,
-                    'customer_id' => $customerId,
+                    'quote_id' => $cartId,
                     'order_id' => $order->getEntityId(),
-                    'payment_id' => $order->getPayment()->getEntityId() // Already checked not null
+                    'customer_id' => $customerId
                 ]
             );
 
@@ -114,10 +112,9 @@ class PaymentActionsGet implements PaymentActionsGetInterface
 
         if (empty($paymentActionsDataArray)) {
             $this->logger->error('Error loading Payment Actions for user. No payment actions found.', [
-                'masked_quote_id' => $cartId,
-                'customer_id' => $customerId,
+                'quote_id' => $cartId,
                 'order_id' => $order->getEntityId(),
-                'payment_id' => $order->getPayment()->getEntityId() // Already checked not null
+                'customer_id' => $customerId
             ]);
 
             throw new LocalizedException(__('Something went wrong'));
@@ -127,29 +124,34 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     }
 
     /**
-     * @param string $customerId
      * @param string $cartId
+     * @param string|null $customerId
      * @return \Magento\Sales\Api\Data\OrderInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getOrderByCustomerIdAndQuoteId(string $customerId, string $cartId): OrderInterface
+    private function getOrderByCartIdAndCustomerId(string $cartId, ?string $customerId = null): OrderInterface
     {
         try {
             $sortOrder = $this->sortOrderBuilder->setDescendingDirection()
                 ->setField('created_at')
                 ->create();
 
-            $searchCriteria = $this->searchCriteriaBuilder->setPageSize(1)
+            $this->searchCriteriaBuilder->setPageSize(1)
                 ->addSortOrder($sortOrder)
-                ->addFilter('customer_id', $customerId)
-                ->addFilter('quote_id', $cartId)
-                ->create();
+                ->addFilter('quote_id', $cartId);
+
+            // If customer ID is provided, pass it.
+            if ($customerId !== null) {
+                $this->searchCriteriaBuilder->addFilter('customer_id', $customerId);
+            }
+
+            $searchCriteria = $this->searchCriteriaBuilder->create();
 
             $result = $this->orderRepository->getList($searchCriteria);
         } catch (Exception $e) {
-            $this->logger->error('Error loading Payment Actions for user with message: ' . $e->getMessage(), [
-                'customer_id' => $customerId,
-                'quote_id' => $cartId
+            $this->logger->error('Error loading Payment Actions for order with message: ' . $e->getMessage(), [
+                'quote_id' => $cartId,
+                'customer_id' => $customerId
             ]);
 
             throw new LocalizedException(__('Something went wrong'));
@@ -159,9 +161,9 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         $order = reset($orders);
 
         if (!$order) {
-            $this->logger->error('Error loading Payment Actions for user. No order found.', [
-                'customer_id' => $customerId,
-                'quote_id' => $cartId
+            $this->logger->error('Error loading Payment Actions. No order found.', [
+                'quote_id' => $cartId,
+                'customer_id' => $customerId
             ]);
 
             throw new LocalizedException(__('Something went wrong'));
@@ -174,21 +176,21 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      * Get the order payment's paymentActions from its additional information
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param string $customerId
      * @param string $cartId
+     * @param string|null $customerId
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getOrderPaymentActions(OrderInterface $order, string $customerId, string $cartId): array
+    private function getOrderPaymentActions(OrderInterface $order, string $cartId, ?string $customerId = null): array
     {
         $payment = $order->getPayment();
 
         // Fail-safe, all orders should have an associated payment record
         if ($payment === null) {
             $this->logger->error('Error loading Payment Actions for user. No order payment found.', [
-                'customer_id' => $customerId,
                 'quote_id' => $cartId,
-                'order_id' => $order->getEntityId()
+                'order_id' => $order->getEntityId(),
+                'customer_id' => $customerId,
             ]);
 
             throw new LocalizedException(__('Something went wrong'));
@@ -200,15 +202,12 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         if (empty($paymentAdditionalInformation['paymentActions'])
             || !is_array($paymentAdditionalInformation['paymentActions'])
         ) {
-            $this->logger->error(
-                'Error loading Payment Actions for user. No order payment additional information found.',
-                [
-                    'customer_id' => $customerId,
-                    'quote_id' => $cartId,
-                    'order_id' => $order->getEntityId(),
-                    'payment_id' => $payment->getEntityId()
-                ]
-            );
+            $this->logger->error('Error loading Payment Actions. No order payment additional information found.', [
+                'quote_id' => $cartId,
+                'order_id' => $order->getEntityId(),
+                'payment_id' => $payment->getEntityId(),
+                'customer_id' => $customerId
+            ]);
 
             throw new LocalizedException(__('Something went wrong'));
         }
