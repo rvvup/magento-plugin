@@ -236,7 +236,7 @@ define([
                 });
             },
             getIframe: function () {
-                let grandTotal = parseFloat(totals.totals()['grand_total']);
+                let grandTotal = parseFloat(totals.getSegment('grand_total').value);
                 let url = window.checkoutConfig.payment[this.index].summary_url;
                 return url.replace(/amount=(\d+\.\d+)&/, 'amount=' + grandTotal + '&')
             },
