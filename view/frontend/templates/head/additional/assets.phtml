@@ -11,8 +11,16 @@ $assetsViewModel = $block->getData('rvvup_payments_assets_view_model');
 $paymentMethodsScriptAssets = $assetsViewModel !== null ? $assetsViewModel->getPaymentMethodsScriptAssets() : [];
 ?>
 <?php foreach ($paymentMethodsScriptAssets as $method => $scripts): ?>
-     <?php foreach ($scripts as $key => $script): ?>
-        <script id="<?= $escaper->escapeHtmlAttr($method) ?>_script_<?= $escaper->escapeHtmlAttr($key) ?>"
-                src="<?= isset($script['url']) ? $escaper->escapeUrl($script['url']) : '' ?>"></script>
+    <?php foreach ($scripts as $index => $script): ?>
+        <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable ?>
+        <?php if (!is_array($script)): ?>
+            <?php continue; ?>
+        <?php endif; ?>
+        <?php // phpcs:enable ?>
+        <script id="<?= $escaper->escapeHtmlAttr($assetsViewModel->getScriptElementId($method, (string) $index)) ?>"
+            <?php foreach ($assetsViewModel->getScriptDataAttributes($script) as $dataAttribute => $value): ?>
+                <?= $escaper->escapeHtmlAttr($dataAttribute) . '="' . $escaper->escapeHtmlAttr($value) . '"' ?>
+            <?php endforeach; ?>
+                src="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>"></script>
     <?php endforeach; ?>
 <?php endforeach; ?>

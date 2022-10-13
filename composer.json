@@ -10,7 +10,7 @@
         "magento/framework": "^103.0",
         "guzzlehttp/guzzle": ">=6",
         "magento/module-catalog": "^104.0",
-        "rvvup/sdk": "0.6.0",
+        "rvvup/sdk": "0.7.0",
         "ext-json": "*",
         "php": "^7.3 || ^8.0"
     },

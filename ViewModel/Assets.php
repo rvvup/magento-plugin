@@ -95,6 +95,40 @@ class Assets implements ArgumentInterface
     }
 
     /**
+     * Get the generated ID for a script element by its method and index key.
+     *
+     * @param string $method
+     * @param string $index
+     * @return string
+     */
+    public function getScriptElementId(string $method, string $index): string
+    {
+        return $method . '_script_' . $index;
+    }
+
+    /**
+     * Get the URL param of the script element if set & string, otherwise empty string.
+     *
+     * @param array $scriptData
+     * @return string
+     */
+    public function getScriptElementSrc(array $scriptData): string
+    {
+        return isset($scriptData['url']) && is_string($scriptData['url']) ? $scriptData['url'] : '';
+    }
+
+    /**
+     * @param array $scriptData
+     * @return array
+     */
+    public function getScriptDataAttributes(array $scriptData): array
+    {
+        return empty($scriptData['attributes']) || !is_array($scriptData['attributes'])
+            ? []
+            : $scriptData['attributes'];
+    }
+
+    /**
      * Get the assets of all the available payment methods.
      *
      * @return array
