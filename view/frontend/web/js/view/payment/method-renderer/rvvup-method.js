@@ -45,7 +45,6 @@ define([
                         width = event.data.hasOwnProperty('width') ? event.data.width : null;
                     switch (event.data.type) {
                         case 'rvvup-payment-modal|close':
-                            debugger
                             loader.startLoader();
                             window.location.href = '/rvvup/redirect/cancel'
                             break;
@@ -64,7 +63,6 @@ define([
                             break;
                         case "rvvup-payment-modal|prevent-close":
                             this.modal._destroyOverlay();
-                            debugger;
                     }
                 }, false);
 
@@ -256,35 +254,32 @@ define([
                 this.showModal(url)
             },
             outerClickHandler: function (event) {
-                let self = this
                 loader.startLoader()
-                var myModal = modal;
-                
-                debugger
                 storage.get(
                     'rvvup/ajax/cancel',
                     true
                 ).done(function (data) {
-                    debugger
-                    myModal.closeModal()
+                    this.modal.closeModal()
                     loader.stopLoader()
-                    errorProcessor.process(data, self.messageContainer);
-                })
+                    let response = {
+                        responseText: JSON.stringify(data)
+                    }
+                    errorProcessor.process(response, this.messageContainer);
+                }.bind(this));
             },
             showModal: function (url) {
                 if (!this.modal) {
                     var options = {
                         type: 'popup',
-                        responsive: true,
-                        outerClickHandler: this.outerClickHandler,
+                        outerClickHandler: this.outerClickHandler.bind(this),
                         innerScroll: true,
                         modalClass: 'rvvup',
                         buttons: [],
                         popupTpl: popupTpl
                     };
                     this.modal = modal(options, $('#' + this.getModalId()))
-                    loader.stopLoader()
                 }
+                loader.stopLoader()
 
                 let iframe = document.getElementById(this.getIframeId())
 
