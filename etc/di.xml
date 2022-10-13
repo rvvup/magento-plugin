@@ -211,6 +211,7 @@
         <arguments>
             <argument name="processors" xsi:type="array">
                 <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
+                <item name="PENDING" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
                 <item name="REQUIRES_ACTION" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
                 <item name="CANCELLED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Canceled</item>
                 <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Declined</item>
