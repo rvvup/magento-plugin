@@ -147,6 +147,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Controller\Ajax\Cancel">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Controller\Webhook\Index">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>

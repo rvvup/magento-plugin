@@ -45,6 +45,7 @@ define([
                         width = event.data.hasOwnProperty('width') ? event.data.width : null;
                     switch (event.data.type) {
                         case 'rvvup-payment-modal|close':
+                            debugger
                             loader.startLoader();
                             window.location.href = '/rvvup/redirect/cancel'
                             break;
@@ -61,6 +62,9 @@ define([
                             let url = event.data.hasOwnProperty('url') ? event.data.url : '';
                             $('.rvvup-summary[src="' + url + '"]').css({ width, height });
                             break;
+                        case "rvvup-payment-modal|prevent-close":
+                            this.modal._destroyOverlay();
+                            debugger;
                     }
                 }, false);
 
@@ -223,6 +227,7 @@ define([
              */
             afterPlaceOrder: function () {
                 let self = this;
+                loader.startLoader()
 
                 if (self.isPayPalComponent()) {
                     return;
@@ -250,18 +255,35 @@ define([
                 /* Seems redundant but Modal was not called after successful payment otherwise */
                 this.showModal(url)
             },
+            outerClickHandler: function (event) {
+                let self = this
+                loader.startLoader()
+                var myModal = modal;
+                
+                debugger
+                storage.get(
+                    'rvvup/ajax/cancel',
+                    true
+                ).done(function (data) {
+                    debugger
+                    myModal.closeModal()
+                    loader.stopLoader()
+                    errorProcessor.process(data, self.messageContainer);
+                })
+            },
             showModal: function (url) {
                 if (!this.modal) {
                     var options = {
                         type: 'popup',
                         responsive: true,
-                        clickableOverlay: false,
+                        outerClickHandler: this.outerClickHandler,
                         innerScroll: true,
                         modalClass: 'rvvup',
                         buttons: [],
                         popupTpl: popupTpl
                     };
                     this.modal = modal(options, $('#' + this.getModalId()))
+                    loader.stopLoader()
                 }
 
                 let iframe = document.getElementById(this.getIframeId())

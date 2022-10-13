@@ -18,7 +18,7 @@ class FetchUpdate extends AbstractCommand implements CommandInterface
     {
         /** @var Payment $payment */
         $payment = $commandSubject['payment']->getPayment();
-        $paymentId = $payment->getAdditionalInformation('id');
+        $paymentId = $payment->getAdditionalInformation('rvvup_order_id');
         $rvvupOrder = $this->sdkProxy->getOrder($paymentId);
         $state = self::STATE_MAP[$rvvupOrder['status']] ?? 'decline';
         $this->$state($payment);
