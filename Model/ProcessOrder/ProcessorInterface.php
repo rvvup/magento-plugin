@@ -2,16 +2,15 @@
 
 namespace Rvvup\Payments\Model\ProcessOrder;
 
-use Magento\Framework\Controller\Result\Redirect;
 use Magento\Sales\Api\Data\OrderInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 
 interface ProcessorInterface
 {
     /**
      * @param OrderInterface $order
      * @param array $rvvupData
-     * @param Redirect $redirect
-     * @return mixed
+     * @return ProcessOrderResultInterface
      */
-    public function execute(OrderInterface $order, array $rvvupData, Redirect $redirect): void;
+    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface;
 }

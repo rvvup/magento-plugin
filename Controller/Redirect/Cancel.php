@@ -2,16 +2,14 @@
 
 namespace Rvvup\Payments\Controller\Redirect;
 
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Exception;
 use Magento\Framework\App\Action\HttpGetActionInterface;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
-use Rvvup\Payments\Model\SdkProxy;
 
 class Cancel implements HttpGetActionInterface
 {
@@ -50,17 +48,54 @@ class Cancel implements HttpGetActionInterface
     public function execute()
     {
         $order = $this->checkoutSession->getLastRealOrder();
-        /** @var \Magento\Framework\Controller\Result\Redirect $redirect */
 
+        /** @var \Magento\Framework\Controller\Result\Redirect $redirect */
         $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         try {
-            $this->processorPool->getProcessor('CANCELLED')
-                ->execute($order, [], $redirect);
-        } catch (\Exception $e) {
+            $result = $this->processorPool->getProcessor('CANCELLED')->execute($order, []);
+
+            // Set the result message if any to the session.
+            $this->setSessionMessage($result);
+
+            // Restore quote if the result would be of type error.
+            if ($result->getResultType() === ProcessOrderResultInterface::RESULT_TYPE_ERROR) {
+                $this->checkoutSession->restoreQuote();
+            }
+
+            $redirect->setPath($result->getRedirectUrl(), ['_secure' => true]);
+        } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__('An error occurred while processing your payment.'));
             $this->logger->error($e->getMessage());
             $redirect->setPath('checkout/cart', ['_secure' => true]);
         }
         return $redirect;
+    }
+
+    /**
+     * Set the session message in the message container.
+     *
+     * Only handle success & error messages.
+     * Default to Warning container if none of the above.
+     *
+     * @param \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult
+     * @return void
+     */
+    private function setSessionMessage(ProcessOrderResultInterface $processOrderResult): void
+    {
+        // If no message to display, no action.
+        if ($processOrderResult->getCustomerMessage() === null) {
+            return;
+        }
+
+        switch ($processOrderResult->getResultType()) {
+            case ProcessOrderResultInterface::RESULT_TYPE_SUCCESS:
+                $this->messageManager->addSuccessMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                break;
+            case ProcessOrderResultInterface::RESULT_TYPE_ERROR:
+                $this->messageManager->addErrorMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                break;
+            default:
+                $this->messageManager->addWarningMessage(__('%1', $processOrderResult->getCustomerMessage()));
+        }
     }
 }

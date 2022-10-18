@@ -8,8 +8,6 @@ define([
     return function (priceBundle) {
         $.widget('mage.priceBundle', $['mage']['priceBundle'], {
             _init: function () {
-                this._super();
-
                 let priceBox = $(this.options.priceBoxSelector, this.element),
                     dataPriceTypeContainer = priceBox.find('[data-price-type]').first();
 
@@ -19,6 +17,7 @@ define([
                     : 'finalPrice';
 
                 priceBox.on('priceUpdated', this._updateClearpayPriceData.bind(this));
+                this._super();
             },
             /**
              * Update clearpay price data so message box can be updated.

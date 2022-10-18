@@ -9,6 +9,10 @@
                 type="Rvvup\Payments\Model\Environment\GetEnvironmentVersions" />
     <preference for="Rvvup\Payments\Model\PaymentActionsGetInterface"
                 type="Rvvup\Payments\Model\PaymentActionsGet" />
+    <preference for="Rvvup\Payments\Api\Data\ProcessOrderResultInterface"
+                type="Rvvup\Payments\Model\ProcessOrderResult" />
+    <preference for="Rvvup\Payments\Model\Payment\PaymentDataGetInterface"
+                type="Rvvup\Payments\Model\Payment\PaymentDataGet" />
 
     <!-- Custom Rvvup Logger -->
     <virtualType name="RvvupLogHandler" type="\Magento\Framework\Logger\Handler\Base">
@@ -72,11 +76,8 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="initialize" xsi:type="string">Rvvup\Payments\Gateway\Command\InitializeCommand</item>
-                <item name="sale" xsi:type="string">Rvvup\Payments\Gateway\Command\Sale</item>
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
-                <item name="fetch_transaction_information"
-                      xsi:type="string">Rvvup\Payments\Gateway\Command\FetchUpdate</item>
             </argument>
         </arguments>
     </virtualType>
@@ -225,18 +226,6 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Model\ProcessOrder\Declined">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Model\ProcessOrder\Canceled">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
-    </type>
-
     <type name="Rvvup\Payments\Model\Environment\GetEnvironmentVersions">
         <arguments>
             <argument name="fileIo" xsi:type="object">Magento\Framework\Filesystem\Io\File</argument>
@@ -245,6 +234,66 @@
     </type>
 
     <type name="Rvvup\Payments\Model\PaymentActionsGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Observer\EmailSenderAfterPaymentCompleteObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\Payment\PaymentDataGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\Canceled">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\Complete">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\Declined">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\Processing">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Cancelled\AddOrderHistoryCommentObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Complete\EmailSenderObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Declined\AddOrderHistoryCommentObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Processing\AddOrderHistoryCommentObserver">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>

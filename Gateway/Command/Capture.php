@@ -1,12 +1,12 @@
-<?php declare(strict_types=1);
-// phpcs:ignoreFile
+<?php
+
+declare(strict_types=1);
+
 namespace Rvvup\Payments\Gateway\Command;
 
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Sales\Model\Order\Payment;
-use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Model\SdkProxy;
 
 class Capture extends AbstractCommand implements CommandInterface
 {
@@ -32,9 +32,6 @@ class Capture extends AbstractCommand implements CommandInterface
     {
         $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
         $payment->setTransactionId($rvvupOrderId);
-        $order = $payment->getOrder();
-        $order->setState('processing');
-        $order->setStatus('processing');
     }
 
     /**
@@ -44,9 +41,6 @@ class Capture extends AbstractCommand implements CommandInterface
     private function defer(Payment $payment): void
     {
         $payment->setIsTransactionPending(true);
-        $order = $payment->getOrder();
-        $order->setState('pending');
-        $order->setStatus('pending');
     }
 
     /**

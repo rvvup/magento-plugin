@@ -1,5 +1,5 @@
 <?php declare(strict_types=1);
-// phpcs:ignoreFile
+
 namespace Rvvup\Payments\Gateway\Command;
 
 use Magento\Payment\Gateway\Command\CommandException;

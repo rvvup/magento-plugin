@@ -2,91 +2,125 @@
 
 namespace Rvvup\Payments\Model\ProcessOrder;
 
-use Magento\Framework\Message\ManagerInterface;
+use Exception;
+use Magento\Framework\Event\ManagerInterface as EventManager;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\InvoiceOrderInterface;
-use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order\Payment\Transaction;
-use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
-use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Model\Payment\Rvvup;
-use Magento\Framework\Controller\Result\Redirect;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
+use Rvvup\Payments\Controller\Redirect\In;
+use Rvvup\Payments\Exception\PaymentValidationException;
+use Rvvup\Payments\Gateway\Method;
 
 class Processing implements ProcessorInterface
 {
-    /** @var InvoiceService */
-    private $invoiceService;
-    /** @var ManagerInterface */
-    private $messageManager;
-    /** @var LoggerInterface */
-    private $logger;
-    /** @var InvoiceOrderInterface */
-    private $invoiceOrder;
-    /** @var BuilderInterface */
-    private $transactionBuilder;
+    public const TYPE = 'processing';
+
+    /** @var EventManager */
+    private $eventManager;
     /** @var OrderRepositoryInterface */
     private $orderRepository;
-    /** @var InvoiceRepositoryInterface */
-    private $invoiceRepository;
+    /** @var ProcessOrderResultInterfaceFactory */
+    private $processOrderResultFactory;
+    /** @var LoggerInterface|RvvupLog */
+    private $logger;
 
     /**
-     * @param InvoiceService $invoiceService
-     * @param ManagerInterface $messageManager
-     * @param LoggerInterface $logger
-     * @param InvoiceOrderInterface $invoiceOrder
-     * @param InvoiceRepositoryInterface $invoiceRepository
-     * @param BuilderInterface $builder
+     * @param EventManager $eventManager
      * @param OrderRepositoryInterface $orderRepository
+     * @param ProcessOrderResultInterfaceFactory $processOrderResultFactory
+     * @param LoggerInterface $logger
+     * @return void
      */
     public function __construct(
-        InvoiceService $invoiceService,
-        ManagerInterface $messageManager,
-        LoggerInterface $logger,
-        InvoiceOrderInterface $invoiceOrder,
-        InvoiceRepositoryInterface $invoiceRepository,
-        BuilderInterface $builder,
-        OrderRepositoryInterface $orderRepository
+        EventManager $eventManager,
+        OrderRepositoryInterface $orderRepository,
+        ProcessOrderResultInterfaceFactory $processOrderResultFactory,
+        LoggerInterface $logger
     ) {
-        $this->invoiceService = $invoiceService;
-        $this->messageManager = $messageManager;
-        $this->logger = $logger;
-        $this->invoiceOrder = $invoiceOrder;
-        $this->transactionBuilder = $builder;
+        $this->eventManager = $eventManager;
         $this->orderRepository = $orderRepository;
-        $this->invoiceRepository = $invoiceRepository;
+        $this->processOrderResultFactory = $processOrderResultFactory;
+        $this->logger = $logger;
     }
 
-    public function execute(OrderInterface $order, array $rvvupData, Redirect $redirect): void
+    /**
+     * Change state & state of order to `Payment Review`.
+     *
+     * @param OrderInterface $order
+     * @param array $rvvupData
+     * @return ProcessOrderResultInterface
+     * @throws PaymentValidationException
+     */
+    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
     {
-        try {
-            $payment = $order->getPayment();
-            $invoice = $this->invoiceService->prepareInvoice($order);
-            $transactionBuilder = $this->transactionBuilder->setPayment($payment);
-            $transactionBuilder->setOrder($order);
-            $transactionBuilder->setFailSafe(true);
-            $transactionBuilder->setTransactionId($payment->getLastTransId());
-            $transactionBuilder->setAdditionalInformation($payment->getTransactionAdditionalInfo());
-            $transactionBuilder->setSalesDocument($invoice);
-            $transaction = $transactionBuilder->build(Transaction::TYPE_CAPTURE);
-            $this->orderRepository->save($order);
-            $this->invoiceRepository->save($invoice);
+        /** @var \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult */
+        $processOrderResult = $this->processOrderResultFactory->create();
 
-            //$result = $this->invoiceOrder->execute($order->getEntityId(), true);
-            /** @var \Magento\Sales\Model\Order\Payment $payment */
-            $this->messageManager->addWarningMessage(
+        if ($order->getPayment() === null
+            || stripos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
+        ) {
+            throw new PaymentValidationException(__('Order is not paid via Rvvup'));
+        }
+
+        try {
+            $originalOrderState = $order->getState();
+            $originalOrderStatus = $order->getStatus();
+
+            $order = $this->changeNewOrderStatus($order);
+
+            $this->eventManager->dispatch('rvvup_payments_process_order_processing_after', [
+                'payment_process_type' => self::TYPE,
+                'payment_process_result' => true,
+                'event_message' => 'Rvvup Payment is being processed.',
+                'order_id' => $order->getEntityId(),
+                'rvvup_id' => $rvvupData['id'] ?? null,
+                'original_order_state' => $originalOrderState,
+                'original_order_status' => $originalOrderStatus
+            ]);
+
+            // If we don't set result type, the warning message will be used.
+            $processOrderResult->setCustomerMessage(
                 'Your payment is being processed and is pending confirmation. ' .
                 'You will receive an email confirmation when the payment is confirmed.'
             );
-
-            $redirect->setPath('checkout/onepage/success', ['_secure' => true]);
-        } catch (\Exception $e) {
-            $this->logger->error('Error during order place on SUCCESS status: ' . $e->getMessage());
-            $this->messageManager->addErrorMessage(
-                __('An error occurred while processing your payment. Please contact us.')
+            $processOrderResult->setRedirectUrl(In::SUCCESS);
+        } catch (Exception $e) {
+            $this->logger->error(
+                'Error during order processing on ' . $rvvupData['status'] . ' status: ' . $e->getMessage(),
+                [
+                    'order_id' => $order->getEntityId()
+                ]
             );
-            $redirect->setPath('checkout/cart', ['_secure' => true]);
+
+            $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
+            $processOrderResult->setCustomerMessage(
+                'An error occurred while processing your payment. Please contact us.'
+            );
+            $processOrderResult->setRedirectUrl(In::FAILURE);
         }
+
+        return $processOrderResult;
+    }
+
+    /**
+     * If a payment is till being processed, move the order to pending payment state.
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return \Magento\Sales\Api\Data\OrderInterface
+     */
+    private function changeNewOrderStatus(OrderInterface $order): OrderInterface
+    {
+        // We only change state & status for New Orders
+        if ($order->getState() !== Order::STATE_NEW || $order->getStatus() !== 'pending') {
+            return $order;
+        }
+
+        $order->setState(Order::STATE_PENDING_PAYMENT);
+        $order->setStatus(Order::STATE_PENDING_PAYMENT);
+
+        return $this->orderRepository->save($order);
     }
 }

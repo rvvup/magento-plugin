@@ -9,6 +9,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\SdkProxy;
 
@@ -24,12 +25,14 @@ class In implements HttpGetActionInterface
     /**
      * Set via di.xml
      *
-     * @var SessionManagerInterface|\Magento\Checkout\Model\Session
+     * @var SessionManagerInterface|\Magento\Checkout\Model\Session\Proxy
      */
     private $checkoutSession;
 
     /** @var ManagerInterface */
     private $messageManager;
+    /** @var ProcessorPool */
+    private $processorPool;
 
     /**
      * Set via di.xml
@@ -38,28 +41,35 @@ class In implements HttpGetActionInterface
      */
     private $logger;
 
-    /** @var ProcessorPool */
-    private $processorPool;
-
     public const SUCCESS = 'checkout/onepage/success';
     public const FAILURE = 'checkout/cart';
 
+    /**
+     * @param RequestInterface $request
+     * @param ResultFactory $resultFactory
+     * @param SdkProxy $sdkProxy
+     * @param SessionManagerInterface $checkoutSession
+     * @param ManagerInterface $messageManager
+     * @param ProcessorPool $processorPool
+     * @param LoggerInterface $logger
+     * @return void
+     */
     public function __construct(
         RequestInterface $request,
         ResultFactory $resultFactory,
         SdkProxy $sdkProxy,
         SessionManagerInterface $checkoutSession,
         ManagerInterface $messageManager,
-        LoggerInterface $logger,
-        ProcessorPool $processorPool
+        ProcessorPool $processorPool,
+        LoggerInterface $logger
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
         $this->sdkProxy = $sdkProxy;
         $this->checkoutSession = $checkoutSession;
         $this->messageManager = $messageManager;
-        $this->logger = $logger;
         $this->processorPool = $processorPool;
+        $this->logger = $logger;
     }
 
     /**
@@ -149,9 +159,21 @@ class In implements HttpGetActionInterface
         }
 
         try {
-            $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData, $redirect);
+            $result = $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+
+            // Set the result message if any to the session.
+            $this->setSessionMessage($result);
+
+            // Restore quote if the result would be of type error.
+            if ($result->getResultType() === ProcessOrderResultInterface::RESULT_TYPE_ERROR) {
+                $this->checkoutSession->restoreQuote();
+            }
+
+            $redirect->setPath($result->getRedirectUrl(), ['_secure' => true]);
         } catch (Exception $e) {
-            $this->messageManager->addErrorMessage(__('An error occurred while processing your payment.'));
+            $this->messageManager->addErrorMessage(__(
+                'An error occurred while processing your payment. Please contact us.'
+            ));
             $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
                 'order_id' => $order->getEntityId(),
                 'rvvup_order_id' => $rvvupId,
@@ -161,5 +183,33 @@ class In implements HttpGetActionInterface
         }
 
         return $redirect;
+    }
+
+    /**
+     * Set the session message in the message container.
+     *
+     * Only handle success & error messages.
+     * Default to Warning container if none of the above.
+     *
+     * @param \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult
+     * @return void
+     */
+    private function setSessionMessage(ProcessOrderResultInterface $processOrderResult): void
+    {
+        // If no message to display, no action.
+        if ($processOrderResult->getCustomerMessage() === null) {
+            return;
+        }
+
+        switch ($processOrderResult->getResultType()) {
+            case ProcessOrderResultInterface::RESULT_TYPE_SUCCESS:
+                $this->messageManager->addSuccessMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                break;
+            case ProcessOrderResultInterface::RESULT_TYPE_ERROR:
+                $this->messageManager->addErrorMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                break;
+            default:
+                $this->messageManager->addWarningMessage(__('%1', $processOrderResult->getCustomerMessage()));
+        }
     }
 }

@@ -15,6 +15,13 @@ use Throwable;
 
 class Method extends Adapter
 {
+    public const PAYMENT_TITLE_PREFIX = 'rvvup_';
+
+    private const LOCAL_CONFIG_LOGIC_FIELDS = [
+        'min_order_total' => 'getMinOrderTotal',
+        'max_order_total' => 'getMaxOrderTotal',
+    ];
+
     /** @var string */
     private $title;
     /** @var array */
@@ -26,11 +33,6 @@ class Method extends Adapter
      * @var \Psr\Log\LoggerInterface|RvvupLog
      */
     private $logger;
-
-    private const LOCAL_CONFIG_LOGIC_FIELDS = [
-        'min_order_total' => 'getMinOrderTotal',
-        'max_order_total' => 'getMaxOrderTotal',
-    ];
 
     /**
      * @param ManagerInterface $eventManager

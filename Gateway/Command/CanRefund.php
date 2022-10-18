@@ -2,6 +2,7 @@
 
 namespace Rvvup\Payments\Gateway\Command;
 
+use Exception;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 use Rvvup\Payments\Model\SdkProxy;
 
@@ -24,7 +25,7 @@ class CanRefund implements ValueHandlerInterface
         try {
             $payment = $subject['payment']->getPayment();
             return $this->sdkProxy->isOrderRefundable($payment->getAdditionalInformation('rvvup_order_id'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
