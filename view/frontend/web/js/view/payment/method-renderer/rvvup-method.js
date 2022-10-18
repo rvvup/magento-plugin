@@ -41,6 +41,10 @@ define([
             initialize: function () {
                 this._super();
                 window.addEventListener("message", (event) => {
+                    // Prevent listener firing on every component
+                    if (this.getCode() !== this.isChecked()) {
+                        return;
+                    }
                     let height = event.data.hasOwnProperty('height') ? event.data.height : null,
                         width = event.data.hasOwnProperty('width') ? event.data.width : null;
                     switch (event.data.type) {
@@ -52,10 +56,22 @@ define([
                         case 'rvvup-payment-modal|resize':
                             let windowHeight = window.innerHeight,
                                 windowWidth = window.innerWidth,
-                                finalWidth = width === "max" ? windowWidth - 40 : width > windowWidth ? windowWidth : width,
-                                finalHeight = height === "max" ? windowHeight - 40 : height > windowHeight ? windowHeight : height;
-                            $('.checkout-index-index .modal-popup .modal-inner-wrap').animate({width: finalWidth + 'px', height: finalHeight + 'px'}, 400);
-                            $('.checkout-index-index .modal-popup .modal-inner-wrap #' + this.getIframeId()).css({width: finalWidth + 'px', height: finalHeight + 'px'});
+                                chosenWidth = width > windowWidth ? windowWidth : width,
+                                chosenHeight = height > windowHeight ? windowHeight : height,
+                                finalWidth = width === "max" ? windowWidth - 40 : chosenWidth,
+                                finalHeight = height === "max" ? windowHeight - 40 : chosenHeight;
+                            let items = [];
+                            items.push(document.querySelector('.modal-inner-wrap.rvvup'));
+                            items.push(document.getElementById(this.getIframeId()));
+                            items.forEach(function (item) {
+                                item.animate([{
+                                    width: finalWidth + 'px',
+                                    height: finalHeight + 'px'
+                                }], {
+                                    duration: 400,
+                                    fill: 'forwards'
+                                });
+                            })
                             break;
                         case "rvvup-info-widget|resize":
                             let url = event.data.hasOwnProperty('url') ? event.data.url : '';
