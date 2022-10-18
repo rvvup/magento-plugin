@@ -7,6 +7,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 
 class Cancel implements HttpGetActionInterface
@@ -50,11 +51,19 @@ class Cancel implements HttpGetActionInterface
 
         $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         try {
-            $this->processorPool->getProcessor('CANCELLED')
-                ->execute($order, [], $redirect);
+            $result = $this->processorPool->getProcessor('CANCELLED')->execute($order, []);
+
+            // Restore quote if the result would be of type error.
+            if ($result->getResultType() === ProcessOrderResultInterface::RESULT_TYPE_ERROR) {
+                $this->checkoutSession->restoreQuote();
+            }
+
             $this->messageManager->getMessages(true);
             $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-            $response->setData(['success' => true, 'message' => 'Order canceled']);
+            $response->setData([
+                'success' => true,
+                'message' => $result->getCustomerMessage() ?? __('Order cancelled')->getText()
+            ]);
             return $response;
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('An error occurred while processing your payment.'));

@@ -15,6 +15,7 @@ interface ProcessOrderResultInterface
 
     /**
      * Public constants for data attribute values.
+     * ToDo: Find better constants for this as it could be confusing. error is for cancelled/declined payments
      */
     public const RESULT_TYPE_SUCCESS = 'success';
     public const RESULT_TYPE_ERROR = 'error';
