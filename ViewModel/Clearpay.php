@@ -176,7 +176,7 @@ class Clearpay implements ArgumentInterface
      */
     public function getCartTotal(): string
     {
-        return number_format($this->session->getQuote()->getGrandTotal(), 2, '.', '');
+        return number_format((float) $this->session->getQuote()->getGrandTotal(), 2, '.', '');
     }
 
     /**

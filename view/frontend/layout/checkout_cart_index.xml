@@ -4,6 +4,7 @@
     <body>
         <referenceContainer name="cart.summary">
             <block class="Magento\Checkout\Block\Cart"
+                   name="rvvup_payments.checkout_cart_index.methods"
                    template="Rvvup_Payments::cart/methods.phtml"
                    ifconfig="payment/rvvup/active"
                    before="checkout.cart.methods.bottom">
