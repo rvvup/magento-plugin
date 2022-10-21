@@ -7,8 +7,12 @@
                 type="Rvvup\Payments\Model\PaymentMethodsAssetsGet" />
     <preference for="Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface"
                 type="Rvvup\Payments\Model\Environment\GetEnvironmentVersions" />
+    <preference for="Rvvup\Payments\Model\IsPaymentMethodAvailableInterface"
+                type="Rvvup\Payments\Model\IsPaymentMethodAvailable" />
     <preference for="Rvvup\Payments\Model\PaymentActionsGetInterface"
                 type="Rvvup\Payments\Model\PaymentActionsGet" />
+    <preference for="Rvvup\Payments\Model\PaymentMethodsAvailableGetInterface"
+                type="Rvvup\Payments\Model\PaymentMethodsAvailableGet" />
     <preference for="Rvvup\Payments\Api\Data\ProcessOrderResultInterface"
                 type="Rvvup\Payments\Model\ProcessOrderResult" />
     <preference for="Rvvup\Payments\Model\Payment\PaymentDataGetInterface"
@@ -167,6 +171,18 @@
     </type>
 
     <type name="Rvvup\Payments\Model\PaymentMethodsAssetsGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\IsPaymentMethodAvailable">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\PaymentMethodsAvailableGet">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>

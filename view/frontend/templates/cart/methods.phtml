@@ -7,17 +7,15 @@
 $clearpay = $block->getClearpay();
 ?>
 <?php if (!$block->hasError() && $clearpay->showByCart()): ?>
-    <?php $methods = $block->getMethods('methods') ?: $block->getMethods('top_methods') ?>
-    <?php if ($clearpay->showByCart()): ?>
-        <script type="text/x-magento-init">
-            {
-                "*": {
-                    "Rvvup_Payments/js/method/clearpay": {
-                        "storeCode": "<?= /** @noEscape */ $clearpay->getStoreCode() ?>"
-                    }
+    <script type="text/x-magento-init">
+        {
+            "*": {
+                "Rvvup_Payments/js/method/clearpay": {
+                    "storeCode": "<?= /** @noEscape */ $clearpay->getStoreCode() ?>"
                 }
             }
-        </script>
+        }
+    </script>
     <div class="clearpay">
         <afterpay-placement style="display:none" id="clearpay-summary"
             data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
@@ -28,13 +26,4 @@ $clearpay = $block->getClearpay();
             data-modal-theme="<?= $escaper->escapeHtmlAttr($clearpay->getModalTheme()) ?>"
         ></afterpay-placement>
     </div>
-    <?php endif; ?>
-    <ul class="checkout methods items checkout-methods-items">
-        <?php foreach ($methods as $method): ?>
-            <?php $methodHtml = $block->getMethodHtml($method); ?>
-            <?php if (trim($methodHtml) !== ''): ?>
-                <li class="item"><?= /* @noEscape */ $methodHtml ?></li>
-            <?php endif; ?>
-        <?php endforeach; ?>
-    </ul>
 <?php endif; ?>

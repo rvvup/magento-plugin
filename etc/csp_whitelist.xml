@@ -3,18 +3,42 @@
     <policies>
         <policy id="frame-src">
             <values>
-                <value id="rvvup" type="host">*.rvvuptech.com</value>
-                <value id="clearpay" type="host">*.clearpay.co.uk</value>
+                <value id="rvvup-frame" type="host">*.rvvuptech.com</value>
+                <value id="rvvup-clearpay-frame" type="host">*.clearpay.co.uk</value>
+                <value id="rvvup-paypal-frame" type="host">*.paypal.com</value>
+                <value id="rvvup-sandbox-paypal-frame" type="host">*.sandbox.paypal.com</value>
             </values>
         </policy>
         <policy id="script-src">
             <values>
-                <value id="*.afterpay.com" type="host">*.afterpay.com</value>
+                <value id="rvvup-afterpay-script" type="host">*.afterpay.com</value>
+                <value id="rvvup-paypal-script" type="host">*.paypal.com</value>
+                <value id="rvvup-sandbox-paypal-script" type="host">*.sandbox.paypal.com</value>
+                <value id="rvvup-paypal-objects-script" type="host">www.paypalobjects.com</value>
             </values>
         </policy>
         <policy id="img-src">
             <values>
-                <value id="*.afterpay.com" type="host">*.afterpay.com</value>
+                <value id="rvvup-afterpay-img" type="host">*.afterpay.com</value>
+                <value id="rvvup-paypal-img" type="host">*.paypal.com</value>
+                <value id="rvvup-sandbox-paypal-img" type="host">*.sandbox.paypal.com</value>
+                <value id="rvvup-stats-paypal" type="host">*.stats.paypal.com</value>
+            </values>
+        </policy>
+        <policy id="child-src">
+            <values>
+                <value id="rvvup-paypal-child" type="host">*.paypal.com</value>
+            </values>
+        </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="rvvup-paypal-connect" type="host">*.paypal.com</value>
+                <value id="rvvup-sandbox-paypal-connect" type="host">*.sandbox.paypal.com</value>
+            </values>
+        </policy>
+        <policy id="form-action">
+            <values>
+                <value id="rvvup-paypal-form" type="host">*.paypal.com</value>
             </values>
         </policy>
     </policies>

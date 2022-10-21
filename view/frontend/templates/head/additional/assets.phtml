@@ -4,11 +4,16 @@
  *
  * @var \Magento\Framework\View\Element\Template $block
  * @var \Rvvup\Payments\ViewModel\Assets $assetsViewModel
+ * @var null|array|string[] $paymentMethodCodes
  * @var \Magento\Framework\Escaper $escaper
  */
 $assetsViewModel = $block->getData('rvvup_payments_assets_view_model');
+$paymentMethodCodes = $block->getData('rvvup_payments_method_codes');
 
-$paymentMethodsScriptAssets = $assetsViewModel !== null ? $assetsViewModel->getPaymentMethodsScriptAssets() : [];
+// Load specific payment methods if requested.
+$paymentMethodsScriptAssets = $assetsViewModel !== null
+    ? $assetsViewModel->getPaymentMethodsScriptAssets(is_array($paymentMethodCodes) ? $paymentMethodCodes: [])
+    : [];
 ?>
 <?php foreach ($paymentMethodsScriptAssets as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>

@@ -11,7 +11,8 @@ interface PaymentMethodsAssetsGetInterface
      *
      * @param string $value
      * @param string $currency
+     * @param array|string[] $methodCodes // Leave empty for all.
      * @return array
      */
-    public function execute(string $value, string $currency): array;
+    public function execute(string $value, string $currency, array $methodCodes = []): array;
 }

@@ -66,11 +66,12 @@ class Assets implements ArgumentInterface
     }
 
     /**
-     * Get the script assets only of all available payment methods for the current store currency.
+     * Get the script assets for the requested payment methods (all if none requested) for the current store currency.
      *
+     * @param array|string[] $methodCodes
      * @return array
      */
-    public function getPaymentMethodsScriptAssets(): array
+    public function getPaymentMethodsScriptAssets(array $methodCodes = []): array
     {
         $scripts = [];
 
@@ -79,7 +80,7 @@ class Assets implements ArgumentInterface
             return $scripts;
         }
 
-        foreach ($this->getPaymentMethodsAssets() as $paymentMethod => $paymentMethodsAssets) {
+        foreach ($this->getPaymentMethodsAssets($methodCodes) as $paymentMethod => $paymentMethodsAssets) {
             $scripts[$paymentMethod] = [];
 
             foreach ($paymentMethodsAssets as $key => $asset) {
@@ -129,18 +130,19 @@ class Assets implements ArgumentInterface
     }
 
     /**
-     * Get the assets of all the available payment methods.
+     * Get the assets of the requested (or all if none requested) payment methods if available.
      *
+     * @param array|string[] $methodCodes
      * @return array
      */
-    private function getPaymentMethodsAssets(): array
+    private function getPaymentMethodsAssets(array $methodCodes = []): array
     {
         // return empty array if we cannot get the store currency.
         if ($this->getStoreCurrency() === null) {
             return [];
         }
 
-        return $this->paymentMethodsAssetsGet->execute('0', $this->getStoreCurrency());
+        return $this->paymentMethodsAssetsGet->execute('0', $this->getStoreCurrency(), $methodCodes);
     }
 
     /**

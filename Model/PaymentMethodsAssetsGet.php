@@ -38,26 +38,37 @@ class PaymentMethodsAssetsGet implements PaymentMethodsAssetsGetInterface
      *
      * @param string $value
      * @param string $currency
+     * @param array|string[] $methodCodes // Leave empty for all.
      * @return array
      */
-    public function execute(string $value, string $currency): array
+    public function execute(string $value, string $currency, array $methodCodes = []): array
     {
         $assets = [];
 
+        $loadAll = empty($methodCodes);
+
         try {
             foreach ($this->sdkProxy->getMethods($value, $currency) as $method) {
-                if (!isset($method['name'])) {
+                if (!isset($method['name']) || !is_string($method['name'])) {
                     continue;
                 }
 
-                $assets['rvvup_' . mb_strtolower($method['name'])] = $method['assets'] ?? [];
+                $methodName = mb_strtolower($method['name']);
+
+                // If we wanted to load specific methods, check if method is one of the requested.
+                if (!$loadAll && !in_array($methodName, $methodCodes, true)) {
+                    continue;
+                }
+
+                $assets['rvvup_' . $methodName] = $method['assets'] ?? [];
             }
         } catch (Exception $ex) {
             $this->logger->error(
-                'Failed to load all the payment method assets with message: ' . $ex->getMessage(),
+                'Failed to load the payment method assets with message: ' . $ex->getMessage(),
                 [
                     'value' => $value,
-                    'currency' => $currency
+                    'currency' => $currency,
+                    'method_codes' => $methodCodes
                 ]
             );
 
