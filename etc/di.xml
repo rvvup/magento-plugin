@@ -233,11 +233,12 @@
     <type name="Rvvup\Payments\Model\ProcessOrder\ProcessorPool">
         <arguments>
             <argument name="processors" xsi:type="array">
-                <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
+                <item name="CANCELLED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
+                <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
+                <item name="EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
                 <item name="PENDING" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
                 <item name="REQUIRES_ACTION" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
-                <item name="CANCELLED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Canceled</item>
-                <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Declined</item>
+                <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
             </argument>
         </arguments>
     </type>
@@ -267,7 +268,7 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Model\ProcessOrder\Canceled">
+    <type name="Rvvup\Payments\Model\ProcessOrder\Cancel">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
@@ -279,37 +280,19 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Model\ProcessOrder\Declined">
-        <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
-        </arguments>
-    </type>
-
     <type name="Rvvup\Payments\Model\ProcessOrder\Processing">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Cancelled\AddOrderHistoryCommentObserver">
+    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Complete\EmailSenderObserver">
-        <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Declined\AddOrderHistoryCommentObserver">
-        <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\Processing\AddOrderHistoryCommentObserver">
+    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\EmailSenderObserver">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>

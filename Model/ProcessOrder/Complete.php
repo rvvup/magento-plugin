@@ -63,6 +63,8 @@ class Complete implements ProcessorInterface
         $processOrderResult = $this->processOrderResultFactory->create();
 
         try {
+            // Don't notify the customer, this will be done on the event,
+            // as we need to trigger the order confirmation email first & then the invoice if enabled.
             $invoiceId = $this->invoiceOrder->execute($order->getEntityId(), true);
 
             $this->eventManager->dispatch('rvvup_payments_process_order_complete_after', [

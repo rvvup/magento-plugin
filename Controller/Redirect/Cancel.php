@@ -9,6 +9,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
+use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 
 class Cancel implements HttpGetActionInterface
@@ -19,32 +20,41 @@ class Cancel implements HttpGetActionInterface
     private $checkoutSession;
     /** @var ManagerInterface */
     private $messageManager;
-    /** @var LoggerInterface */
-    private $logger;
+    /** @var PaymentDataGetInterface */
+    private $paymentDataGet;
     /** @var ProcessorPool */
     private $processorPool;
+    /** @var LoggerInterface */
+    private $logger;
 
     /**
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
      * @param ManagerInterface $messageManager
-     * @param LoggerInterface $logger
+     * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
+     * @param LoggerInterface $logger
+     * @return void
      */
     public function __construct(
         ResultFactory $resultFactory,
         SessionManagerInterface $checkoutSession,
         ManagerInterface $messageManager,
-        LoggerInterface $logger,
-        ProcessorPool $processorPool
+        PaymentDataGetInterface $paymentDataGet,
+        ProcessorPool $processorPool,
+        LoggerInterface $logger
     ) {
         $this->resultFactory = $resultFactory;
         $this->checkoutSession = $checkoutSession;
         $this->messageManager = $messageManager;
-        $this->logger = $logger;
+        $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
+        $this->logger = $logger;
     }
 
+    /**
+     * @return \Magento\Framework\Controller\ResultInterface|\Magento\Framework\App\ResponseInterface
+     */
     public function execute()
     {
         $order = $this->checkoutSession->getLastRealOrder();
@@ -52,7 +62,13 @@ class Cancel implements HttpGetActionInterface
         /** @var \Magento\Framework\Controller\Result\Redirect $redirect */
         $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         try {
-            $result = $this->processorPool->getProcessor('CANCELLED')->execute($order, []);
+            $rvvupData = $this->paymentDataGet->execute(
+                $order->getPayment() !== null && $order->getPayment()->getCcTransId() !== null
+                    ? $order->getPayment()->getCcTransId()
+                    : ''
+            );
+
+            $result = $this->processorPool->getProcessor($rvvupData['status'] ?? '')->execute($order, $rvvupData);
 
             // Set the result message if any to the session.
             $this->setSessionMessage($result);
@@ -66,7 +82,7 @@ class Cancel implements HttpGetActionInterface
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__('An error occurred while processing your payment.'));
             $this->logger->error($e->getMessage());
-            $redirect->setPath('checkout/cart', ['_secure' => true]);
+            $redirect->setPath(In::FAILURE, ['_secure' => true]);
         }
         return $redirect;
     }
@@ -89,13 +105,13 @@ class Cancel implements HttpGetActionInterface
 
         switch ($processOrderResult->getResultType()) {
             case ProcessOrderResultInterface::RESULT_TYPE_SUCCESS:
-                $this->messageManager->addSuccessMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                $this->messageManager->addSuccessMessage(__($processOrderResult->getCustomerMessage()));
                 break;
             case ProcessOrderResultInterface::RESULT_TYPE_ERROR:
-                $this->messageManager->addErrorMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                $this->messageManager->addErrorMessage(__($processOrderResult->getCustomerMessage()));
                 break;
             default:
-                $this->messageManager->addWarningMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                $this->messageManager->addWarningMessage(__($processOrderResult->getCustomerMessage()));
         }
     }
 }

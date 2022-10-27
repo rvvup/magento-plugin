@@ -4,14 +4,20 @@ namespace Rvvup\Payments\Model\Payment;
 
 class Rvvup
 {
-    /** @var string The needs to do something to finalise the transaction */
-    public const STATUS_REQUIRES_ACTION = 'REQUIRES_ACTION';
-    /** @var string Customer has clicked place order but has not finished all steps  */
-    public const STATUS_PENDING = 'PENDING';
-    /** @var string Payment was completed sucessfully */
-    public const STATUS_SUCCEEDED = 'SUCCEEDED';
-    /** @var string Customer aborted the payment */
+    /**
+     * Curative list of available RVVUP Status constants.
+     *
+     * CANCELLED: Customer aborted the payment.
+     * DECLINED: Customer's issuing bank rejected the payment.
+     * EXPIRED: Customer's pending payment time to complete has expired.
+     * PENDING: Customer has clicked place order but has not finished all steps.
+     * REQUIRES_ACTION: This needs to do something to finalise the transaction
+     * SUCCEEDED: Payment was completed successfully.
+     */
     public const STATUS_CANCELLED = 'CANCELLED';
-    /** @var string Customer's issuing bank rejected the payment */
     public const STATUS_DECLINED = 'DECLINED';
+    public const STATUS_EXPIRED = 'EXPIRED';
+    public const STATUS_PENDING = 'PENDING';
+    public const STATUS_REQUIRES_ACTION = 'REQUIRES_ACTION';
+    public const STATUS_SUCCEEDED = 'SUCCEEDED';
 }

@@ -5,8 +5,8 @@
         <observer name="Rvvup_Payments::gateway_data_assign" instance="Rvvup\Payments\Observer\DataAssignObserver" />
     </event>
 
-    <event name="rvvup_payments_process_order_cancelled_after">
-        <observer name="Rvvup_Payments::Model\ProcessOrder\Cancelled\AddOrderHistoryCommentObserver"
+    <event name="rvvup_payments_process_order_cancel_after">
+        <observer name="Rvvup_Payments::Model\ProcessOrder\Cancel\AddOrderHistoryCommentObserver"
                   instance="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver"
                   shared="false" />
     </event>
@@ -14,12 +14,6 @@
     <event name="rvvup_payments_process_order_complete_after">
         <observer name="Rvvup_Payments::Model\ProcessOrder\Complete\EmailSenderObserver"
                   instance="Rvvup\Payments\Observer\Model\ProcessOrder\EmailSenderObserver"
-                  shared="false" />
-    </event>
-
-    <event name="rvvup_payments_process_order_declined_after">
-        <observer name="Rvvup_Payments::Model\ProcessOrder\Declined\AddOrderHistoryCommentObserver"
-                  instance="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver"
                   shared="false" />
     </event>
 

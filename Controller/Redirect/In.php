@@ -10,30 +10,30 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
+use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
-use Rvvup\Payments\Model\SdkProxy;
 
 class In implements HttpGetActionInterface
 {
+    public const SUCCESS = 'checkout/onepage/success';
+    public const FAILURE = 'checkout/cart';
+
     /** @var RequestInterface */
     private $request;
     /** @var ResultFactory */
     private $resultFactory;
-    /** @var SdkProxy */
-    private $sdkProxy;
-
     /**
      * Set via di.xml
      *
      * @var SessionManagerInterface|\Magento\Checkout\Model\Session\Proxy
      */
     private $checkoutSession;
-
     /** @var ManagerInterface */
     private $messageManager;
+    /** @var PaymentDataGetInterface */
+    private $paymentDataGet;
     /** @var ProcessorPool */
     private $processorPool;
-
     /**
      * Set via di.xml
      *
@@ -41,15 +41,12 @@ class In implements HttpGetActionInterface
      */
     private $logger;
 
-    public const SUCCESS = 'checkout/onepage/success';
-    public const FAILURE = 'checkout/cart';
-
     /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
-     * @param SdkProxy $sdkProxy
      * @param SessionManagerInterface $checkoutSession
      * @param ManagerInterface $messageManager
+     * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
      * @return void
@@ -57,17 +54,17 @@ class In implements HttpGetActionInterface
     public function __construct(
         RequestInterface $request,
         ResultFactory $resultFactory,
-        SdkProxy $sdkProxy,
         SessionManagerInterface $checkoutSession,
         ManagerInterface $messageManager,
+        PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
         LoggerInterface $logger
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
-        $this->sdkProxy = $sdkProxy;
         $this->checkoutSession = $checkoutSession;
         $this->messageManager = $messageManager;
+        $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
         $this->logger = $logger;
     }
@@ -131,7 +128,7 @@ class In implements HttpGetActionInterface
 
         // Then get the Rvvup Order by its ID. Rvvup's redirect In action should always have the correct ID.
         try {
-            $rvvupData = $this->sdkProxy->getOrder($rvvupId);
+            $rvvupData = $this->paymentDataGet->execute($rvvupId);
         } catch (Exception $ex) {
             $this->logger->error('Error while fetching Rvvup Order with message: ' . $ex->getMessage(), [
                 'rvvup_order_id' => $rvvupId
@@ -203,13 +200,13 @@ class In implements HttpGetActionInterface
 
         switch ($processOrderResult->getResultType()) {
             case ProcessOrderResultInterface::RESULT_TYPE_SUCCESS:
-                $this->messageManager->addSuccessMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                $this->messageManager->addSuccessMessage(__($processOrderResult->getCustomerMessage()));
                 break;
             case ProcessOrderResultInterface::RESULT_TYPE_ERROR:
-                $this->messageManager->addErrorMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                $this->messageManager->addErrorMessage(__($processOrderResult->getCustomerMessage()));
                 break;
             default:
-                $this->messageManager->addWarningMessage(__('%1', $processOrderResult->getCustomerMessage()));
+                $this->messageManager->addWarningMessage(__($processOrderResult->getCustomerMessage()));
         }
     }
 }
