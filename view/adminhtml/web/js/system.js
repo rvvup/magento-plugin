@@ -8,7 +8,15 @@ require(['jquery', 'Magento_Ui/js/modal/alert', 'mage/translate', 'domReady!'], 
         $(this).text($t("We're validating your credentials...")).attr('disabled', true);
 
         var self = this;
-        $.get(endpoint).done(function (res) {
+        let jwt = $('[data-ui-id="password-groups-rvvup-fields-jwt-value"]').val();
+        $.ajax({
+            type: 'POST',
+            url: endpoint,
+            data: {
+                jwt: jwt,
+            },
+            showLoader: true
+        }).done(function (res) {
             $('<div class="message message-success rvvup-credentials-success-message">' + res.message + '</div>').insertAfter(self);
         }).fail(function (res) {
             alert({

@@ -8,7 +8,6 @@ use Magento\Payment\Helper\Data;
 use Magento\Payment\Model\Method\Factory;
 use Magento\Payment\Model\MethodInterface;
 use Rvvup\Payments\Model\ConfigInterface;
-use Rvvup\Payments\Model\Payment\RvvupFactory;
 use Rvvup\Payments\Model\SdkProxy;
 
 class LoadMethods
@@ -17,9 +16,7 @@ class LoadMethods
     private $config;
     /** @var SdkProxy */
     private $sdkProxy;
-    /** @var RvvupFactory */
-    private $rvvupFactory;
-    /** @var null */
+    /** @var array|null */
     private $processed = null;
     /** @var array */
     private $instances = [];
@@ -35,20 +32,18 @@ class LoadMethods
     /**
      * @param ConfigInterface $config
      * @param SdkProxy $sdkProxy
-     * @param RvvupFactory $rvvupFactory
      * @param Factory $methodFactory
      * @param SessionManagerInterface $checkoutSession
+     * @return void
      */
     public function __construct(
         ConfigInterface $config,
         SdkProxy $sdkProxy,
-        RvvupFactory $rvvupFactory,
         Factory $methodFactory,
         SessionManagerInterface $checkoutSession
     ) {
         $this->config = $config;
         $this->sdkProxy = $sdkProxy;
-        $this->rvvupFactory = $rvvupFactory;
         $this->methodFactory = $methodFactory;
         $this->checkoutSession = $checkoutSession;
     }

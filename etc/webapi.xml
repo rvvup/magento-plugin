@@ -22,4 +22,11 @@
             <parameter name="customerId" force="true">%customer_id%</parameter>
         </data>
     </route>
+    <!-- Get Rvvup Payment Group Session messages (both guest & logged-in users) -->
+    <route url="/V1/rvvup/payments/session/messages" method="GET">
+        <service class="Rvvup\Payments\Api\SessionMessagesGetInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

@@ -86,7 +86,7 @@ class Processing implements ProcessorInterface
                 'Your payment is being processed and is pending confirmation. ' .
                 'You will receive an email confirmation when the payment is confirmed.'
             );
-            $processOrderResult->setRedirectUrl(In::SUCCESS);
+            $processOrderResult->setRedirectPath(In::SUCCESS);
         } catch (Exception $e) {
             $this->logger->error(
                 'Error during order processing on ' . $rvvupData['status'] . ' status: ' . $e->getMessage(),
@@ -99,7 +99,7 @@ class Processing implements ProcessorInterface
             $processOrderResult->setCustomerMessage(
                 'An error occurred while processing your payment. Please contact us.'
             );
-            $processOrderResult->setRedirectUrl(In::FAILURE);
+            $processOrderResult->setRedirectPath(In::FAILURE);
         }
 
         return $processOrderResult;

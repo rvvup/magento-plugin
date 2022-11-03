@@ -223,7 +223,7 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      */
     private function getPaymentActionDataObject(array $paymentAction): PaymentActionInterface
     {
-        /** @var PaymentActionInterface $paymentActionData */
+        /** @var \Rvvup\Payments\Api\Data\PaymentActionInterface $paymentActionData */
         $paymentActionData = $this->paymentActionInterfaceFactory->create();
 
         if (isset($paymentAction['type'])) {

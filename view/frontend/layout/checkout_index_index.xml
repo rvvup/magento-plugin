@@ -13,5 +13,13 @@
                 </arguments>
             </block>
         </referenceBlock>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="rvvup_payments.checkout_index_index.checkout.payment.messages"
+                   template="Rvvup_Payments::checkout/payment/messages.phtml"
+                   ifconfig="payment/rvvup/active"
+                   before="-">
+            </block>
+        </referenceContainer>
     </body>
 </page>

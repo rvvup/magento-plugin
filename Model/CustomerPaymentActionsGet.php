@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
 
-use Rvvup\Payments\Api\Data\PaymentActionInterface;
-use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
 use Rvvup\Payments\Api\CustomerPaymentActionsGetInterface;
 
 class CustomerPaymentActionsGet implements CustomerPaymentActionsGetInterface
@@ -29,7 +27,7 @@ class CustomerPaymentActionsGet implements CustomerPaymentActionsGetInterface
      *
      * @param string $customerId
      * @param string $cartId
-     * @return PaymentActionInterface[]
+     * @return \Rvvup\Payments\Api\Data\PaymentActionInterface[]
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function execute(string $customerId, string $cartId): array

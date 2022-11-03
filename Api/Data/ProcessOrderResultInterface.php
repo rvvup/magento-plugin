@@ -10,7 +10,7 @@ interface ProcessOrderResultInterface
      * Public constants for data attributes.
      */
     public const RESULT_TYPE = 'result_type';
-    public const REDIRECT_URL = 'redirect_url';
+    public const REDIRECT_PATH = 'redirect_path';
     public const CUSTOMER_MESSAGE = 'customer_message';
 
     /**
@@ -36,19 +36,19 @@ interface ProcessOrderResultInterface
     public function setResultType(string $resultType): void;
 
     /**
-     * Get the expected Redirect URL.
+     * Get the expected Redirect Path.
      *
      * @return string|null
      */
-    public function getRedirectUrl(): ?string;
+    public function getRedirectPath(): ?string;
 
     /**
-     * Set the expected Redirect URL.
+     * Set the expected Redirect Path.
      *
-     * @param string $redirectUrl
+     * @param string $redirectPath
      * @return void
      */
-    public function setRedirectUrl(string $redirectUrl): void;
+    public function setRedirectPath(string $redirectPath): void;
 
     /**
      * Get the customer message.

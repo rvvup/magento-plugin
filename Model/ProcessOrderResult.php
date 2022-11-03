@@ -37,24 +37,24 @@ class ProcessOrderResult extends DataObject implements ProcessOrderResultInterfa
     }
 
     /**
-     * Get the expected Redirect URL.
+     * Get the expected Redirect Path.
      *
      * @return string|null
      */
-    public function getRedirectUrl(): ?string
+    public function getRedirectPath(): ?string
     {
-        return $this->getData(self::REDIRECT_URL);
+        return $this->getData(self::REDIRECT_PATH);
     }
 
     /**
-     * Set the expected Redirect URL.
+     * Set the expected Redirect Path.
      *
-     * @param string $redirectUrl
+     * @param string $redirectPath
      * @return void
      */
-    public function setRedirectUrl(string $redirectUrl): void
+    public function setRedirectPath(string $redirectPath): void
     {
-        $this->setData(self::REDIRECT_URL, $redirectUrl);
+        $this->setData(self::REDIRECT_PATH, $redirectPath);
     }
 
     /**

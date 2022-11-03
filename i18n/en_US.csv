@@ -1,1 +1,2 @@
 "An error occurred while processing your payment.", "An error occurred while processing your payment.", module, Rvvup_Payments
+"An error occurred while processing your payment (ID %1). Please contact us.", "An error occurred while processing your payment (ID %1). Please contact us.", module, Rvvup_Payments

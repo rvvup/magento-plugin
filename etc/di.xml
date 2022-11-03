@@ -126,12 +126,6 @@
         <plugin name="Rvvup_Payments::loadMethods" type="Rvvup\Payments\Plugin\LoadMethods"/>
     </type>
 
-    <type name="Rvvup\Payments\Model\Payment\Rvvup">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
-    </type>
-
     <type name="Rvvup\Payments\Controller\Redirect\Out">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
@@ -147,12 +141,6 @@
     </type>
 
     <type name="Rvvup\Payments\Controller\Redirect\Cancel">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Controller\Ajax\Cancel">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
@@ -251,12 +239,6 @@
     </type>
 
     <type name="Rvvup\Payments\Model\PaymentActionsGet">
-        <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Observer\EmailSenderAfterPaymentCompleteObserver">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>

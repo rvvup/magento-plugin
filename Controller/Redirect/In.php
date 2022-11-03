@@ -10,13 +10,18 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
+use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 
 class In implements HttpGetActionInterface
 {
+    /**
+     * Path constants for different redirects.
+     */
     public const SUCCESS = 'checkout/onepage/success';
-    public const FAILURE = 'checkout/cart';
+    public const FAILURE = 'checkout';
+    public const ERROR = 'checkout/cart';
 
     /** @var RequestInterface */
     private $request;
@@ -25,7 +30,7 @@ class In implements HttpGetActionInterface
     /**
      * Set via di.xml
      *
-     * @var SessionManagerInterface|\Magento\Checkout\Model\Session\Proxy
+     * @var \Magento\Framework\Session\SessionManagerInterface|\Magento\Checkout\Model\Session\Proxy
      */
     private $checkoutSession;
     /** @var ManagerInterface */
@@ -37,7 +42,7 @@ class In implements HttpGetActionInterface
     /**
      * Set via di.xml
      *
-     * @var LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|RvvupLog
      */
     private $logger;
 
@@ -70,13 +75,10 @@ class In implements HttpGetActionInterface
     }
 
     /**
-     * @return \Magento\Framework\Controller\Result\Redirect
+     * @return \Magento\Framework\Controller\ResultInterface|\Magento\Framework\Controller\Result\Redirect
      */
     public function execute()
     {
-        /** @var \Magento\Framework\Controller\Result\Redirect $redirect */
-        $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-
         $rvvupId = $this->request->getParam('rvvup-order-id');
 
         // First validate we have a Rvvup Order ID, silently return to basket page.
@@ -84,25 +86,25 @@ class In implements HttpGetActionInterface
         if ($rvvupId === null) {
             $this->logger->error('No Rvvup Order ID provided');
 
-            return $redirect->setPath(self::FAILURE, ['_secure' => true]);
+            return $this->redirectToCart();
         }
 
         // Get Last success order of the checkout session and validate it exists and that it has a payment.
         $order = $this->checkoutSession->getLastRealOrder();
 
-        if ($order === null || $order->getPayment() === null) {
+        if (!$order->getEntityId() || $order->getPayment() === null) {
             $this->logger->error(
-                'Could not find ' . ($order === null ? 'order' : 'payment') . ' for the checkout session',
+                'Could not find ' . (!$order->getEntityId() ? 'order' : 'payment') . ' for the checkout session',
                 [
-                    'order_id' => $order !== null ? $order->getEntityId() : ''
+                    'order_id' => $order->getEntityId()
                 ]
             );
             $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment (ID %1)',
+                'An error occurred while processing your payment (ID %1). Please contact us.',
                 $rvvupId
             ));
 
-            return $redirect->setPath(self::FAILURE, ['_secure' => true]);
+            return $this->redirectToCart();
         }
 
         // Now validate that last payment transaction ID matches the Rvvup ID.
@@ -119,80 +121,85 @@ class In implements HttpGetActionInterface
                 ]
             );
             $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment (ID %1)',
+                'An error occurred while processing your payment (ID %1). Please contact us.',
                 $rvvupId
             ));
 
-            return $redirect->setPath(self::FAILURE, ['_secure' => true]);
+            return $this->redirectToCart();
         }
 
-        // Then get the Rvvup Order by its ID. Rvvup's redirect In action should always have the correct ID.
         try {
+            // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId);
-        } catch (Exception $ex) {
-            $this->logger->error('Error while fetching Rvvup Order with message: ' . $ex->getMessage(), [
-                'rvvup_order_id' => $rvvupId
-            ]);
 
-            $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment (ID %1)',
-                $rvvupId
-            ));
+            // If no status provided, allow processor exception to be handled natively.
+            $result = $this->processorPool->getProcessor($rvvupData['status'] ?? '')->execute($order, $rvvupData);
 
-            return $redirect->setPath(self::FAILURE, ['_secure' => true]);
-        }
+            /** @var \Magento\Framework\Controller\Result\Redirect $redirect */
+            $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
 
-        if (!isset($rvvupData['status'])) {
-            $this->logger->error('Rvvup Order does not have a status returned from the API', [
-                'rvvup_order_id' => $rvvupId
-            ]);
-
-            $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment (ID %1)',
-                $rvvupId
-            ));
-
-            return $redirect->setPath(self::FAILURE, ['_secure' => true]);
-        }
-
-        try {
-            $result = $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
-
-            // Set the result message if any to the session.
-            $this->setSessionMessage($result);
+            $params = ['_secure' => true];
 
             // Restore quote if the result would be of type error.
             if ($result->getResultType() === ProcessOrderResultInterface::RESULT_TYPE_ERROR) {
                 $this->checkoutSession->restoreQuote();
             }
 
-            $redirect->setPath($result->getRedirectUrl(), ['_secure' => true]);
+            // If specifically we are redirecting the user to the checkout page,
+            // set the redirect to the payment step
+            // and set the messages to be added to the custom group.
+            if ($result->getRedirectPath() === self::FAILURE) {
+                $params['_fragment'] = 'payment';
+                $messageGroup = SessionMessageInterface::MESSAGE_GROUP;
+            }
+
+            $this->setSessionMessage($result, $messageGroup ?? null);
+
+            $redirect->setPath($result->getRedirectPath(), $params);
+
+            return $redirect;
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment. Please contact us.'
+                'An error occurred while processing your payment (ID %1). Please contact us.',
+                $rvvupId
             ));
+
             $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
                 'order_id' => $order->getEntityId(),
                 'rvvup_order_id' => $rvvupId,
-                'rvvup_order_status' => $rvvupData['status']
+                'rvvup_order_status' => $rvvupData['status'] ?? ''
             ]);
-            $redirect->setPath(self::FAILURE, ['_secure' => true]);
-        }
 
-        return $redirect;
+            return $this->redirectToCart();
+        }
+    }
+
+    /**
+     * @return \Magento\Framework\Controller\ResultInterface|\Magento\Framework\Controller\Result\Redirect
+     */
+    private function redirectToCart()
+    {
+        return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
+            self::ERROR,
+            ['_secure' => true]
+        );
     }
 
     /**
      * Set the session message in the message container.
      *
      * Only handle success & error messages.
-     * Default to Warning container if none of the above.
+     * Default to Warning container if none of the above
+     * Allow custom message group for the checkout page specifically.
      *
      * @param \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult
+     * @param string|null $messageGroup
      * @return void
      */
-    private function setSessionMessage(ProcessOrderResultInterface $processOrderResult): void
-    {
+    private function setSessionMessage(
+        ProcessOrderResultInterface $processOrderResult,
+        ?string $messageGroup = null
+    ): void {
         // If no message to display, no action.
         if ($processOrderResult->getCustomerMessage() === null) {
             return;
@@ -200,13 +207,13 @@ class In implements HttpGetActionInterface
 
         switch ($processOrderResult->getResultType()) {
             case ProcessOrderResultInterface::RESULT_TYPE_SUCCESS:
-                $this->messageManager->addSuccessMessage(__($processOrderResult->getCustomerMessage()));
+                $this->messageManager->addSuccessMessage(__($processOrderResult->getCustomerMessage()), $messageGroup);
                 break;
             case ProcessOrderResultInterface::RESULT_TYPE_ERROR:
-                $this->messageManager->addErrorMessage(__($processOrderResult->getCustomerMessage()));
+                $this->messageManager->addErrorMessage(__($processOrderResult->getCustomerMessage()), $messageGroup);
                 break;
             default:
-                $this->messageManager->addWarningMessage(__($processOrderResult->getCustomerMessage()));
+                $this->messageManager->addWarningMessage(__($processOrderResult->getCustomerMessage()), $messageGroup);
         }
     }
 }

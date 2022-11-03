@@ -49,10 +49,9 @@ define([
                         width = event.data.hasOwnProperty('width') ? event.data.width : null;
                     switch (event.data.type) {
                         case 'rvvup-payment-modal|close':
-                            loader.startLoader();
-                            window.location.href = '/rvvup/redirect/cancel'
-                            break;
+                            this.setIframeUrl(this.cancelUrl);
 
+                            break;
                         case 'rvvup-payment-modal|resize':
                             let windowHeight = window.innerHeight,
                                 windowWidth = window.innerWidth,
@@ -241,7 +240,7 @@ define([
              */
             afterPlaceOrder: function () {
                 let self = this;
-                loader.startLoader()
+                loader.startLoader();
 
                 if (self.isPayPalComponent()) {
                     return;
@@ -252,7 +251,7 @@ define([
                         if (self.redirectUrl !== null) {
                             self.showRvvupModal(self.redirectUrl);
                         }
-                });
+                    });
             },
             getIframe: function () {
                 let grandTotal = parseFloat(totals.getSegment('grand_total').value);
@@ -269,23 +268,18 @@ define([
                 /* Seems redundant but Modal was not called after successful payment otherwise */
                 this.showModal(url)
             },
+            /**
+             * Handle event when user clicks outside the modal.
+             *
+             * @param event
+             * @returns {Promise<unknown>}
+             */
             outerClickHandler: function (event) {
-                loader.startLoader()
-                storage.get(
-                    'rvvup/ajax/cancel',
-                    true
-                ).done(function (data) {
-                    this.modal.closeModal()
-                    loader.stopLoader()
-                    let response = {
-                        responseText: JSON.stringify(data)
-                    }
-                    errorProcessor.process(response, this.messageContainer);
-                }.bind(this));
+                this.setIframeUrl(this.cancelUrl);
             },
             showModal: function (url) {
                 if (!this.modal) {
-                    var options = {
+                    let options = {
                         type: 'popup',
                         outerClickHandler: this.outerClickHandler.bind(this),
                         innerScroll: true,
@@ -295,8 +289,20 @@ define([
                     };
                     this.modal = modal(options, $('#' + this.getModalId()))
                 }
-                loader.stopLoader()
+                loader.stopLoader();
 
+                if (!this.setIframeUrl(url)) {
+                    return false;
+                }
+
+                this.modal.openModal();
+            },
+            /**
+             * Set the iFrame's URL.
+             *
+             * @param url
+             */
+            setIframeUrl: function (url) {
                 let iframe = document.getElementById(this.getIframeId())
 
                 if (iframe === null) {
@@ -305,7 +311,7 @@ define([
 
                 iframe.src = url;
 
-                this.modal.openModal();
+                return true;
             },
             getModalId: function () {
                 return 'rvvup_modal-' + this.getCode()
@@ -341,7 +347,7 @@ define([
                     true,
                     'application/json'
                 ).done(function (data) {
-                    /* First check get the authorization action */
+                    /* First check get the authorization action & throw error if we don't. */
                     let paymentAction = _.find(data, function(action) {return action.type === 'authorization'});
 
                     if (typeof paymentAction === 'undefined') {
@@ -350,19 +356,21 @@ define([
                         return;
                     }
 
+                    /* Set cancelUrl from cancelAction method */
+                    let cancelAction = _.find(data, function(action) {return action.type === 'cancel'});
+
+                    self.cancelUrl = typeof cancelAction !== 'undefined' && cancelAction.method === 'redirect_url'
+                        ? cancelAction.value
+                        : null;
+
                     /*
-                     * If we have a token authorization type method, then we should have a capture & cancel action.
-                     * Set the values
+                     * If we have a token authorization type method, then we should have a capture action.
                      */
                     if (paymentAction.method === 'token') {
                         let captureAction = _.find(data, function(action) {return action.type === 'capture'});
-                        let cancelAction = _.find(data, function(action) {return action.type === 'cancel'});
 
                         self.captureUrl = typeof captureAction !== 'undefined' && captureAction.method === 'redirect_url'
                             ? captureAction.value
-                            : null;
-                        self.cancelUrl = typeof cancelAction !== 'undefined' && cancelAction.method === 'redirect_url'
-                            ? cancelAction.value
                             : null;
 
                         self.paymentToken = paymentAction.value;

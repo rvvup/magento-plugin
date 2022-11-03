@@ -9,11 +9,20 @@
                 type="Rvvup\Payments\Model\CustomerPaymentActionsGet" />
     <preference for="Rvvup\Payments\Api\GuestPaymentActionsGetInterface"
                 type="Rvvup\Payments\Model\GuestPaymentActionsGet" />
+    <preference for="Rvvup\Payments\Api\SessionMessagesGetInterface"
+                type="Rvvup\Payments\Model\SessionMessagesGet" />
     <preference for="Rvvup\Payments\Api\Data\PaymentActionInterface"
                 type="Rvvup\Payments\Model\PaymentAction" />
+    <preference for="Rvvup\Payments\Api\Data\SessionMessageInterface"
+                type="Rvvup\Payments\Model\SessionMessage" />
 
     <!-- DI -->
     <type name="Rvvup\Payments\Model\GuestPaymentActionsGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\SessionMessagesGet">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>

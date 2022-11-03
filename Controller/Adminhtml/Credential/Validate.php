@@ -2,29 +2,36 @@
 
 namespace Rvvup\Payments\Controller\Adminhtml\Credential;
 
+use GuzzleHttp\Client;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\Json;
-use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\Model\UserAgentBuilder;
+use Rvvup\Sdk\GraphQlSdkFactory;
 
-class Validate extends Action implements HttpGetActionInterface
+class Validate extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Magento_Payment::payment';
 
-    /** @var SdkProxy */
-    private $sdkProxy;
+    /** @var UserAgentBuilder */
+    private $userAgentBuilder;
+    /** @var GraphQlSdkFactory */
+    private $sdkFactory;
 
     /**
      * @param Context $context
-     * @param SdkProxy $sdkProxy
+     * @param UserAgentBuilder $userAgentBuilder
+     * @param GraphQlSdkFactory $sdkFactory
      */
     public function __construct(
         Context $context,
-        SdkProxy $sdkProxy
+        UserAgentBuilder $userAgentBuilder,
+        GraphQlSdkFactory $sdkFactory
     ) {
         parent::__construct($context);
-        $this->sdkProxy = $sdkProxy;
+        $this->userAgentBuilder = $userAgentBuilder;
+        $this->sdkFactory = $sdkFactory;
     }
 
     /**
@@ -34,10 +41,23 @@ class Validate extends Action implements HttpGetActionInterface
     {
         /** @var Json $json */
         $json = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
+        $jwtString = $this->getRequest()->getParam('jwt');
         try {
-            $status = $this->sdkProxy->ping();
+            $parts = explode('.', $jwtString);
+            list($head, $body, $crypto) = $parts;
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
+            $jwt = json_decode(base64_decode($body));
+            $connection = $this->sdkFactory->create([
+                'endpoint' => $jwt->aud,
+                'merchantId' => $jwt->merchantId,
+                'authToken' => base64_encode($jwt->username . ':' . $jwt->password),
+                'userAgent' => $this->userAgentBuilder->get(),
+                'debug' => false,
+                'adapter' => (new Client()),
+            ]);
+            $status = $connection->ping();
             $json->setHttpResponseCode(200);
-            $message = __('Connection to Rvvup successful.');
+            $message = __('Connection to Rvvup successful. Don\'t forget to click save!');
         } catch (\Exception $e) {
             $status = false;
             $json->setHttpResponseCode(400);

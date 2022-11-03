@@ -81,7 +81,7 @@ class Complete implements ProcessorInterface
             // no-action & return success result.
             if ($this->isProcessed($order)) {
                 $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_SUCCESS);
-                $processOrderResult->setRedirectUrl(In::SUCCESS);
+                $processOrderResult->setRedirectPath(In::SUCCESS);
 
                 return $processOrderResult;
             }
@@ -99,7 +99,7 @@ class Complete implements ProcessorInterface
             ]);
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_SUCCESS);
-            $processOrderResult->setRedirectUrl(In::SUCCESS);
+            $processOrderResult->setRedirectPath(In::SUCCESS);
         } catch (Exception $e) {
             $this->logger->error('Error during processing order complete on SUCCESS status: ' . $e->getMessage(), [
                 'order_id' => $order->getEntityId()
@@ -109,7 +109,7 @@ class Complete implements ProcessorInterface
             $processOrderResult->setCustomerMessage(
                 'An error occurred while processing your payment. Please contact us.'
             );
-            $processOrderResult->setRedirectUrl(In::FAILURE);
+            $processOrderResult->setRedirectPath(In::FAILURE);
         }
 
         return $processOrderResult;

@@ -12,9 +12,12 @@
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="jwt" type="obscure" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <field id="jwt" type="obscure" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>API Keys</label>
                     <backend_model>Rvvup\Payments\Model\Config\Jwt\Validator</backend_model>
+                </field>
+                <field id="key_validation" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <frontend_model>\Rvvup\Payments\Block\Adminhtml\CredentialValidator</frontend_model>
                 </field>
                 <field id="environment" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Current Environment</label>
@@ -37,17 +40,14 @@
                     <label>Debug Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="key_validation" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <frontend_model>\Rvvup\Payments\Block\Adminhtml\CredentialValidator</frontend_model>
-                </field>
-                <field id="log_link" translate="label" type="text" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="log_link" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
                     <frontend_model>Rvvup\Payments\Block\Adminhtml\System\Config\Form\Field\LogLink</frontend_model>
                 </field>
-                <field id="sort_order" translate="label" type="text" sortOrder="97" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sort Order</label>
                     <frontend_class>validate-number</frontend_class>
                 </field>
-                <group id="product_restrictions" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <group id="product_restrictions" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Product Restrictions</label>
                     <field id="pdp_message" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>PDP Restriction Message</label>

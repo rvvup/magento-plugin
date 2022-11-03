@@ -13,10 +13,12 @@ use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\Payment\Rvvup;
+use Rvvup\Payments\Traits\HasRvvupDataTrait;
 
 class Cancel implements ProcessorInterface
 {
+    use HasRvvupDataTrait;
+
     public const TYPE = 'cancel';
 
     /**
@@ -40,6 +42,17 @@ class Cancel implements ProcessorInterface
      * @var \Psr\Log\LoggerInterface|RvvupLog
      */
     private $logger;
+
+    /**
+     * List of allowed statuses for Processor.
+     *
+     * @var array
+     */
+    private $allowedStatuses = [
+        Method::STATUS_CANCELLED,
+        Method::STATUS_DECLINED,
+        Method::STATUS_EXPIRED
+    ];
 
     /**
      * @param \Magento\Framework\Event\ManagerInterface|EventManager $eventManager
@@ -68,7 +81,8 @@ class Cancel implements ProcessorInterface
      */
     public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
     {
-        $this->validateRvvupData($rvvupData);
+        $this->validateIdExists($rvvupData);
+        $this->validateStatusAllowed($rvvupData, $this->allowedStatuses);
         $this->validateOrderPayment($order);
 
         $result = $this->orderManagement->cancel($order->getEntityId());
@@ -93,14 +107,14 @@ class Cancel implements ProcessorInterface
         /** @var \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult */
         $processOrderResult = $this->processOrderResultFactory->create();
         $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
-        $processOrderResult->setRedirectUrl(In::FAILURE);
+        $processOrderResult->setRedirectPath(In::FAILURE);
         $processOrderResult->setCustomerMessage('Payment ' . ucfirst(mb_strtolower($rvvupData['status'])));
 
         return $processOrderResult;
     }
 
     /**
-     * The Order's Payment shuld be Rvvup
+     * The Order's Payment should be Rvvup
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $order
      * @return void
@@ -112,31 +126,6 @@ class Cancel implements ProcessorInterface
             || stripos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
         ) {
             throw new PaymentValidationException(__('Order is not paid via Rvvup'));
-        }
-    }
-
-    /**
-     * Rvvup Data should include an ID & relevant Status.
-     *
-     * @param array $rvvupData
-     * @return void
-     * @throws \Rvvup\Payments\Exception\PaymentValidationException
-     */
-    private function validateRvvupData(array $rvvupData): void
-    {
-        if (!isset($rvvupData['id'])) {
-            throw new PaymentValidationException(__('Invalid Rvvup ID'));
-        }
-
-        if (!isset($rvvupData['status'])) {
-            throw new PaymentValidationException(__('Invalid Rvvup status'));
-        }
-
-        if ($rvvupData['status'] !== Rvvup::STATUS_CANCELLED
-            && $rvvupData['status'] !== Rvvup::STATUS_DECLINED
-            && $rvvupData['status'] !== Rvvup::STATUS_EXPIRED
-        ) {
-            throw new PaymentValidationException(__('Invalid Rvvup status'));
         }
     }
 }
