@@ -18,7 +18,7 @@
         "phpunit/phpunit": "^9",
         "magento/magento-coding-standard": "24",
         "dealerdirect/phpcodesniffer-composer-installer": "dev-master",
-        "phpstan/phpstan": "1.8.x"
+        "phpstan/phpstan": "1.9.x"
     },
     "autoload": {
         "files": [
