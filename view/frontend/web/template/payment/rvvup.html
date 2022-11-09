@@ -7,7 +7,7 @@
         <label data-bind="attr: {'for': getCode()}" class="label">
             <span data-bind="text: getTitle()"></span>
         </label>
-        <img data-bind="attr: {'src': getLogoUrl()}" />
+        <img data-bind="attr: {'src': getLogoUrl(),'class': getCode().replace('_','-').toLowerCase() + '-img'}" />
         <br>
         <span data-bind="text: getDescription()"></span>
     </div>
@@ -20,7 +20,6 @@
                 <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-        <p data-bind="text: getDescription()"></p>
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
                 <!-- ko template: getTemplate() --><!-- /ko -->

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Communication/etc/communication.xsd">
+    <topic name="rvvup.webhook" request="int" is_synchronous="false">
+        <handler name="rvvup.webhook.handler" type="Rvvup\Payments\Model\Queue\Handler\Handler" method="execute"/>
+    </topic>
+</config>

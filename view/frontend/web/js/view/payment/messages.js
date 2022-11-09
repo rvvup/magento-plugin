@@ -51,8 +51,20 @@ define([
                                 })
                                 break;
                         }
+
+                        if (data.length > 0) {
+                            self.initClearComponentMessagesTimeOut();
+                        }
                     });
                 });
+        },
+        /**
+         * Initialize a timeout to clear the messages from the relevant component.
+         */
+        initClearComponentMessagesTimeOut: function() {
+            setTimeout(() => {
+                globalMessages.clear();
+            }, 6000);
         },
         /**
          * Get the Message container messages from the API
