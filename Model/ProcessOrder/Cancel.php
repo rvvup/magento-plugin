@@ -89,7 +89,9 @@ class Cancel implements ProcessorInterface
 
         if (!$result) {
             $this->logger->debug('Could not cancel order on cancel processor', [
-                'order_id' => $order->getEntityId()
+                'order_id' => $order->getEntityId(),
+                'order_state' => $order->getState(),
+                'order_status' => $order->getStatus()
             ]);
         }
 

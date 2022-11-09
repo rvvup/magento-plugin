@@ -1,0 +1,15 @@
+{
+  "rvvup_webhook": {
+    "column": {
+      "webhook_id": true,
+      "id": true,
+      "payload": true
+    },
+    "index": {
+      "RVVUP_WEBHOOK_WEBHOOK_ID": true
+    },
+    "constraint": {
+      "PRIMARY": true
+    }
+  }
+}

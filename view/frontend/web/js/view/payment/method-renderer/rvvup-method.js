@@ -37,6 +37,7 @@ define([
                 redirectUrl: null,
                 captureUrl: null,
                 cancelUrl: null,
+                cancelledUrlTriggered: false,
             },
             initialize: function () {
                 this._super();
@@ -49,7 +50,7 @@ define([
                         width = event.data.hasOwnProperty('width') ? event.data.width : null;
                     switch (event.data.type) {
                         case 'rvvup-payment-modal|close':
-                            this.setIframeUrl(this.cancelUrl);
+                            this.triggerModalCancelUrl();
 
                             break;
                         case 'rvvup-payment-modal|resize':
@@ -275,6 +276,18 @@ define([
              * @returns {Promise<unknown>}
              */
             outerClickHandler: function (event) {
+                this.triggerModalCancelUrl()
+            },
+            /**
+             * Handle setting cancel URL in the modal, prevents multiple clicks.
+             */
+            triggerModalCancelUrl: function () {
+                if (!this.cancelUrl || this.cancelledUrlTriggered === true) {
+                    return;
+                }
+
+                this.cancelledUrlTriggered = true;
+
                 this.setIframeUrl(this.cancelUrl);
             },
             showModal: function (url) {
@@ -328,6 +341,7 @@ define([
                 this.redirectUrl = null;
                 this.captureUrl = null;
                 this.cancelUrl = null;
+                this.cancelledUrlTriggered = false;
             },
             /**
              * API request to get Order Payment Actions for Rvvup Payments.

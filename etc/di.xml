@@ -279,4 +279,7 @@
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
+
+    <preference for="Rvvup\Payments\Api\Data\WebhookInterface" type="Rvvup\Payments\Model\Data\WebhookData"/>
+    <preference for="Rvvup\Payments\Api\WebhookRepositoryInterface" type="Rvvup\Payments\Model\WebhookRepository"/>
 </config>

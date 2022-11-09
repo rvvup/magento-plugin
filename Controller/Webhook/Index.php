@@ -9,14 +9,11 @@ use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Api\OrderPaymentRepositoryInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 use Psr\Log\LoggerInterface;
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\MessageQueue\PublisherInterface;
 use Rvvup\Payments\Model\ConfigInterface;
-use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
-use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Model\WebhookRepository;
 
 /**
  * The purpose of this controller is to accept incoming webhooks from Rvvup to update the status of payments
@@ -26,20 +23,16 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 {
     /** @var RequestInterface */
     private $request;
-    /** @var ResultFactory */
-    private $resultFactory;
     /** @var ConfigInterface */
     private $config;
-    /** @var SearchCriteriaBuilder */
-    private $searchCriteriaBuilder;
-    /** @var OrderPaymentRepositoryInterface */
-    private $orderPaymentRepository;
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
-    /** @var PaymentDataGetInterface */
-    private $paymentDataGet;
-    /** @var ProcessorPool */
-    private $processorPool;
+    /** @var SerializerInterface */
+    private $serializer;
+    /** @var ResultFactory */
+    private $resultFactory;
+    /** @var PublisherInterface */
+    private $publisher;
+    /** @var WebhookRepository */
+    private $webhookRepository;
 
     /**
      * Set via di.xml
@@ -50,48 +43,40 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /**
      * @param RequestInterface $request
-     * @param ResultFactory $resultFactory
      * @param ConfigInterface $config
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param OrderPaymentRepositoryInterface $orderPaymentRepository
-     * @param OrderRepositoryInterface $orderRepository
-     * @param PaymentDataGetInterface $paymentDataGet
-     * @param ProcessorPool $processorPool
+     * @param SerializerInterface $serializer
+     * @param ResultFactory $resultFactory
      * @param LoggerInterface $logger
+     * @param PublisherInterface $publisher
+     * @param WebhookRepository $webhookRepository
      */
     public function __construct(
         RequestInterface $request,
-        ResultFactory $resultFactory,
         ConfigInterface $config,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        OrderPaymentRepositoryInterface $orderPaymentRepository,
-        OrderRepositoryInterface $orderRepository,
-        PaymentDataGetInterface $paymentDataGet,
-        ProcessorPool $processorPool,
-        LoggerInterface $logger
+        SerializerInterface $serializer,
+        ResultFactory $resultFactory,
+        LoggerInterface $logger,
+        PublisherInterface $publisher,
+        WebhookRepository $webhookRepository
     ) {
         $this->request = $request;
-        $this->resultFactory = $resultFactory;
         $this->config = $config;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->orderPaymentRepository = $orderPaymentRepository;
-        $this->orderRepository = $orderRepository;
-        $this->paymentDataGet = $paymentDataGet;
-        $this->processorPool = $processorPool;
+        $this->serializer = $serializer;
+        $this->resultFactory = $resultFactory;
         $this->logger = $logger;
+        $this->publisher = $publisher;
+        $this->webhookRepository = $webhookRepository;
     }
 
     /**
-     * ToDO: Move process logic in service running in queue. Controller should just store data and return success.
-     *
      * @return ResultInterface
      */
     public function execute(): ResultInterface
     {
-        $merchantId = $this->request->getParam('merchant_id', false);
-        $rvvupOrderId = $this->request->getParam('order_id', false);
-
         try {
+            $merchantId = $this->request->getParam('merchant_id', false);
+            $rvvupOrderId = $this->request->getParam('order_id', false);
+
             // Ensure required params are present
             if (!$merchantId || !$rvvupOrderId) {
                 /**
@@ -102,65 +87,24 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $this->returnInvalidResponse();
             }
 
-            // Ensure configured merchant_id matches request
+            // Merchant ID does not match, no need to process
             if ($merchantId !== $this->config->getMerchantId()) {
-                /**
-                 * The configuration in Magento is different from the webhook. We don't want Rvvup's backend to
-                 * continually make repeated calls so return a 200 and log the issue.
-                 */
-                $this->logger->warning("`merchant_id` from webhook does not match configuration");
-                return $this->returnSuccessfulResponse();
+                return $this->returnInvalidResponse();
             }
 
-            // Saerch for the payment record by the Rvvup order ID which is stored in the credit card field.
-            $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-                OrderPaymentInterface::CC_TRANS_ID,
-                $rvvupOrderId
-            )->create();
-
-            $resultSet = $this->orderPaymentRepository->getList($searchCriteria);
-
-            // We always expect 1 payment object for a Rvvup Order ID.
-            // Otherwise, this could be a malicious attempt, so log issue & return 200.
-            if ($resultSet->getTotalCount() !== 1) {
-                $this->logger->warning('Webhook error. Payment not found for order.', [
-                    'rvvup_order_id' => $rvvupOrderId,
-                    'payments_count' => $resultSet->getTotalCount()
-                ]);
-
-                return $this->returnSuccessfulResponse();
-            }
-
-            $payments = $resultSet->getItems();
-
-            /** @var \Magento\Sales\Api\Data\OrderPaymentInterface $payment */
-            $payment = reset($payments);
-
-            $order = $this->orderRepository->get($payment->getParentId());
-
-            // if Payment method is not Rvvup, continue.
-            if (stripos($payment->getMethod(), 'rvvup_') !== 0) {
-                return $this->returnSuccessfulResponse();
-            }
-
-            $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
-
-            if (empty($rvvupData) || !isset($rvvupData['status'])) {
-                $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
-                    'rvvup_order_id' => $rvvupOrderId
-                ]);
-
-                return $this->returnExceptionResponse();
-            }
-
-            $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+            $payload = $this->serializer->serialize([
+                'order_id' => $rvvupOrderId,
+                'merchant_id' => $merchantId,
+            ]);
+            $webhook = $this->webhookRepository->new(['payload' => $payload]);
+            $this->webhookRepository->save($webhook);
+            $this->publisher->publish('rvvup.webhook', (int) $webhook->getId());
 
             return $this->returnSuccessfulResponse();
         } catch (Exception $e) {
             $this->logger->debug('Webhook exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,
             ]);
-
             return $this->returnExceptionResponse();
         }
     }
@@ -189,7 +133,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     private function returnSuccessfulResponse(): ResultInterface
     {
         $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
-        $response->setHttpResponseCode(200);
+        /**
+         * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/202
+         * 202 Accepted: request has been accepted for processing, but the processing has not been completed
+         */
+        $response->setHttpResponseCode(202);
 
         return $response;
     }
