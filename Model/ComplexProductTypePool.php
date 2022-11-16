@@ -4,8 +4,10 @@ namespace Rvvup\Payments\Model;
 
 class ComplexProductTypePool
 {
-    /** @var array */
-    private array $productTypes;
+    /**
+     * @var array
+     */
+    private $productTypes;
 
     /**
      * @param array $productTypes
