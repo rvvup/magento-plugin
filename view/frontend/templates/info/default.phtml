@@ -3,7 +3,10 @@
  * @var \Magento\Framework\Escaper $escaper
  * @var \Rvvup\Payments\Block\Info $block
  */
-
+/** Magento 2.3.5 backward compatibility fix */
+if (!isset($escaper)) {
+    $escaper = $block;
+}
 use Rvvup\Payments\Block\Info;
 
 $specificInfo = $block->getSpecificInformation();

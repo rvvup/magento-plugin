@@ -5,7 +5,10 @@
  * @var \Rvvup\Payments\ViewModel\Restrictions $restrictions
  * @var \Magento\Framework\Escaper $escaper
  */
-
+/** Magento 2.3.5 backward compatibility fix */
+if (!isset($escaper)) {
+    $escaper = $block;
+}
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Bundle\Model\Product\Type as Bundle;
 

@@ -4,6 +4,10 @@
  * @var \Rvvup\Payments\ViewModel\Clearpay $clearpay
  * @var \Magento\Framework\Escaper $escaper
  */
+/** Magento 2.3.5 backward compatibility fix */
+if (!isset($escaper)) {
+    $escaper = $block;
+}
 $clearpay = $block->getClearpay();
 ?>
 <?php if (!$block->hasError() && $clearpay->showByCart()): ?>

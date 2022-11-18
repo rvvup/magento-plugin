@@ -7,6 +7,11 @@
  * @var null|array|string[] $paymentMethodCodes
  * @var \Magento\Framework\Escaper $escaper
  */
+/** Magento 2.3.5 backward compatibility fix */
+if (!isset($escaper)) {
+    $escaper = $block;
+}
+
 $assetsViewModel = $block->getData('rvvup_payments_assets_view_model');
 $paymentMethodCodes = $block->getData('rvvup_payments_method_codes');
 
