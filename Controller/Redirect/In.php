@@ -25,20 +25,25 @@ class In implements HttpGetActionInterface
 
     /** @var RequestInterface */
     private $request;
+
     /** @var ResultFactory */
     private $resultFactory;
+
     /**
      * Set via di.xml
-     *
      * @var \Magento\Framework\Session\SessionManagerInterface|\Magento\Checkout\Model\Session\Proxy
      */
     private $checkoutSession;
+
     /** @var ManagerInterface */
     private $messageManager;
+
     /** @var PaymentDataGetInterface */
     private $paymentDataGet;
+
     /** @var ProcessorPool */
     private $processorPool;
+
     /**
      * Set via di.xml
      *
@@ -54,7 +59,6 @@ class In implements HttpGetActionInterface
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
-     * @return void
      */
     public function __construct(
         RequestInterface $request,
@@ -99,10 +103,12 @@ class In implements HttpGetActionInterface
                     'order_id' => $order->getEntityId()
                 ]
             );
-            $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment (ID %1). Please contact us.',
-                $rvvupId
-            ));
+            $this->messageManager->addErrorMessage(
+                __(
+                    'An error occurred while processing your payment (ID %1). Please contact us.',
+                    $rvvupId
+                )
+            );
 
             return $this->redirectToCart();
         }
@@ -120,10 +126,12 @@ class In implements HttpGetActionInterface
                     'rvvup_order_id' => $rvvupId
                 ]
             );
-            $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment (ID %1). Please contact us.',
-                $rvvupId
-            ));
+            $this->messageManager->addErrorMessage(
+                __(
+                    'An error occurred while processing your payment (ID %1). Please contact us.',
+                    $rvvupId
+                )
+            );
 
             return $this->redirectToCart();
         }
@@ -159,10 +167,12 @@ class In implements HttpGetActionInterface
 
             return $redirect;
         } catch (Exception $e) {
-            $this->messageManager->addErrorMessage(__(
-                'An error occurred while processing your payment (ID %1). Please contact us.',
-                $rvvupId
-            ));
+            $this->messageManager->addErrorMessage(
+                __(
+                    'An error occurred while processing your payment (ID %1). Please contact us.',
+                    $rvvupId
+                )
+            );
 
             $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
                 'order_id' => $order->getEntityId(),

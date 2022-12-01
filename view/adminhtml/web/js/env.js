@@ -19,8 +19,10 @@ require(['domReady!'], function () {
                 } else {
                     setEnvMessage(element, 'API key entered environment is UNKNOWN', 'error')
                 }
+                document.getElementById('rvvup_validate_credentials').disabled = false
             } else {
                 setEnvMessage(element, 'Value entered is not a valid API key', 'error')
+                document.getElementById('rvvup_validate_credentials').disabled = true
             }
         })
     })

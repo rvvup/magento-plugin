@@ -7,6 +7,9 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\Json;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\Serializer\Base64Json;
+use Magento\Framework\Serialize\SerializerInterface;
 use Rvvup\Payments\Model\UserAgentBuilder;
 use Rvvup\Sdk\GraphQlSdkFactory;
 
@@ -18,20 +21,25 @@ class Validate extends Action implements HttpPostActionInterface
     private $userAgentBuilder;
     /** @var GraphQlSdkFactory */
     private $sdkFactory;
+    /** @var Base64Json set via di.xml */
+    private $serializer;
 
     /**
      * @param Context $context
      * @param UserAgentBuilder $userAgentBuilder
      * @param GraphQlSdkFactory $sdkFactory
+     * @param Base64Json $serializer set via di.xml
      */
     public function __construct(
         Context $context,
         UserAgentBuilder $userAgentBuilder,
-        GraphQlSdkFactory $sdkFactory
+        GraphQlSdkFactory $sdkFactory,
+        SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->userAgentBuilder = $userAgentBuilder;
         $this->sdkFactory = $sdkFactory;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -44,13 +52,16 @@ class Validate extends Action implements HttpPostActionInterface
         $jwtString = $this->getRequest()->getParam('jwt');
         try {
             $parts = explode('.', $jwtString);
+            if (count($parts) !== 3) {
+                throw new LocalizedException(__('API key is not valid'));
+            }
             list($head, $body, $crypto) = $parts;
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-            $jwt = json_decode(base64_decode($body));
+            $jwt = $this->serializer->unserialize($body);
+            $this->validateJwtPayload($jwt);
             $connection = $this->sdkFactory->create([
-                'endpoint' => $jwt->aud,
-                'merchantId' => $jwt->merchantId,
-                'authToken' => base64_encode($jwt->username . ':' . $jwt->password),
+                'endpoint' => $jwt['aud'],
+                'merchantId' => $jwt['merchantId'],
+                'authToken' => base64_encode($jwt['username'] . ':' . $jwt['password']),
                 'userAgent' => $this->userAgentBuilder->get(),
                 'debug' => false,
                 'adapter' => (new Client()),
@@ -72,5 +83,22 @@ class Validate extends Action implements HttpPostActionInterface
             'message' => $message,
         ]);
         return $json;
+    }
+
+    /**
+     * @param mixed $array
+     * @return void
+     * @throws LocalizedException
+     */
+    private function validateJwtPayload($array): void
+    {
+        if (!is_array($array)
+            || !isset($array['aud'])
+            || !isset($array['merchantId'])
+            || !isset($array['username'])
+            || !isset($array['password'])
+        ) {
+            throw new LocalizedException(__('API key is not valid'));
+        }
     }
 }

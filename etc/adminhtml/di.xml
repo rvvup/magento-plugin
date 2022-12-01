@@ -12,4 +12,9 @@
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
+    <type name="Rvvup\Payments\Controller\Adminhtml\Credential\Validate">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Base64Json</argument>
+        </arguments>
+    </type>
 </config>

@@ -6,6 +6,7 @@ use Exception;
 use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
+use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\SdkProxy;
 
 class TransactionInitialize implements ClientInterface
@@ -16,12 +17,22 @@ class TransactionInitialize implements ClientInterface
     private $sdkProxy;
 
     /**
-     * @param \Rvvup\Payments\Model\SdkProxy $sdkProxy
-     * @return void
+     * Set via di.xml
+     *
+     * @var LoggerInterface|RvvupLog
      */
-    public function __construct(SdkProxy $sdkProxy)
-    {
+    private $logger;
+
+    /**
+     * @param SdkProxy $sdkProxy
+     * @param LoggerInterface $logger
+     */
+    public function __construct(
+        SdkProxy $sdkProxy,
+        LoggerInterface $logger
+    ) {
         $this->sdkProxy = $sdkProxy;
+        $this->logger = $logger;
     }
 
     /**
@@ -34,7 +45,11 @@ class TransactionInitialize implements ClientInterface
         try {
             return $this->sdkProxy->createOrder(['input' => $transferObject->getBody()]);
         } catch (Exception $ex) {
-            throw new ClientException(__('%1', $ex->getMessage()));
+            $this->logger->error(
+                sprintf('Error placing payment request, original exception %s', $ex->getMessage())
+            );
+
+            throw new ClientException(__('Something went wrong'));
         }
     }
 }

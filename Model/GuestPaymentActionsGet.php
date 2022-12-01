@@ -55,7 +55,7 @@ class GuestPaymentActionsGet implements GuestPaymentActionsGetInterface
     public function execute(string $cartId): array
     {
         /** @var \Magento\Quote\Model\QuoteIdMask $quoteIdMask */
-        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id'); // @phpstan-ignore-line
 
         if ($quoteIdMask->getQuoteId() === null) {
             $this->logger->error('Error loading Payment Actions for guest. No quote ID found.', [

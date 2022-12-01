@@ -80,23 +80,6 @@ class ConfigSaveObserver implements ObserverInterface
         }
 
         $this->sendApiDataOnMethodDisabled($event);
-
-        if ($this->appState->getMode() === State::MODE_DEVELOPER) {
-            $this->messageManager->addWarningMessage(
-                'Webhook update bypassed, Magento is in developer mode'
-            );
-            return;
-        }
-        $url = $this->urlBuilder->getDirectUrl('rvvup/webhook');
-
-        try {
-            $this->sdkProxy->registerWebhook($url);
-            $this->messageManager->addSuccessMessage('Webhook URL updated successfully');
-        } catch (Exception $e) {
-            $this->messageManager->addErrorMessage(
-                __('Problem updating Webhook URL: %1', $e->getMessage())
-            );
-        }
     }
 
     /**

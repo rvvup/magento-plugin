@@ -43,9 +43,11 @@ class CredentialValidator extends Field
         $html = <<<TEXT
             <button
                 type="button"
+                id="rvvup_validate_credentials"
                 title="{$title}"
                 class="button"
-                onclick="rvvupValidator.call(this, '{$endpoint}')">
+                onclick="rvvupValidator.call(this, '{$endpoint}')"
+                disabled="true">
                 <span>{$title}</span>
             </button>
 TEXT;

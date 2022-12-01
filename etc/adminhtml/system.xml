@@ -17,7 +17,7 @@
                     <backend_model>Rvvup\Payments\Model\Config\Jwt\Validator</backend_model>
                 </field>
                 <field id="key_validation" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <frontend_model>\Rvvup\Payments\Block\Adminhtml\CredentialValidator</frontend_model>
+                    <frontend_model>Rvvup\Payments\Block\Adminhtml\CredentialValidator</frontend_model>
                 </field>
                 <field id="environment" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Current Environment</label>

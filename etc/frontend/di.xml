@@ -29,4 +29,15 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
+
+    <type name="Rvvup\Payments\Observer\Restore">
+        <arguments>
+        <argument name="restrictedPaths" xsi:type="array">
+            <item name="captcha" xsi:type="string">captcha/refresh</item>
+            <item name="customer_section" xsi:type="string">customer/section/load</item>
+            <item name="rvvup" xsi:type="string">rvvup/redirect/in</item>
+        </argument>
+         <argument name="session" xsi:type="object">Magento\Checkout\Model\Session</argument>
+        </arguments>
+    </type>
 </config>

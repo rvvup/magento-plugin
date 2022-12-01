@@ -115,6 +115,14 @@ class OrderDataBuilder
                     "amount" => $this->toCurrency($item->getPrice()),
                     "currency" => $currency,
                 ],
+                "priceWithTax" => [
+                    "amount" => $this->toCurrency($item->getPriceInclTax()),
+                    "currency" => $currency,
+                ],
+                "tax" => [
+                    "amount" => $this->toCurrency($item->getPriceInclTax() - $item->getPrice()),
+                    "currency" => $currency,
+                ],
                 "quantity" => $this->toQty($item->getQty()),
                 "total" => [
                     "amount" => $this->toCurrency($item->getRowTotal()),
