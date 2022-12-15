@@ -12,8 +12,8 @@ define([
                     dataPriceTypeContainer = priceBox.find('[data-price-type]').first();
 
                 /* Get the price type loaded for the element on the bundle product page */
-                priceType = dataPriceTypeContainer.length === 1 && dataPriceTypeContainer.data('price-type') !== null ?
-                    dataPriceTypeContainer.data('price-type')
+                priceType = dataPriceTypeContainer.length === 1 && dataPriceTypeContainer.data('price-type') !== null
+                    ? dataPriceTypeContainer.data('price-type')
                     : 'finalPrice';
 
                 priceBox.on('priceUpdated', this._updateClearpayPriceData.bind(this));
@@ -31,25 +31,25 @@ define([
                     rvvupMaxPrice = $widget.options.rvvupMax;
 
                 /* If price is not set, no action */
-                if (
-                    !data ||
-                    !data[priceType] ||
-                    !data[priceType].amount
-                ) {
+                if (!data || !data[priceType] || !data[priceType].amount) {
                     return this;
                 }
 
-                if (
-                    data[priceType].amount <= rvvupMinPrice ||
-                    data[priceType].amount >= rvvupMaxPrice
-                ) {
-                    $('.clearpay').hide();
+                let clearpayElement = $('.clearpay');
+
+                if (data[priceType].amount <= rvvupMinPrice || data[priceType].amount >= rvvupMaxPrice) {
+                    clearpayElement.hide();
 
                     return this;
                 }
 
-                document.getElementById('clearpay-summary').dataset.amount = data[priceType].amount;
-                $('.clearpay').show();
+                let clearpaySummaryElement = document.getElementById('clearpay-summary');
+
+                if (clearpaySummaryElement !== null && clearpaySummaryElement.length !== 0) {
+                    clearpaySummaryElement.dataset.amount = data[priceType].amount;
+                }
+
+                clearpayElement.show();
 
                 return this;
             }

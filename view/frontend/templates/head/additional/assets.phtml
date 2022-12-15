@@ -3,8 +3,6 @@
  * Load available assets on any template, currently used for PayPal only
  *
  * @var \Magento\Framework\View\Element\Template $block
- * @var \Rvvup\Payments\ViewModel\Assets $assetsViewModel
- * @var null|array|string[] $paymentMethodCodes
  * @var \Magento\Framework\Escaper $escaper
  */
 /** Magento 2.3.5 backward compatibility fix */
@@ -12,13 +10,11 @@ if (!isset($escaper)) {
     $escaper = $block;
 }
 
+/** @var \Rvvup\Payments\ViewModel\Assets $assetsViewModel */
 $assetsViewModel = $block->getData('rvvup_payments_assets_view_model');
-$paymentMethodCodes = $block->getData('rvvup_payments_method_codes');
 
 // Load specific payment methods if requested.
-$paymentMethodsScriptAssets = $assetsViewModel !== null
-    ? $assetsViewModel->getPaymentMethodsScriptAssets(is_array($paymentMethodCodes) ? $paymentMethodCodes: [])
-    : [];
+$paymentMethodsScriptAssets = $assetsViewModel !== null ? $assetsViewModel->getPaymentMethodsScriptAssets([]) : [];
 ?>
 <?php foreach ($paymentMethodsScriptAssets as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
@@ -29,7 +25,11 @@ $paymentMethodsScriptAssets = $assetsViewModel !== null
         <?php // phpcs:enable ?>
         <script id="<?= $escaper->escapeHtmlAttr($assetsViewModel->getScriptElementId($method, (string) $index)) ?>"
             <?php foreach ($assetsViewModel->getScriptDataAttributes($script) as $dataAttribute => $value): ?>
-                <?= $escaper->escapeHtmlAttr($dataAttribute) . '="' . $escaper->escapeHtmlAttr($value) . '"' ?>
+                <?php if ($value === null): ?>
+                    <?= $escaper->escapeHtmlAttr($dataAttribute) ?>
+                <?php else: ?>
+                    <?= $escaper->escapeHtmlAttr($dataAttribute) . '="' . $escaper->escapeHtmlAttr($value) . '"' ?>
+                <?php endif; ?>
             <?php endforeach; ?>
                 src="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>"></script>
     <?php endforeach; ?>

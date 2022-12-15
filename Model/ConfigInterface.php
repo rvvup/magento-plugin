@@ -9,9 +9,11 @@ use Magento\Store\Model\ScopeInterface;
 interface ConfigInterface
 {
     public const RVVUP_CONFIG = 'payment/rvvup/';
+    public const PRODUCT_RESTRICTIONS = 'product_restrictions/';
     public const XML_PATH_ACTIVE = 'active';
     public const XML_PATH_DEBUG = 'debug';
     public const XML_PATH_JWT = 'jwt';
+    public const XML_PATH_PRODUCT_TYPES_ENABLED = 'enabled_product_types';
 
     /**
      * Validate whether Rvvup module & payment methods are active.
@@ -75,4 +77,15 @@ interface ConfigInterface
      * @return bool
      */
     public function isDebugEnabled(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool;
+
+    /**
+     * Get valid product types
+     * @param string $scopeType
+     * @param string|null $scopeCode
+     * @return array
+     */
+    public function getValidProductTypes(
+        string $scopeType = ScopeInterface::SCOPE_STORE,
+        string $scopeCode = null
+    ): array;
 }

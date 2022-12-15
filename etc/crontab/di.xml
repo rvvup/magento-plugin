@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Rvvup\Payments\Plugin\PreventOrderClean">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Sales\Model\CronJob\CleanExpiredOrders">
+        <plugin name="prevent_cleaning_rvvup_orders"
+                type="Rvvup\Payments\Plugin\PreventOrderClean"
+                sortOrder="1"/>
+    </type>
+</config>

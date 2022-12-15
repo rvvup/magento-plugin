@@ -23,6 +23,7 @@
                 <product_restrictions>
                     <pdp_message>This item has restrictions so not all payment methods may be available</pdp_message>
                     <checkout_message>You have some restricted items in your cart, not all payment methods may be available</checkout_message>
+                    <enabled_product_types>simple,virtual,downloadable,bundle,grouped,configurable</enabled_product_types>
                 </product_restrictions>
                 <clearpay_messaging>
                     <active>1</active>

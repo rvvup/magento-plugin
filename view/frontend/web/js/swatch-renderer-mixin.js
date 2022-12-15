@@ -14,8 +14,11 @@ define([
                     rvvupMinPrice = $widget.options.rvvupMin,
                     rvvupMaxPrice = $widget.options.rvvupMax;
 
-                if (newPrices.finalPrice.amount < rvvupMinPrice || newPrices.finalPrice.amount > rvvupMaxPrice
-                || newPrices.finalPrice.amount === rvvupMinPrice || newPrices.finalPrice.amount === rvvupMaxPrice) {
+                if (newPrices.finalPrice.amount < rvvupMinPrice
+                    || newPrices.finalPrice.amount > rvvupMaxPrice
+                    || newPrices.finalPrice.amount === rvvupMinPrice
+                    || newPrices.finalPrice.amount === rvvupMaxPrice
+                ) {
                     $('.clearpay').hide();
                 }
             },
@@ -53,12 +56,21 @@ define([
                     rvvupMinPrice = $widget.options.rvvupMin,
                     rvvupMaxPrice = $widget.options.rvvupMax;
 
-                if (result.finalPrice.amount < rvvupMinPrice || result.finalPrice.amount > rvvupMaxPrice
-                || result.finalPrice.amount === rvvupMaxPrice || result.finalPrice.amount === rvvupMinPrice) {
-                    $('.clearpay').hide();
+                let clearpayElement = $('.clearpay');
+                let clearpaySummaryElement = document.getElementById('clearpay-summary');
+
+                if (result.finalPrice.amount < rvvupMinPrice
+                    || result.finalPrice.amount > rvvupMaxPrice
+                    || result.finalPrice.amount === rvvupMaxPrice
+                    || result.finalPrice.amount === rvvupMinPrice
+                ) {
+                    clearpayElement.hide();
                 } else  {
-                    document.getElementById('clearpay-summary').dataset.amount = result.finalPrice.amount;
-                    $('.clearpay').show();
+                    if (clearpaySummaryElement !== null && clearpaySummaryElement.length !== 0) {
+                        clearpaySummaryElement.dataset.amount = result.finalPrice.amount;
+                    }
+
+                    clearpayElement.show();
                 }
 
                 $productPrice.trigger(
@@ -68,13 +80,13 @@ define([
                     }
                 );
 
-                isShow = typeof result != 'undefined' && result.oldPrice.amount !== result.finalPrice.amount;
+                isShow = typeof result !== 'undefined' && result.oldPrice.amount !== result.finalPrice.amount;
 
                 $productPrice.find('span:first').toggleClass('special-price', isShow);
 
                 $product.find(this.options.slyOldPriceSelector)[isShow ? 'show' : 'hide']();
 
-                if (typeof result != 'undefined' && result.tierPrices && result.tierPrices.length) {
+                if (typeof result !== 'undefined' && result.tierPrices && result.tierPrices.length) {
                     if (this.options.tierPriceTemplate) {
                         tierPriceHtml = mageTemplate(
                             this.options.tierPriceTemplate,

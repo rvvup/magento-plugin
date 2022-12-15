@@ -55,16 +55,25 @@ class LoadMethods
      */
     public function afterGetPaymentMethods(Data $subject, array $result): array
     {
+        $quote = $this->checkoutSession->getQuote();
         if (isset($result['rvvup'])) {
             if (!$this->config->isActive()) {
                 return $result;
             }
+            $productTypes = $this->config->getValidProductTypes();
+
+            foreach ($quote->getItems() as $item) {
+                if (!in_array($item->getProductType(), $productTypes)) {
+                    return $result;
+                }
+            }
+
             $this->template = $result['rvvup'];
             unset($result['rvvup']);
         }
         if (!$this->methods) {
-            $total = $this->checkoutSession->getQuote()->getGrandTotal();
-            $currency = $this->checkoutSession->getQuote()->getQuoteCurrencyCode();
+            $total = $quote->getGrandTotal();
+            $currency = $quote->getQuoteCurrencyCode();
             $this->methods = $this->sdkProxy->getMethods((string) $total, $currency ?? '');
         }
         return array_merge(

@@ -113,7 +113,7 @@ define([
                     return;
                 }
 
-                if (!window.paypal) {
+                if (!window.rvvup_paypal) {
                     console.error('PayPal SDK not loaded');
                     return;
                 }
@@ -123,7 +123,7 @@ define([
                     return;
                 }
 
-                paypal.Buttons({
+                rvvup_paypal.Buttons({
                     style: {
                         layout: 'vertical',
                         color:  'blue',

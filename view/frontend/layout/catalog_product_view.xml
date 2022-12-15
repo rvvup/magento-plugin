@@ -10,9 +10,6 @@
                 <arguments>
                     <argument name="rvvup_payments_assets_view_model"
                               xsi:type="object">Rvvup\Payments\ViewModel\Assets</argument>
-                    <argument name="rvvup_payments_method_codes" xsi:type="array">
-                        <item name="0" xsi:type="string">paypal</item>
-                    </argument>
                 </arguments>
             </block>
         </referenceBlock>

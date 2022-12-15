@@ -7,6 +7,7 @@ namespace Rvvup\Payments\Model;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
+use Rvvup\Payments\Gateway\Method;
 
 class PaymentMethodsAssetsGet implements PaymentMethodsAssetsGetInterface
 {
@@ -60,7 +61,7 @@ class PaymentMethodsAssetsGet implements PaymentMethodsAssetsGetInterface
                     continue;
                 }
 
-                $assets['rvvup_' . $methodName] = $method['assets'] ?? [];
+                $assets[Method::PAYMENT_TITLE_PREFIX . $methodName] = $method['settings']['assets'] ?? [];
             }
         } catch (Exception $ex) {
             $this->logger->error(

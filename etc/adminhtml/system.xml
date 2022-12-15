@@ -55,6 +55,10 @@
                     <field id="checkout_message" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Checkout Restriction Message</label>
                     </field>
+                    <field id="enabled_product_types" type="multiselect" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enable product types</label>
+                        <source_model>Magento\Catalog\Model\Product\Type</source_model>
+                    </field>
                 </group>
                 <group id="clearpay_messaging" sortOrder="200" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Clearpay Messaging</label>

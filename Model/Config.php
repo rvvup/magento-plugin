@@ -185,4 +185,18 @@ class Config implements ConfigInterface
 
         return $this->jwt;
     }
+
+    /**
+     * @param string $scopeType
+     * @param string|null $scopeCode
+     * @return bool
+     */
+    public function getValidProductTypes(
+        string $scopeType = ScopeInterface::SCOPE_STORE,
+        string $scopeCode = null
+    ): array {
+        $path = self::RVVUP_CONFIG . self::PRODUCT_RESTRICTIONS . self::XML_PATH_PRODUCT_TYPES_ENABLED;
+        $types = $this->scopeConfig->getValue($path, $scopeType, $scopeCode);
+        return explode(',', $types);
+    }
 }
