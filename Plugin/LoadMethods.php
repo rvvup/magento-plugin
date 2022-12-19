@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Plugin;
 
 use Magento\Checkout\Model\Session\Proxy;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Helper\Data;
 use Magento\Payment\Model\Method\Factory;
@@ -55,15 +56,24 @@ class LoadMethods
      */
     public function afterGetPaymentMethods(Data $subject, array $result): array
     {
-        $quote = $this->checkoutSession->getQuote();
+        try {
+            $quote = $this->checkoutSession->getQuote();
+        } catch (LocalizedException $ex) {
+            // Silently handle exception.
+            $quote = null;
+        }
+
         if (isset($result['rvvup'])) {
+            $items = $quote === null || $quote->getItems() === null ? [] : $quote->getItems();
+
             if (!$this->config->isActive()) {
                 return $result;
             }
+
             $productTypes = $this->config->getValidProductTypes();
 
-            foreach ($quote->getItems() as $item) {
-                if (!in_array($item->getProductType(), $productTypes)) {
+            foreach ($items as $item) {
+                if (!in_array($item->getProductType(), $productTypes, true)) {
                     return $result;
                 }
             }
@@ -71,11 +81,14 @@ class LoadMethods
             $this->template = $result['rvvup'];
             unset($result['rvvup']);
         }
+
         if (!$this->methods) {
-            $total = $quote->getGrandTotal();
-            $currency = $quote->getQuoteCurrencyCode();
-            $this->methods = $this->sdkProxy->getMethods((string) $total, $currency ?? '');
+            $this->methods = $this->sdkProxy->getMethods(
+                $quote === null ? '0' : (string) $quote->getGrandTotal(),
+                $quote === null || $quote->getQuoteCurrencyCode() === null ? '' : $quote->getQuoteCurrencyCode()
+            );
         }
+
         return array_merge(
             $result,
             $this->processMethods($this->methods)
@@ -89,7 +102,7 @@ class LoadMethods
      * @param callable                     $proceed
      * @param string                       $code
      * @return MethodInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      * @SuppressWarnings(PMD.UnusedFormalParameter)
      */
     public function aroundGetMethodInstance(\Magento\Payment\Helper\Data $subject, callable $proceed, $code)
