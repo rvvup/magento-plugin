@@ -40,4 +40,12 @@
          <argument name="session" xsi:type="object">Magento\Checkout\Model\Session</argument>
         </arguments>
     </type>
+    <type name="Magento\Payment\Helper\Data">
+        <plugin name="Rvvup_Payments::loadPaymentMethods" type="Rvvup\Payments\Plugin\LoadPaymentMethods"/>
+    </type>
+    <type name="Rvvup\Payments\Plugin\LoadPaymentMethods">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
 </config>
