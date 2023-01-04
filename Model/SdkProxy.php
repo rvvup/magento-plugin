@@ -77,12 +77,18 @@ class SdkProxy
     }
 
     /**
-     * {@inheritdoc}
+     * @param string|null $cartTotal
+     * @param string|null $currency
+     * @param array|null $inputOptions
+     * @return array
+     * @throws \Exception
      */
-    public function getMethods(string $cartTotal, string $currency, ?array $inputOptions = null): array
+    public function getMethods(string $cartTotal = null, string $currency = null, ?array $inputOptions = null): array
     {
         if (!$this->methods) {
-            $methods = $this->getSubject()->getMethods((string) round((float) $cartTotal, 2), $currency, $inputOptions);
+            $cartTotal = $cartTotal === null ? $cartTotal : (string) round((float) $cartTotal, 2);
+
+            $methods = $this->getSubject()->getMethods($cartTotal, $currency, $inputOptions);
             /**
              * Due to all Rvvup methods having the same `sort_order`values the way Magento sorts methods we need to
              * reverse the array so that they are presented in the order specified in the Rvvup dashboard

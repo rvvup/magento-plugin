@@ -9,4 +9,6 @@ class RvvupConfigProvider
      * ta accept updates
      */
     public const CODE = 'rvvup';
+
+    public const GROUP_CODE =  self::CODE .'_group';
 }

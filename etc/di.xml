@@ -123,7 +123,7 @@
     </type>
 
     <type name="Magento\Payment\Helper\Data">
-        <plugin name="Rvvup_Payments::loadMethods" type="Rvvup\Payments\Plugin\LoadMethods"/>
+        <plugin name="Rvvup_Payments::loadMethods" type="Rvvup\Payments\Plugin\LoadMethodInstances"/>
     </type>
 
     <type name="Rvvup\Payments\Controller\Redirect\Out">
@@ -202,7 +202,7 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Plugin\LoadMethods">
+    <type name="Rvvup\Payments\Plugin\LoadMethodInstances">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
