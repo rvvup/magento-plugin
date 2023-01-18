@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Plugin;
 
 use Magento\Payment\Helper\Data;
+use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\SdkProxy;
 
@@ -18,12 +19,20 @@ class PaymentMethod
     private $sdkProxy;
 
     /**
+     * @var ConfigInterface
+     */
+    private ConfigInterface $config;
+
+    /**
      * @param SdkProxy $sdkProxy
+     * @param ConfigInterface $config
      */
     public function __construct(
-        SdkProxy $sdkProxy
+        SdkProxy $sdkProxy,
+        ConfigInterface $config
     ) {
         $this->sdkProxy = $sdkProxy;
+        $this->config = $config;
     }
 
     /**
@@ -43,6 +52,10 @@ class PaymentMethod
         $withGroups = false,
         $store = null
     ): array {
+        if (!$this->config->isActive()) {
+            return $result;
+        }
+
         if (isset($result[RvvupConfigProvider::CODE])) {
             $result = array_merge($result, $this->getMethods());
             unset($result[RvvupConfigProvider::CODE]);
@@ -50,6 +63,7 @@ class PaymentMethod
             $result[RvvupConfigProvider::GROUP_CODE][self::VALUE] = $this->getMethods();
             unset($result[RvvupConfigProvider::CODE][self::VALUE][RvvupConfigProvider::CODE]);
         }
+
         return $result;
     }
     private function getMethods(): array
