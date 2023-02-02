@@ -1,0 +1,40 @@
+name: "Build Magento"
+description: "Build"
+inputs:
+  php-version:
+    description: 'PHP Version to use'
+    required: true
+  magento-version:
+    description: 'Magento Version to use'
+    required: true
+  composer-version:
+    description: 'Composer Version to use'
+    required: false
+    default: 'v2'
+runs:
+  using: "composite"
+  steps:
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        tools: composer:${{ inputs.composer-version }}
+
+    - if: "${{ inputs.composer-version == 'v2' }}"
+      run: |
+        composer config -g allow-plugins.laminas/* true
+        composer config -g allow-plugins.magento/* true
+        composer config -g allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+      shell: bash
+
+    - run: |
+        composer config repositories.repo.magento.com composer https://repo.magento.com
+        COMPOSER_MEMORY_LIMIT=-1 composer create-project --repository-url=https://repo.magento.com/ ${{ inputs.magento-version }} build
+        cd build
+        composer require rvvup/sdk
+        cp ../CI/config.php app/etc/config.php
+        mkdir -p app/code/Rvvup/Payments
+        rsync -a --exclude=.gitignore --exclude=*.md --exclude=phpcs.xml --exclude=phpunit.xml --exclude=phpstan.neon --exclude=renovate.json --exclude=composer.json --exclude=.github/ --exclude=build/ --exclude=.git/ ../ app/code/Rvvup/Payments
+        ls -la app/code/Rvvup/Payments
+        php -d memory_limit=-1 bin/magento setup:di:compile
+        php -d memory_limit=-1 bin/magento setup:static-content:deploy en_GB en_US --jobs=10 -f
+      shell: bash
