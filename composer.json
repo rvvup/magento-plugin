@@ -41,5 +41,11 @@
             "phpstan/extension-installer": true
         }
     },
-    "license": "MIT"
+    "license": "MIT",
+    "repositories": {
+        "repo.magento.com": {
+            "type": "composer",
+            "url": "https://repo.magento.com"
+        }
+    }
 }

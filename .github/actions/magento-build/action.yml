@@ -27,7 +27,6 @@ runs:
       shell: bash
 
     - run: |
-        composer config repositories.repo.magento.com composer https://repo.magento.com
         COMPOSER_MEMORY_LIMIT=-1 composer create-project --repository-url=https://repo.magento.com/ ${{ inputs.magento-version }} build
         cd build
         composer require rvvup/sdk

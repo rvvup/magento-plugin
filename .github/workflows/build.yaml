@@ -21,7 +21,7 @@ jobs:
           php-version: 7.4
 
       - name: Configure
-        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
 
       - name: Install dependencies
         run: composer install --no-ansi --no-interaction --no-progress --no-scripts
@@ -42,7 +42,7 @@ jobs:
           php-version: 7.4
 
       - name: Configure
-        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
 
       - name: Install dependencies
         run: composer install --no-ansi --no-interaction --no-progress --no-scripts
@@ -63,7 +63,7 @@ jobs:
           php-version: 7.4
 
       - name: Configure
-        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
 
       - name: Install dependencies
         run: composer install --no-ansi --no-interaction --no-progress --no-scripts
