@@ -13,17 +13,42 @@
                 </arguments>
             </block>
         </referenceBlock>
-        <referenceBlock name="product.info">
+        <referenceContainer name="product.info.main">
             <block class="Magento\Catalog\Block\Product\View"
                    name="product.info.addtocart.rvvup-clearpay"
-                   as="form_top"
                    template="Rvvup_Payments::product/view/addtocart.phtml"
-                   ifconfig="payment/rvvup/active">
+                   ifconfig="payment/rvvup/active"
+                   before="product.info">
                 <arguments>
                     <argument name="clearpay" xsi:type="object">Rvvup\Payments\ViewModel\Clearpay</argument>
                     <argument name="restrictions" xsi:type="object">Rvvup\Payments\ViewModel\Restrictions</argument>
+                    <argument name="rvvup_payments_paypal_view_model" xsi:type="object">Rvvup\Payments\ViewModel\PayPal</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <!-- After add to cart -->
+        <referenceBlock name="product.info.addtocart">
+            <block class="Magento\Catalog\Block\Product\View"
+                   name="rvvup_payments.product.catalog_product_view.product.info.addtocart"
+                   template="Rvvup_Payments::product/view/info/addtocart.phtml"
+                   ifconfig="payment/rvvup/active">
+                <arguments>
+                    <argument name="rvvup_payments_paypal_view_model"
+                              xsi:type="object">Rvvup\Payments\ViewModel\PayPal</argument>
                 </arguments>
             </block>
         </referenceBlock>
+        <!-- Before Body End -->
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="rvvup_payments.before.body.end.checkout_config"
+                   template="Rvvup_Payments::body/before-end/checkout-config.phtml"
+                   ifconfig="payment/rvvup/active">
+                <arguments>
+                    <argument name="rvvup_payments_checkout_config_view_model"
+                              xsi:type="object">Rvvup\Payments\ViewModel\CheckoutConfig</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
     </body>
 </page>

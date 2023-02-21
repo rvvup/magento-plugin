@@ -6,7 +6,71 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
-    <!-- Get Rvvup Payment Actions for an Order-->
+    <!-- Reset Cart data (items, addresses, payment) -->
+    <route url="/V1/rvvup/payments/guest-carts/:cartId" method="DELETE">
+        <service class="Rvvup\Payments\Api\GuestCartResetInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/rvvup/payments/carts/mine" method="DELETE">
+        <service class="Rvvup\Payments\Api\CartResetInterface" method="execute"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+    <!-- Create Rvvup Express Payment Cart -->
+    <route url="/V1/rvvup/payments/guest-carts/:cartId/express" method="POST">
+        <service class="Rvvup\Payments\Api\GuestExpressPaymentCreateInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/rvvup/payments/carts/mine/express" method="POST">
+        <service class="Rvvup\Payments\Api\ExpressPaymentCreateInterface" method="execute"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+    <!-- Remove Rvvup Express Payment data from a Cart -->
+    <route url="/V1/rvvup/payments/guest-carts/:cartId/express" method="DELETE">
+        <service class="Rvvup\Payments\Api\GuestCartExpressPaymentRemoveInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/rvvup/payments/carts/mine/express" method="DELETE">
+        <service class="Rvvup\Payments\Api\CartExpressPaymentRemoveInterface" method="execute"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+    <!-- Get Rvvup Payment Actions for a Cart -->
+    <route url="/V1/rvvup/payments/guest-carts/:cartId/payment-actions" method="GET">
+        <service class="Rvvup\Payments\Api\GuestCartPaymentActionsGetInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/rvvup/payments/carts/mine/payment-actions" method="GET">
+        <service class="Rvvup\Payments\Api\CartPaymentActionsGetInterface" method="execute"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+    <!-- Get Rvvup Payment Actions for an Order -->
     <route url="/V1/rvvup/payments/:cartId/payment-actions" method="GET">
         <service class="Rvvup\Payments\Api\GuestPaymentActionsGetInterface" method="execute"/>
         <resources>

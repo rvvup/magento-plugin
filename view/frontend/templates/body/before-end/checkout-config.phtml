@@ -1,0 +1,29 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Rvvup\Payments\ViewModel\CheckoutConfig $checkoutConfigViewModel
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+// Backwards compatibility for Magento =<2.3.5
+if (!isset($escaper)) {
+    $escaper = $block;
+}
+
+$checkoutConfigViewModel = $block->getData('rvvup_payments_checkout_config_view_model');
+
+if ($checkoutConfigViewModel === null) {
+    return;
+}
+?>
+<script>
+    (function() {
+        'use strict';
+
+        if (typeof window.checkoutConfig !== 'undefined') {
+            return;
+        }
+
+        window.checkoutConfig = JSON.parse('<?= $escaper->escapeJs($checkoutConfigViewModel->getSerializedConfig()) ?>');
+    })();
+</script>

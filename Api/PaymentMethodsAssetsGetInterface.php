@@ -7,7 +7,7 @@ namespace Rvvup\Payments\Api;
 interface PaymentMethodsAssetsGetInterface
 {
     /**
-     * Get the assets for all payment methods available for the value & currency.
+     * Get the assets for all/selected payment methods available for the value & currency.
      *
      * @param string $value
      * @param string $currency

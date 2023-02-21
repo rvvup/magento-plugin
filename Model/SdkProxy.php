@@ -26,8 +26,15 @@ class SdkProxy
      */
     private $getEnvironmentVersions;
 
-    /** @var array */
+    /**
+     * @var array|null
+     */
     private $methods;
+
+    /**
+     * @var array
+     */
+    private $monetizedMethods = [];
 
     /**
      * @param ConfigInterface $config
@@ -77,24 +84,29 @@ class SdkProxy
     }
 
     /**
-     * @param string|null $cartTotal
+     * @param string|null $value
      * @param string|null $currency
      * @param array|null $inputOptions
      * @return array
-     * @throws \Exception
      */
-    public function getMethods(string $cartTotal = null, string $currency = null, ?array $inputOptions = null): array
+    public function getMethods(string $value = null, string $currency = null, ?array $inputOptions = null): array
     {
-        if (!$this->methods) {
-            $cartTotal = $cartTotal === null ? $cartTotal : (string) round((float) $cartTotal, 2);
+        // If value & currency are both not null, use separate method.
+        if ($value !== null && $currency !== null) {
+            return $this->getMethodsByValueAndCurrency($value, $currency, $inputOptions);
+        }
 
-            $methods = $this->getSubject()->getMethods($cartTotal, $currency, $inputOptions);
+        if (!$this->methods) {
+            $value = $value === null ? $value : (string) round((float) $value, 2);
+
+            $methods = $this->getSubject()->getMethods($value, $currency, $inputOptions);
             /**
              * Due to all Rvvup methods having the same `sort_order`values the way Magento sorts methods we need to
              * reverse the array so that they are presented in the order specified in the Rvvup dashboard
              */
-            $this->methods = array_reverse($methods);
+            $this->methods = $this->filterApiMethods($methods);
         }
+
         return $this->methods;
     }
 
@@ -104,6 +116,27 @@ class SdkProxy
     public function createOrder($orderData)
     {
         return $this->getSubject()->createOrder($orderData);
+    }
+
+    /**
+     * @param array $orderData
+     * @return false|mixed
+     * @throws \Exception
+     */
+    public function updateExpressOrder(array $orderData)
+    {
+        $result = $this->getSubject()->updateExpressOrder($orderData);
+
+        // The SDK strips the nested array keys out. Set them again for easier identification from Gateway Classes.
+        if (is_array($result)) {
+            return [
+                'data' => [
+                    'orderExpressUpdate' => $result
+                ]
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -166,5 +199,40 @@ class SdkProxy
 
         // Add any data send by the event, but keep core data untouched.
         $this->getSubject()->createEvent($eventType, $reason, array_merge($additionalData, $data));
+    }
+
+    /**
+     * Get the Rvvup payment methods available for a specific value/productPrice/total & a specific currency.
+     *
+     * @param string $value
+     * @param string $currency
+     * @param array|null $inputOptions
+     * @return array
+     */
+    private function getMethodsByValueAndCurrency(string $value, string $currency, ?array $inputOptions = null): array
+    {
+        if (!isset($this->monetizedMethods[$currency][$value])) {
+            $methods = $this->getSubject()->getMethods((string) round((float) $value, 2), $currency, $inputOptions);
+
+            $this->monetizedMethods[$currency][$value] = $this->filterApiMethods($methods);
+        }
+
+        return $this->monetizedMethods[$currency][$value];
+    }
+
+    /**
+     * Filter API returned methods.
+     *
+     * Rvvup methods having the same `sort_order`values in Magento, while Rvvup API call returns sorted methods.
+     * We get the array values & filter the results. Sorting order should be kept as in the Portal.
+     *
+     * @param array $methods
+     * @return array
+     */
+    private function filterApiMethods(array $methods): array
+    {
+        return array_filter(array_values($methods), static function ($method) {
+            return isset($method['name']);
+        });
     }
 }

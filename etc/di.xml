@@ -2,9 +2,29 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <!-- DI preferences -->
+    <!-- Create Express Payment for logged-in & guest users -->
+    <!-- Payment Action model di -->
+    <preference for="Rvvup\Payments\Api\Data\PaymentActionInterface"
+                type="Rvvup\Payments\Model\PaymentAction" />
+    <preference for="Rvvup\Payments\Api\ExpressPaymentCreateInterface"
+                type="Rvvup\Payments\Model\ExpressPaymentCreate" />
+    <preference for="Rvvup\Payments\Api\GuestExpressPaymentCreateInterface"
+                type="Rvvup\Payments\Model\GuestExpressPaymentCreate" />
+    <!-- Remove Express Payment Data from payment method for logged-in & guest users -->
+    <preference for="Rvvup\Payments\Api\GuestCartExpressPaymentRemoveInterface"
+                type="Rvvup\Payments\Model\GuestCartExpressPaymentRemove" />
+    <preference for="Rvvup\Payments\Api\CartExpressPaymentRemoveInterface"
+                type="Rvvup\Payments\Model\CartExpressPaymentRemove" />
+    <!-- Get Cart Payment Actions for logged-in & guest users -->
+    <preference for="Rvvup\Payments\Api\CartPaymentActionsGetInterface"
+                type="Rvvup\Payments\Model\CartPaymentActionsGet" />
+    <preference for="Rvvup\Payments\Api\GuestCartPaymentActionsGetInterface"
+                type="Rvvup\Payments\Model\GuestCartPaymentActionsGet" />
     <preference for="Rvvup\Payments\Model\ConfigInterface" type="Rvvup\Payments\Model\Config" />
     <preference for="Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface"
                 type="Rvvup\Payments\Model\PaymentMethodsAssetsGet" />
+    <preference for="Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface"
+                type="Rvvup\Payments\Model\PaymentMethodsSettingsGet" />
     <preference for="Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface"
                 type="Rvvup\Payments\Model\Environment\GetEnvironmentVersions" />
     <preference for="Rvvup\Payments\Model\IsPaymentMethodAvailableInterface"
@@ -15,8 +35,13 @@
                 type="Rvvup\Payments\Model\PaymentMethodsAvailableGet" />
     <preference for="Rvvup\Payments\Api\Data\ProcessOrderResultInterface"
                 type="Rvvup\Payments\Model\ProcessOrderResult" />
+    <preference for="Rvvup\Payments\Model\Payment\PaymentCreateExpressInterface"
+                type="Rvvup\Payments\Model\Payment\PaymentCreateExpress" />
     <preference for="Rvvup\Payments\Model\Payment\PaymentDataGetInterface"
                 type="Rvvup\Payments\Model\Payment\PaymentDataGet" />
+    <!-- Checks -->
+    <preference for="Rvvup\Payments\Model\Checks\HasCartExpressPaymentInterface"
+                type="Rvvup\Payments\Model\Checks\HasCartExpressPayment" />
 
     <!-- Custom Rvvup Logger -->
     <virtualType name="RvvupLogHandler" type="\Magento\Framework\Logger\Handler\Base">
@@ -108,7 +133,19 @@
             </argument>
         </arguments>
     </virtualType>
+
+    <type name="Rvvup\Payments\Gateway\Request\InitializeDataBuilder">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
     <!-- End of Initialize command -->
+
+    <type name="Rvvup\Payments\Model\CartPaymentActionsGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
 
     <type name="Rvvup\Payments\Model\SdkProxy">
         <arguments>
@@ -122,28 +159,26 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Model\Checks\HasCartExpressPayment">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <!-- Plugins -->
+    <!-- Remove express paymment additional information from payment object if changing payment method -->
+    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
+        <plugin name="Rvvup_Payments::quote.api.payment_method_management.remove_express_payment_info_on_method_change.plugin"
+                type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\RemoveExpressPaymentInfoOnMethodChange" />
+    </type>
+
+    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
+        <plugin name="Rvvup_Payments::quote.api.payment_method_management.limit_cart_express_payment.plugin"
+                type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\LimitCartExpressPayment" />
+    </type>
+
     <type name="Magento\Payment\Helper\Data">
         <plugin name="Rvvup_Payments::loadMethods" type="Rvvup\Payments\Plugin\LoadMethodInstances"/>
-    </type>
-
-    <type name="Rvvup\Payments\Controller\Redirect\Out">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Controller\Redirect\In">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Controller\Redirect\Cancel">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
     </type>
 
     <type name="Rvvup\Payments\Controller\Webhook\Index">
@@ -153,6 +188,12 @@
     </type>
 
     <type name="Rvvup\Payments\ViewModel\Clearpay">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\CartExpressPaymentRemove">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
@@ -205,6 +246,7 @@
     <type name="Rvvup\Payments\Plugin\LoadMethodInstances">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
 
@@ -244,6 +286,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Model\Payment\PaymentCreateExpress">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Model\Payment\PaymentDataGet">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
@@ -268,6 +316,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Model\Quote\QuoteMaskedQuoteIdGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
@@ -275,6 +329,18 @@
     </type>
 
     <type name="Rvvup\Payments\Observer\Model\ProcessOrder\EmailSenderObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\RemoveExpressPaymentInfoOnMethodChange">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>

@@ -5,18 +5,18 @@ namespace Rvvup\Payments\Observer;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Rvvup\Payments\Gateway\Method;
 
 class DataAssignObserver extends AbstractDataAssignObserver
 {
-    private const PAYMENT_ID = 'id';
-    private const DASHBOARD_URL = 'dashboard_url';
-
     /**
      * @var array
      */
     protected $additionalInformationList = [
-        self::PAYMENT_ID,
-        self::DASHBOARD_URL,
+        Method::ORDER_ID,
+        Method::DASHBOARD_URL,
+        Method::EXPRESS_PAYMENT_KEY,
+        Method::EXPRESS_PAYMENT_DATA_KEY
     ];
 
     /**
@@ -26,7 +26,7 @@ class DataAssignObserver extends AbstractDataAssignObserver
     public function execute(Observer $observer)
     {
         $method = $this->readMethodArgument($observer);
-        if (false === strpos($method->getCode(), 'rvvup_')) {
+        if (false === strpos($method->getCode(), Method::PAYMENT_TITLE_PREFIX)) {
             return;
         }
 

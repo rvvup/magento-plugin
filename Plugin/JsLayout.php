@@ -8,6 +8,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\PaymentMethodsAvailableGetInterface;
 
@@ -80,7 +81,7 @@ class JsLayout
         $template = ['component' => 'Rvvup_Payments/js/view/payment/rvvup'];
         $template['methods'] = [];
         foreach ($loadedMethods as $method) {
-            $template['methods']['rvvup_' . $method['name']] = ['isBillingAddressRequired' => true];
+            $template['methods'][Method::PAYMENT_TITLE_PREFIX . $method['name']] = ['isBillingAddressRequired' => true];
         }
         return ['rvvup' => $template];
     }

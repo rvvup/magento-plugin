@@ -2,80 +2,68 @@
 
 namespace Rvvup\Payments\Model;
 
+use Magento\Customer\Api\AddressRepositoryInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
+use Rvvup\Payments\Gateway\Method;
 
 class OrderDataBuilder
 {
-    /** @var \Rvvup\Payments\Model\ConfigInterface */
-    private $config;
-    /** @var \Magento\Framework\UrlInterface */
+    /**
+     * @var \Magento\Customer\Api\AddressRepositoryInterface
+     */
+    private $customerAddressRepository;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
     private $urlBuilder;
 
     /**
-     * @param \Rvvup\Payments\Model\ConfigInterface $config
+     * @var \Rvvup\Payments\Model\ConfigInterface
+     */
+    private $config;
+
+    /**
+     * @param \Magento\Customer\Api\AddressRepositoryInterface $customerAddressRepository
      * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Rvvup\Payments\Model\ConfigInterface $config
      * @return void
      */
-    public function __construct(ConfigInterface $config, UrlInterface $urlBuilder)
-    {
-        $this->config = $config;
+    public function __construct(
+        AddressRepositoryInterface $customerAddressRepository,
+        UrlInterface $urlBuilder,
+        ConfigInterface $config
+    ) {
+        $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
+        $this->config = $config;
     }
 
     /**
-     * @param \Magento\Quote\Api\Data\CartInterface $quote
+     * @param \Magento\Quote\Api\Data\CartInterface|\Magento\Quote\Model\Quote $quote
+     * @param bool $express
      * @return array
-     * @throws QuoteValidationException
+     * @throws \Rvvup\Payments\Exception\QuoteValidationException
      */
-    public function build(CartInterface $quote): array
+    public function build(CartInterface $quote, bool $express = false): array
     {
-        $discountTotal = $this->toCurrency($quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount());
-        $taxTotal = $this->toCurrency($quote->getTotals()['tax']->getValue());
-        $currencyCode = $quote->getQuoteCurrencyCode();
-
         $billingAddress = $quote->getBillingAddress();
 
-        if ($billingAddress === null) {
+        // Validate that billing address exists if this is NOT a request to build express payment data.
+        if (!$express && $billingAddress === null) {
             $this->throwException('Billing Address is always required');
         }
 
-        $orderDataArray = [
-            "externalReference" => $quote->getReservedOrderId(),
-            "merchant" => [
-                "id" => $this->config->getMerchantId(),
-            ],
-            "redirectToStoreUrl" => $this->urlBuilder->getUrl('rvvup/redirect/in'),
-            "total" => [
-                "amount" => $this->toCurrency($quote->getGrandTotal()),
-                "currency" => $currencyCode,
-            ],
-            "discountTotal" => [
-                "amount" => $discountTotal,
-                "currency" => $currencyCode,
-            ],
-            "shippingTotal" => [
-                "amount" => '0.00', // Default to 0.00.
-                "currency" => $currencyCode,
-            ],
-            "taxTotal" => [
-                "amount" => $taxTotal,
-                "currency" => $currencyCode,
-            ],
-            "items" => $this->renderItems($quote),
-            'customer' => [
-                "givenName" => $billingAddress->getFirstname() ?? $quote->getCustomerFirstName(),
-                "surname" => $billingAddress->getLastname() ?? $quote->getCustomerLastName(),
-                "phoneNumber" => $billingAddress->getTelephone(),
-                "email" => $billingAddress->getEmail() ?? $quote->getCustomerEmail(),
-            ],
-            'billingAddress' => $this->renderAddress($quote->getBillingAddress()),
-            'requiresShipping' => false // Default to false.
-        ];
+        $orderDataArray = $this->renderBase($quote, $express);
+        $orderDataArray['customer'] = $this->renderCustomer($quote, $express, $billingAddress);
 
-        $orderDataArray['method'] = str_replace('rvvup_', '', $quote->getPayment()->getMethod());
+        // Set external reference if this is NOT a request to build express payment data.
+        $orderDataArray['externalReference'] = $express ? null : $quote->getReservedOrderId();
+        $orderDataArray['billingAddress'] = $this->renderBillingAddress($quote, $express, $billingAddress);
 
         // We do not require shipping data for virtual orders (orders without tangible items).
         if ($quote->getIsVirtual()) {
@@ -84,16 +72,66 @@ class OrderDataBuilder
 
         $shippingAddress = $quote->getShippingAddress();
 
-        if ($shippingAddress === null) {
+        // Validate that Shipping Address exists if this is NOT a request to build express payment data.
+        if (!$express && $shippingAddress === null) {
             $this->throwException('Shipping Address is required for this order');
         }
 
+        $orderDataArray['shippingAddress'] = $this->renderShippingAddress($quote, $express, $shippingAddress);
+
         // As we have tangible products, the order will require shipping.
-        $orderDataArray['requiresShipping'] = true;
         $orderDataArray['shippingTotal']['amount'] = $this->toCurrency($shippingAddress->getShippingAmount());
-        $orderDataArray['shippingAddress'] = $this->renderAddress($quote->getShippingAddress());
 
         return $orderDataArray;
+    }
+
+    /**
+     * Get the base data, common for all Rvvup payment request types.
+     *
+     * @param \Magento\Quote\Api\Data\CartInterface $quote
+     * @param bool $express
+     * @return array
+     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     */
+    private function renderBase(CartInterface $quote, bool $express = false): array
+    {
+        $payment = $quote->getPayment();
+
+        // Validate the quote/order is paid via Rvvup.
+        if ($payment === null
+            || $payment->getMethod() === null
+            || strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
+        ) {
+            $this->throwException('This order is not paid via Rvvup');
+        }
+
+        return [
+            "merchant" => [
+                "id" => $this->config->getMerchantId(),
+            ],
+            "type" => $express ? "EXPRESS" : "STANDARD",
+            "redirectToStoreUrl" => $this->urlBuilder->getUrl('rvvup/redirect/in'),
+            "total" => [
+                "amount" => $this->toCurrency($quote->getGrandTotal()),
+                "currency" => $quote->getQuoteCurrencyCode(),
+            ],
+            "discountTotal" => [
+                "amount" => $this->toCurrency($quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount()),
+                "currency" => $quote->getQuoteCurrencyCode(),
+            ],
+            "shippingTotal" => [
+                "amount" => '0.00', // Default to 0.00.
+                "currency" => $quote->getQuoteCurrencyCode(),
+            ],
+            "taxTotal" => [
+                "amount" => $this->toCurrency($quote->getTotals()['tax']->getValue()),
+                "currency" => $quote->getQuoteCurrencyCode(),
+            ],
+            "items" => $this->renderItems($quote),
+            "requiresShipping" => !$quote->getIsVirtual(),
+            // Quote should always have a payment method set and never null when this is called.
+            "method" => str_replace(Method::PAYMENT_TITLE_PREFIX, '', $payment->getMethod())
+        ];
     }
 
     /**
@@ -143,6 +181,114 @@ class OrderDataBuilder
     }
 
     /**
+     * @param \Magento\Quote\Api\Data\CartInterface $quote
+     * @param bool $express
+     * @param \Magento\Quote\Api\Data\AddressInterface|null $billingAddress
+     * @return array|null
+     */
+    private function renderCustomer(
+        CartInterface $quote,
+        bool $express = false,
+        ?AddressInterface $billingAddress = null
+    ): ?array {
+        // If we have an express payment and quote belongs to a customer, get customer data from customer object.
+        if ($express && $quote->getCustomer() !== null && $quote->getCustomer()->getId() !== null) {
+            $customerBillingAddress = $quote->getCustomer()->getDefaultBilling() !== null
+                ? $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultBilling())
+                : null;
+
+            return [
+                'givenName' => $quote->getCustomer()->getFirstname() ?? '',
+                'surname' => $quote->getCustomer()->getLastname() ?? '',
+                'phoneNumber' => $customerBillingAddress !== null ? $customerBillingAddress['phoneNumber'] : '',
+                'email' => $quote->getCustomer()->getEmail() ?? '',
+            ];
+        }
+
+        // Otherwise, if we have a billing address, use it to set customer data.
+        if ($billingAddress !== null
+            && ($billingAddress->getFirstname() !== null || $billingAddress->getLastname() !== null)
+        ) {
+            return [
+                'givenName' => $billingAddress->getFirstname() ?? '',
+                'surname' => $billingAddress->getLastname() ?? '',
+                'phoneNumber' => $billingAddress->getTelephone() ?? '',
+                'email' => $billingAddress->getEmail() ?? '',
+            ];
+        }
+
+        // If billing address null & we don't have quote data, return null.
+        if ($quote->getCustomerFirstName() === null
+            && $quote->getCustomerFirstName() === null
+            && $quote->getCustomerEmail() === null
+        ) {
+            return null;
+        }
+
+        // Otherwise set the data.
+        return [
+            'givenName' => $quote->getCustomerFirstName() ?? '',
+            'surname' => $quote->getCustomerLastName() ?? '',
+            'phoneNumber' => '',
+            'email' => $quote->getCustomerEmail() ?? '',
+        ];
+    }
+
+    /**
+     * @param \Magento\Quote\Api\Data\CartInterface|\Magento\Quote\Model\Quote $quote
+     * @param bool $express
+     * @param \Magento\Quote\Api\Data\AddressInterface|null $billingAddress
+     * @return array|null
+     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     */
+    private function renderBillingAddress(
+        CartInterface $quote,
+        bool $express = false,
+        ?AddressInterface $billingAddress = null
+    ): ?array {
+        // If not an express payment, return billing address data as normal.
+        if (!$express) {
+            return $billingAddress !== null ? $this->renderAddress($quote->getBillingAddress()) : null;
+        }
+
+        // Otherwise generate the express payment create billing address from customer.
+        // If no default customer billing address, return null.
+        if ($quote->getCustomer()->getId() === null || $quote->getCustomer()->getDefaultBilling() === null) {
+            return null;
+        }
+
+        // Otherwise, return customer billing address if full.
+        return $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultBilling());
+    }
+
+    /**
+     * @param \Magento\Quote\Api\Data\CartInterface|\Magento\Quote\Model\Quote $quote
+     * @param bool $express
+     * @param \Magento\Quote\Api\Data\AddressInterface|null $shippingAddress
+     * @return array|null
+     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     */
+    private function renderShippingAddress(
+        CartInterface $quote,
+        bool $express = false,
+        ?AddressInterface $shippingAddress = null
+    ): ?array {
+        // If not an express payment, return billing address data as normal.
+        if (!$express) {
+            return $shippingAddress !== null ? $this->renderAddress($quote->getShippingAddress()) : null;
+        }
+
+        // Otherwise generate the express payment create billing address from customer.
+        // If no default customer billing address, return null.
+        if ($quote->getCustomer()->getId() === null || $quote->getCustomer()->getDefaultShipping() === null) {
+            return null;
+        }
+
+        // Otherwise, return customer billing address if full.
+        return $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultShipping());
+    }
+
+    /**
      * @param \Magento\Quote\Api\Data\AddressInterface $address
      * @return array
      * @throws \Rvvup\Payments\Exception\QuoteValidationException
@@ -164,6 +310,56 @@ class OrderDataBuilder
             "postcode" => $address->getPostcode(),
             "countryCode" => $address->getCountryId() ?? '',
         ];
+    }
+
+    /**
+     * Get a customers address data by the customer's address id.
+     *
+     * @param int $customerAddressId
+     * @return array|null
+     */
+    private function renderCustomerAddress(int $customerAddressId): ?array
+    {
+        try {
+            $address = $this->customerAddressRepository->getById($customerAddressId);
+
+            // Return null if any required address data are missing.
+            if ($address->getFirstname() === null
+                || $address->getLastname() === null
+                || $address->getStreet() === null
+                || $address->getCity() === null
+                || $address->getPostcode() === null
+                || $address->getCountryId() === null
+            ) {
+                return null;
+            }
+
+            $customerName = [
+                $address->getFirstname(),
+                $address->getMiddlename() ?? '',
+                $address->getLastname()
+            ];
+
+            $street = $address->getStreet();
+
+            return [
+                // Array filter removes empty values if no callback provided.
+                'name' => implode(' ', array_filter(array_map('trim', $customerName))),
+                'phoneNumber' => $address->getTelephone() ?? '',
+                'company' => $address->getCompany() ?? '',
+                // We already validate that street property is not null.
+                'line1' => is_array($street) && isset($street[0]) ? $street[0] : '',
+                'line2' => is_array($street) && isset($street[1]) ? $street[1] : '',
+                'city' => $address->getCity() ?? '',
+                'state' => $address->getRegion() !== null && $address->getRegion()->getRegion() !== null
+                    ? $address->getRegion()->getRegion()
+                    : '',
+                'postcode' => $address->getPostcode(),
+                'countryCode' => $address->getCountryId() ?? '',
+            ];
+        } catch (LocalizedException $ex) {
+            return null;
+        }
     }
 
     /**

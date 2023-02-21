@@ -22,4 +22,10 @@
                   instance="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver"
                   shared="false" />
     </event>
+
+    <event name="sales_quote_item_save_before">
+        <observer name="Rvvup_Payments::Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  instance="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  shared="false" />
+    </event>
 </config>

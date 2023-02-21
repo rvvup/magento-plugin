@@ -13,10 +13,11 @@ if (!isset($escaper)) {
 /** @var \Rvvup\Payments\ViewModel\Assets $assetsViewModel */
 $assetsViewModel = $block->getData('rvvup_payments_assets_view_model');
 
-// Load specific payment methods if requested.
-$paymentMethodsScriptAssets = $assetsViewModel !== null ? $assetsViewModel->getPaymentMethodsScriptAssets([]) : [];
+if ($assetsViewModel === null) {
+    return;
+}
 ?>
-<?php foreach ($paymentMethodsScriptAssets as $method => $scripts): ?>
+<?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets([]) as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
         <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable ?>
         <?php if (!is_array($script)): ?>
@@ -34,3 +35,11 @@ $paymentMethodsScriptAssets = $assetsViewModel !== null ? $assetsViewModel->getP
                 src="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>"></script>
     <?php endforeach; ?>
 <?php endforeach; ?>
+
+<script>
+    <?php // phpcs:disable Magento2.Security.XssTemplate.FoundUnescaped ?>
+    <?php // Disabling PHPCS to avoid warning. As per Magento docs. JSON inside script tag: no sanitization needed ?>
+    <?php // @see https://developer.adobe.com/commerce/php/development/security/cross-site-scripting/ ?>
+    const rvvup_parameters = JSON.parse('<?= $assetsViewModel->getRvvupParametersJsObject() ?>');
+    <?php // phpcs:enable Magento2.Security.XssTemplate.FoundUnescaped ?>
+</script>

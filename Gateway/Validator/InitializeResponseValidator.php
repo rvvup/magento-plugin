@@ -11,6 +11,12 @@ use Magento\Payment\Gateway\Validator\ResultInterface;
 class InitializeResponseValidator extends AbstractValidator
 {
     /**
+     * Validate the Rvvup ID key exists in the result.
+     *
+     * The ID should exist either for an orderCreate or an orderExpressUpdate API request.
+     * Hence, check if both are missing for validation, regardless the request type.
+     * This also validates the relevant orderCreate & orderExpressUpdate keys are arrays.
+     *
      * @param array $validationSubject
      * @return \Magento\Payment\Gateway\Validator\ResultInterface
      */
@@ -20,7 +26,7 @@ class InitializeResponseValidator extends AbstractValidator
 
         $fails = [];
 
-        if (!isset($response['data']['orderCreate']['id'])) {
+        if (!isset($response['data']['orderCreate']['id']) && !isset($response['data']['orderExpressUpdate']['id'])) {
             $fails[] = 'Rvvup order ID is not set';
         }
 

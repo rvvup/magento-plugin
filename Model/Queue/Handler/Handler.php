@@ -9,6 +9,7 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
@@ -111,7 +112,7 @@ class Handler
             $order = $this->orderRepository->get($payment->getParentId());
 
             // if Payment method is not Rvvup, exit.
-            if (stripos($payment->getMethod(), 'rvvup_') !== 0) {
+            if (strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
                 return;
             }
 

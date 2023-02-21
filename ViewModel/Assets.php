@@ -5,15 +5,23 @@ declare(strict_types=1);
 namespace Rvvup\Payments\ViewModel;
 
 use Exception;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
+use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 
 class Assets implements ArgumentInterface
 {
+    /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
     /**
      * @var \Rvvup\Payments\Model\ConfigInterface
      */
@@ -23,6 +31,11 @@ class Assets implements ArgumentInterface
      * @var \Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface
      */
     private $paymentMethodsAssetsGet;
+
+    /**
+     * @var \Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface
+     */
+    private $paymentMethodsSettingsGet;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -47,20 +60,31 @@ class Assets implements ArgumentInterface
     private $storeCurrency;
 
     /**
+     * @var array|null
+     */
+    private $settings;
+
+    /**
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Rvvup\Payments\Model\ConfigInterface $config
      * @param \Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
+     * @param \Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Psr\Log\LoggerInterface|RvvupLog $logger
      * @return void
      */
     public function __construct(
+        SerializerInterface $serializer,
         ConfigInterface $config,
         PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet,
+        PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger
     ) {
+        $this->serializer = $serializer;
         $this->config = $config;
         $this->paymentMethodsAssetsGet = $paymentMethodsAssetsGet;
+        $this->paymentMethodsSettingsGet = $paymentMethodsSettingsGet;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
     }
@@ -96,6 +120,26 @@ class Assets implements ArgumentInterface
     }
 
     /**
+     * Get the serialized Rvvup Parameters object.
+     *
+     * @return string
+     */
+    public function getRvvupParametersJsObject(): string
+    {
+        $rvvupParameters = ['settings' => []];
+
+        foreach ($this->getPaymentMethodsSettings() as $key => $methodSettings) {
+            if (isset($methodSettings['assets'])) {
+                unset($methodSettings['assets']);
+            }
+
+            $rvvupParameters['settings'][str_replace(Method::PAYMENT_TITLE_PREFIX, '', $key)] = $methodSettings;
+        }
+
+        return $this->serializer->serialize($rvvupParameters);
+    }
+
+    /**
      * Get the generated ID for a script element by its method and index key.
      *
      * @param string $method
@@ -127,6 +171,27 @@ class Assets implements ArgumentInterface
         return empty($scriptData['attributes']) || !is_array($scriptData['attributes'])
             ? []
             : $scriptData['attributes'];
+    }
+
+    /**
+     * Get the settings of all payment methods if available.
+     *
+     * @return array
+     */
+    private function getPaymentMethodsSettings(): array
+    {
+        if ($this->settings !== null) {
+            return $this->settings;
+        }
+
+        // return empty array if we cannot get the store currency.
+        if ($this->getStoreCurrency() === null) {
+            return [];
+        }
+
+        $this->settings = $this->paymentMethodsSettingsGet->execute('0', $this->getStoreCurrency());
+
+        return $this->settings;
     }
 
     /**

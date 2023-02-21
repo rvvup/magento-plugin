@@ -125,7 +125,7 @@ class Cancel implements ProcessorInterface
     private function validateOrderPayment(OrderInterface $order): void
     {
         if ($order->getPayment() === null
-            || stripos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
+            || strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
         ) {
             throw new PaymentValidationException(__('Order is not paid via Rvvup'));
         }
