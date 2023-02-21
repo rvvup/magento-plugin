@@ -1,2 +1,8 @@
 "An error occurred while processing your payment.", "An error occurred while processing your payment.", module, Rvvup_Payments
 "An error occurred while processing your payment (ID %1). Please contact us.", "An error occurred while processing your payment (ID %1). Please contact us.", module, Rvvup_Payments
+"Invalid payment method", "Invalid payment metxhod", module, Rvvup_Payments
+"Payment method not available", "Payment method not available", module, Rvvup_Payments
+"There was an error when processing your request", "There was an error when processing your request", module, Rvvup_Payments
+"You cancelled the payment process", "You cancelled the payment process", module, Rvvup_Payments
+"PayPal is not available at the moment", "PayPal is not available at the moment", module, Rvvup_Payments
+"A numeric monetary value is required", "A numeric monetary value is required", module, Rvvup_Payments

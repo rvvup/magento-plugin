@@ -11,6 +11,8 @@ interface GuestPaymentActionsGetInterface
      *
      * @param string $cartId
      * @return \Rvvup\Payments\Api\Data\PaymentActionInterface[]
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function execute(string $cartId): array;
 }

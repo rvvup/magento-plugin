@@ -36,6 +36,11 @@ class TransactionInitialize implements ClientInterface
     }
 
     /**
+     * Place the request via the API call.
+     *
+     * If `is_rvvup_express_payment_update` param is provided in the request data,
+     * perform express update call to complete the payment.
+     *
      * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
      * @return array
      * @throws \Magento\Payment\Gateway\Http\ClientException
@@ -43,7 +48,18 @@ class TransactionInitialize implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         try {
-            return $this->sdkProxy->createOrder(['input' => $transferObject->getBody()]);
+            $requestBody = $transferObject->getBody();
+
+            if (isset($requestBody['is_rvvup_express_payment_update'])
+                && $requestBody['is_rvvup_express_payment_update'] === true
+            ) {
+                $requestBody = $this->limitExpressPaymentUpdateRequestData($requestBody);
+
+                return $this->sdkProxy->updateExpressOrder(['input' => $requestBody]);
+            }
+
+            // Otherwise standard order payment.
+            return $this->sdkProxy->createOrder(['input' => $requestBody]);
         } catch (Exception $ex) {
             $this->logger->error(
                 sprintf('Error placing payment request, original exception %s', $ex->getMessage())
@@ -51,5 +67,28 @@ class TransactionInitialize implements ClientInterface
 
             throw new ClientException(__('Something went wrong'));
         }
+    }
+
+    /**
+     * Remove any request fields that are not allowed for a payment express update request.
+     *
+     * ToDo: Refactor Order Builder so data can be built differently depending the request type.
+     *
+     * @param array $requestBody
+     * @return array
+     */
+    private function limitExpressPaymentUpdateRequestData(array $requestBody): array
+    {
+        // Remove not required key values
+        unset(
+            $requestBody['type'],
+            $requestBody['is_rvvup_express_payment_update'],
+            $requestBody['redirectToStoreUrl'],
+            $requestBody['items'],
+            $requestBody['requiresShipping'],
+            $requestBody['method']
+        );
+
+        return $requestBody;
     }
 }

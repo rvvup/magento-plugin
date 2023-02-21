@@ -7,6 +7,7 @@ namespace Rvvup\Payments\Gateway\Command;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Sales\Model\Order\Payment;
+use Rvvup\Payments\Gateway\Method;
 
 class Capture extends AbstractCommand implements CommandInterface
 {
@@ -18,7 +19,7 @@ class Capture extends AbstractCommand implements CommandInterface
     {
         /** @var Payment $payment */
         $payment = $commandSubject['payment']->getPayment();
-        $paymentId = $payment->getAdditionalInformation('rvvup_order_id');
+        $paymentId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $rvvupOrder = $this->sdkProxy->getOrder($paymentId);
         $state = self::STATE_MAP[$rvvupOrder['status']] ?? 'decline';
         $this->$state($payment);
@@ -30,7 +31,7 @@ class Capture extends AbstractCommand implements CommandInterface
      */
     private function success(Payment $payment): void
     {
-        $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
+        $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $payment->setTransactionId($rvvupOrderId);
     }
 

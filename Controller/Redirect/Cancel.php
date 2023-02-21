@@ -20,15 +20,26 @@ class Cancel implements HttpGetActionInterface
 {
     /** @var ResultFactory */
     private $resultFactory;
-    /** @var SessionManagerInterface */
+
+    /**
+     * Set via etc/frontend/di.xml
+     *
+     * @var \Magento\Framework\Session\SessionManagerInterface|\Magento\Checkout\Model\Session\Proxy
+     */
     private $checkoutSession;
+
     /** @var ManagerInterface */
     private $messageManager;
     /** @var PaymentDataGetInterface */
     private $paymentDataGet;
     /** @var ProcessorPool */
     private $processorPool;
-    /** @var LoggerInterface */
+
+    /**
+     * Set via etc/frontend/di.xml
+     *
+     * @var \Psr\Log\LoggerInterface|RvvupLog
+     */
     private $logger;
 
     /**

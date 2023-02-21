@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="layout_render_before_checkout_cart_index">
-        <observer name="rvvup_payments_checkout_cart_restrictions_warning" instance="Rvvup\Payments\Observer\CartRestrictionsWarning"/>
+        <observer name="rvvup_payments_checkout_cart_restrictions_warning"
+                  instance="Rvvup\Payments\Observer\CartRestrictionsWarning" />
     </event>
     <event name="controller_action_predispatch">
-        <observer name="rvvup_payments_reload_cart_data" instance="Rvvup\Payments\Observer\Restore"/>
+        <observer name="rvvup_payments_reload_cart_data" instance="Rvvup\Payments\Observer\Restore" />
+    </event>
+    <!-- Remove express payment data when a quote is restored (payment cancelled/rejected etc) -->
+    <event name="restore_quote">
+        <observer name="Rvvup_Payments::Observer\Session\RemoveExpressPaymentDataObserver"
+                  instance="Rvvup\Payments\Observer\Session\RemoveExpressPaymentDataObserver"
+                  shared="false" />
     </event>
 </config>

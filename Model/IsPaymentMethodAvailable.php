@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model;
 
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Gateway\Method;
 
 class IsPaymentMethodAvailable implements IsPaymentMethodAvailableInterface
 {
     /**
-     * @var \Rvvup\Payments\Model\PaymentMethodsAvailableGet
+     * @var \Rvvup\Payments\Model\PaymentMethodsAvailableGetInterface
      */
     private $paymentMethodsAvailableGet;
 
@@ -23,8 +24,10 @@ class IsPaymentMethodAvailable implements IsPaymentMethodAvailableInterface
      * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public function __construct(PaymentMethodsAvailableGet $paymentMethodsAvailableGet, LoggerInterface $logger)
-    {
+    public function __construct(
+        PaymentMethodsAvailableGetInterface $paymentMethodsAvailableGet,
+        LoggerInterface $logger
+    ) {
         $this->paymentMethodsAvailableGet = $paymentMethodsAvailableGet;
         $this->logger = $logger;
     }
@@ -39,26 +42,17 @@ class IsPaymentMethodAvailable implements IsPaymentMethodAvailableInterface
      */
     public function execute(string $methodCode, string $value, string $currency): bool
     {
-        // We need a numeric value, so false if not such.
-        if (!is_numeric($value)) {
-            return false;
-        }
+        $formattedMethodCode = mb_strtolower(Method::PAYMENT_TITLE_PREFIX . $methodCode);
 
-        $lowerCaseMethodName = mb_strtolower($methodCode);
+        $result = array_key_exists($formattedMethodCode, $this->paymentMethodsAvailableGet->execute($value, $currency));
 
-        foreach ($this->paymentMethodsAvailableGet->execute($value, $currency) as $method) {
-            if (!isset($method['name'])) {
-                continue;
-            }
-
-            if (mb_strtolower($method['name']) === $lowerCaseMethodName) {
-                return true;
-            }
+        if ($result) {
+            return true;
         }
 
         // Log debug & Default to false if not found.
         $this->logger->debug('Rvvup payment method is not available', [
-            'method_code' => $lowerCaseMethodName,
+            'method_code' => $formattedMethodCode,
             'value' => $value,
             'currency' => $currency
         ]);

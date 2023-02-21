@@ -1,72 +1,90 @@
 <?php
 /**
  * @var \Magento\Catalog\Block\Product\View $block
- * @var \Rvvup\Payments\ViewModel\Clearpay $clearpay
- * @var \Rvvup\Payments\ViewModel\Restrictions $restrictions
  * @var \Magento\Framework\Escaper $escaper
  */
 /** Magento 2.3.5 backward compatibility fix */
 if (!isset($escaper)) {
     $escaper = $block;
 }
-use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Magento\Bundle\Model\Product\Type as Bundle;
 
-$clearpay = $block->getClearpay();
-$restrictions = $block->getRestrictions();
+/** @var \Rvvup\Payments\ViewModel\Clearpay $clearpay */
+$clearpay = $block->getData('clearpay');
+/** @var \Rvvup\Payments\ViewModel\Restrictions $restrictions */
+$restrictions = $block->getData('restrictions');
+/** @var \Rvvup\Payments\ViewModel\PayPal $paypalViewModel */
+$paypalViewModel = $block->getData('rvvup_payments_paypal_view_model');
+
 $product = $block->getProduct();
 $thresholds = $clearpay->getThresholds($product);
 ?>
 <?php if ($restrictions->showRestrictionMessage($product)): ?>
-    <?= $escaper->escapeHtml($restrictions->getMessages()->getPdpMessage()) ?>
+    <p>
+        <?= $escaper->escapeHtml($restrictions->getMessages()->getPdpMessage()) ?>
+    </p>
 <?php endif; ?>
-<?php
-// Nothing to display if not in threshold.
-if (!is_array($thresholds) || !$clearpay->isInThreshold($product, $thresholds)) {
-    return;
-}
-?>
-<script type="text/x-magento-init">
-    {
-        "*": {
-            "Rvvup_Payments/js/method/clearpay": {
-                "storeCode": "<?= /** @noEscape */ $clearpay->getStoreCode() ?>"
+<?php if (is_array($thresholds) && $clearpay->isInThreshold($product, $thresholds)): ?>
+    <script type="text/x-magento-init">
+        {
+            "*": {
+                "Rvvup_Payments/js/method/clearpay": {
+                    "storeCode": "<?= /** @noEscape */ $clearpay->getStoreCode() ?>"
+                }
             }
         }
-    }
-</script>
-<div class="clearpay">
-    <afterpay-placement style="display:none" id="clearpay-summary"
-                        data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
-                        data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
-                        data-amount="<?= $escaper->escapeHtmlAttr($product->getFinalPrice()) ?>"
-                        data-logo-type="<?= $escaper->escapeHtmlAttr($clearpay->getLogoType()) ?>"
-                        data-badge-theme="<?= $escaper->escapeHtmlAttr($clearpay->getBadgeTheme()) ?>"
-                        data-modal-theme="<?= $escaper->escapeHtmlAttr($clearpay->getModalTheme()) ?>"
-    ></afterpay-placement>
+    </script>
+    <div class="clearpay">
+        <afterpay-placement style="display:none" id="clearpay-summary"
+                            data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
+                            data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
+                            data-amount="<?= $escaper->escapeHtmlAttr($product->getFinalPrice()) ?>"
+                            data-logo-type="<?= $escaper->escapeHtmlAttr($clearpay->getLogoType()) ?>"
+                            data-badge-theme="<?= $escaper->escapeHtmlAttr($clearpay->getBadgeTheme()) ?>"
+                            data-modal-theme="<?= $escaper->escapeHtmlAttr($clearpay->getModalTheme()) ?>"
+        ></afterpay-placement>
+    </div>
+    <?php if ($product->getTypeId() === 'configurable'): // Load thresholds for configurable products?>
+        <script type="text/x-magento-init">
+            {
+                "[data-role=swatch-options]": {
+                    "Magento_Swatches/js/swatch-renderer": {
+                        "rvvupMin": "<?= $escaper->escapeHtml($thresholds['min']) ?>",
+                        "rvvupMax": "<?= $escaper->escapeHtml($thresholds['max']) ?>"
+                    }
+                }
+            }
+        </script>
+    <?php endif; ?>
+    <?php if ($product->getTypeId() === 'bundle'): // Load thresholds for bundle products?>
+        <script type="text/x-magento-init">
+            {
+                "#product_addtocart_form": {
+                    "priceBundle": {
+                        "rvvupMin": "<?= $escaper->escapeHtml($thresholds['min']) ?>",
+                        "rvvupMax": "<?= $escaper->escapeHtml($thresholds['max']) ?>"
+                    }
+                }
+            }
+        </script>
+    <?php endif; ?>
+<?php endif; ?>
+<?php if ($paypalViewModel->canUseForProductType($product)
+    && $paypalViewModel->isAvailable((string) $product->getFinalPrice())
+    && $paypalViewModel->getPayLaterMessagingValue('enabled') === true
+): ?>
+<div>
+    <div class="rvvup-paypal-paylater-messaging-container"
+         data-pp-message
+         data-pp-placement="product"
+         data-pp-amount="<?= $escaper->escapeHtmlAttr($product->getFinalPrice()) ?>"
+         data-pp-style-layout="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('layout')) ?>"
+         data-pp-style-logo-type="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('logoType')) ?>"
+         data-pp-style-logo-position="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('logoPosition')) ?>"
+         data-pp-style-text-color="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('textColor')) ?>"
+         data-pp-style-text-size="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('textSize')) ?>"
+         data-pp-style-text-align="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('textAlignment')) ?>"
+         data-pp-style-color="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('color')) ?>"
+         data-pp-style-ratio="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('ratio')) ?>"
+    ></div>
 </div>
-
-<?php if ($product->getTypeId() === Configurable::TYPE_CODE): // Load thresholds for configurable products ?>
-    <script type="text/x-magento-init">
-        {
-            "[data-role=swatch-options]": {
-                "Magento_Swatches/js/swatch-renderer": {
-                    "rvvupMin": "<?= $escaper->escapeHtml($thresholds['min']) ?>",
-                    "rvvupMax": "<?= $escaper->escapeHtml($thresholds['max']) ?>"
-                }
-            }
-        }
-    </script>
-<?php endif; ?>
-<?php if ($product->getTypeId() === Bundle::TYPE_CODE): // Load thresholds for bundle products ?>
-    <script type="text/x-magento-init">
-        {
-            "#product_addtocart_form": {
-                "priceBundle": {
-                    "rvvupMin": "<?= $escaper->escapeHtml($thresholds['min']) ?>",
-                    "rvvupMax": "<?= $escaper->escapeHtml($thresholds['max']) ?>"
-                }
-            }
-        }
-    </script>
 <?php endif; ?>

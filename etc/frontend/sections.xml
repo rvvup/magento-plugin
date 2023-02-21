@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Customer:etc/sections.xsd">
+    <!-- Rvvup endpoints additional invalidation -->
+    <action name="rvvup/express/create">
+        <section name="*" />
+    </action>
+    <action name="rest/*/V1/rvvup/payments/carts/mine/express">
+        <section name="*" />
+    </action>
+    <action name="rest/*/V1/rvvup/payments/guest-carts/*/express">
+        <section name="*" />
+    </action>
+    <!-- Customer endpoints additional invalidation. Copied from Magento_Customer/etc/frontend/sections.xml -->
+    <action name="customer/ajax/login">
+        <section name="rvvup-express-payment" />
+    </action>
+    <!-- Quote endpoints additional invalidation. Create cart, add to cart, set billing address. -->
+    <action name="rest/*/V1/carts/mine">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/guest-carts">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/carts/mine/items">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/guest-carts/*/items">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/carts/mine/billing-address">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/guest-carts/*/billing-address">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+    <!-- Checkout endpoints additional invalidation. Copied from Magento_Checkout/etc/frontend/sections.xml -->
+    <action name="checkout/cart/add">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/cart/delete">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/cart/updatePost">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/cart/updateItemOptions">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/cart/couponPost">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/cart/estimatePost">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/cart/estimateUpdatePost">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/onepage/saveOrder">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/sidebar/removeItem">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="checkout/sidebar/updateItemQty">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/carts/*/payment-information">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/guest-carts/*/payment-information">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/guest-carts/*/selected-payment-method">
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/carts/*/selected-payment-method">
+        <section name="rvvup-express-payment" />
+    </action>
+</config>

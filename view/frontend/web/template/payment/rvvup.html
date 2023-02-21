@@ -35,13 +35,32 @@
             <iframe data-bind="attr: {'id': getIframeId()}" style="border-width:0;width:100%;height:500px;"></iframe>
         </div>
 
+        <!-- PayPal PayLater Messaging -->
+        <div class="rvvup-pp-message"
+             data-pp-message
+             data-pp-placement="payment"
+             data-bind="style: {
+                 display: shouldDisplayPayPalButton() && getPayLaterConfigValue('enabled') ? '' : 'none'
+             },
+             attr: {
+                 'data-pp-amount': getPayLaterTotal(),
+                 'data-pp-style-layout': getPayLaterConfigValue('layout'),
+                 'data-pp-style-logo-type': getPayLaterConfigValue('logoType'),
+                 'data-pp-style-logo-position': getPayLaterConfigValue('logoPosition'),
+                 'data-pp-style-text-color': getPayLaterConfigValue('textColor'),
+                 'data-pp-style-text-size': getPayLaterConfigValue('textSize'),
+                 'data-pp-style-text-align': getPayLaterConfigValue('textAlignment'),
+                 'data-pp-style-color': getPayLaterConfigValue('color'),
+                 'data-pp-style-ratio': getPayLaterConfigValue('ratio')
+         }"></div>
+
         <!-- PayPal Place Order button, show if PayPal option is selected -->
-        <div class="action-toolbar" data-bind="style: { display: isPayPalComponent() ? '' : 'none' }">
+        <div class="action-toolbar" data-bind="style: { display: shouldDisplayPayPalButton() ? '' : 'none' }">
             <div afterRender="afterRenderPaypalComponentProcessor"
                  data-bind="attr: {'id': getPayPalId()}, css: {disabled: !isPlaceOrderActionAllowed()}"></div>
         </div>
         <!-- Place Order button, hide if PayPal option is selected -->
-        <div class="actions-toolbar" data-bind="style: { display: !isPayPalComponent() ? '' : 'none' }">
+        <div class="actions-toolbar" data-bind="style: {display: !shouldDisplayPayPalButton() ? '' : 'none'}">
             <div class="primary">
                 <button class="action primary checkout"
                         type="submit"
@@ -55,6 +74,10 @@
                     <span data-bind="i18n: 'Place Order'"></span>
                 </button>
             </div>
+        </div>
+        <!-- Cancel Express Payment link, currently show only if PayPal & Express payment process -->
+        <div class="action-toolbar" data-bind="style: {display: shouldDisplayCancelExpressPaymentLink() ? '' : 'none'}">
+            <p data-bind="html: getCancelExpressPaymentLink()"></p>
         </div>
     </div>
 </div>

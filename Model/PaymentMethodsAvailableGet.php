@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Model;
 
 use Exception;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Gateway\Method;
 
 class PaymentMethodsAvailableGet implements PaymentMethodsAvailableGetInterface
 {
@@ -40,7 +41,13 @@ class PaymentMethodsAvailableGet implements PaymentMethodsAvailableGetInterface
     public function execute(string $value, string $currency): array
     {
         try {
-            return $this->sdkProxy->getMethods($value, $currency);
+            $methods = [];
+
+            foreach ($this->sdkProxy->getMethods($value, $currency) as $method) {
+                $methods[mb_strtolower(Method::PAYMENT_TITLE_PREFIX . $method['name'])] = $method;
+            }
+
+            return $methods;
         } catch (Exception $ex) {
             $this->logger->error('Failed to load all available payment methods with message: ' . $ex->getMessage(), [
                 'value' => $value,

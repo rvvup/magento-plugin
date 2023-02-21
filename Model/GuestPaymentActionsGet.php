@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
 
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Quote\Model\QuoteIdMaskFactory;
-use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Rvvup\Payments\Api\GuestPaymentActionsGetInterface;
 
 class GuestPaymentActionsGet implements GuestPaymentActionsGetInterface
 {
     /**
-     * @var \Magento\Quote\Model\QuoteIdMaskFactory
+     * @var \Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface
      */
-    private $quoteIdMaskFactory;
+    private $maskedQuoteIdToQuoteId;
 
     /**
      * @var \Rvvup\Payments\Model\PaymentActionsGetInterface
@@ -23,26 +20,16 @@ class GuestPaymentActionsGet implements GuestPaymentActionsGetInterface
     private $paymentActionsGet;
 
     /**
-     * Set via di.xml
-     *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
-     */
-    private $logger;
-
-    /**
-     * @param \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory
+     * @param \Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param \Rvvup\Payments\Model\PaymentActionsGetInterface $paymentActionsGet
-     * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
     public function __construct(
-        QuoteIdMaskFactory $quoteIdMaskFactory,
-        PaymentActionsGetInterface $paymentActionsGet,
-        LoggerInterface $logger
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        PaymentActionsGetInterface $paymentActionsGet
     ) {
-        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->paymentActionsGet = $paymentActionsGet;
-        $this->logger = $logger;
     }
 
     /**
@@ -51,20 +38,10 @@ class GuestPaymentActionsGet implements GuestPaymentActionsGetInterface
      * @param string $cartId
      * @return \Rvvup\Payments\Api\Data\PaymentActionInterface[]
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function execute(string $cartId): array
     {
-        /** @var \Magento\Quote\Model\QuoteIdMask $quoteIdMask */
-        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id'); // @phpstan-ignore-line
-
-        if ($quoteIdMask->getQuoteId() === null) {
-            $this->logger->error('Error loading Payment Actions for guest. No quote ID found.', [
-                'masked_quote_id' => $cartId
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
-
-        return $this->paymentActionsGet->execute($quoteIdMask->getQuoteId());
+        return $this->paymentActionsGet->execute((string) $this->maskedQuoteIdToQuoteId->execute($cartId));
     }
 }

@@ -1,0 +1,33 @@
+<?php
+/**
+ * @var \Magento\Catalog\Block\Product\View $block
+ * @var \Rvvup\Payments\ViewModel\PayPal $paypalViewModel
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+// Backwards compatibility for Magento =<2.3.5
+if (!isset($escaper)) {
+    $escaper = $block;
+}
+
+$paypalViewModel = $block->getData('rvvup_payments_paypal_view_model');
+$product = $block->getProduct();
+?>
+
+<?php if ($paypalViewModel !== null
+    && $paypalViewModel->canUseForProductType($product)
+    && $paypalViewModel->isAvailable((string) $product->getFinalPrice())
+): ?>
+    <?php $buttonContainerId = $paypalViewModel->getButtonContainerId(); ?>
+    <div id="<?= $escaper->escapeHtmlAttr($buttonContainerId) ?>"
+         class="rvvup-paypal-express-button-container"></div>
+    <script type="text/x-magento-init">
+        {
+            "#<?= $escaper->escapeHtmlAttr($buttonContainerId) ?>": {
+                "Rvvup_Payments/js/method/paypal/button": {
+                    "buttonId": "<?= $escaper->escapeHtmlAttr($buttonContainerId) ?>"
+                }
+            }
+        }
+    </script>
+<?php endif; ?>

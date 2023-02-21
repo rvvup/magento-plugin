@@ -21,6 +21,14 @@ class Method extends Adapter
     public const PAYMENT_TITLE_PREFIX = 'rvvup_';
 
     /**
+     * Constant to be used as a key identifier for Rvvup payments.
+     */
+    public const ORDER_ID = 'rvvup_order_id';
+    public const DASHBOARD_URL = 'dashboard_url';
+    public const EXPRESS_PAYMENT_KEY = 'is_rvvup_express_payment';
+    public const EXPRESS_PAYMENT_DATA_KEY = 'rvvup_express_payment_data';
+
+    /**
      * Curative list of available RVVUP Status constants.
      *
      * CANCELLED: Customer aborted the payment.
