@@ -127,7 +127,7 @@ class Handler
 
             $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
         } catch (\Exception $e) {
-            $this->logger->debug('Webhook exception:' . $e->getMessage(), [
+            $this->logger->error('Webhook exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,
             ]);
         }
