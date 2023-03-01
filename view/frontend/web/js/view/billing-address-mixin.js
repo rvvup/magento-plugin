@@ -11,7 +11,10 @@ define([
 
             var paymentMethod = quote.paymentMethod();
 
-            if (paymentMethod && this.dataScopePrefix.includes(paymentMethod.method)) {
+            if (paymentMethod &&
+                typeof this.dataScopePrefix !== 'undefined' &&
+                this.dataScopePrefix.includes(paymentMethod.method)
+            ) {
                 quote.billingAddress.subscribe(function (newAddress) {
                     if (isExpressPayment() && quote.isVirtual()) {
                         checkoutDataHelper.setRvvupBillingAddress(newAddress);
