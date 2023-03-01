@@ -502,6 +502,13 @@ define([
             },
             getPayLaterConfigValue: function (key) {
                 let values = rvvup_parameters
+
+                const paypalLoaded = !!values?.settings?.paypal?.checkout;
+
+                if (!paypalLoaded) {
+                    return false;
+                }
+
                 if (['enabled', 'textSize'].includes(key)) {
                     return values.settings.paypal.checkout.payLaterMessaging[key]
                 }
