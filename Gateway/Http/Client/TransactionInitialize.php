@@ -7,6 +7,8 @@ use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\OrderDataBuilder;
 use Rvvup\Payments\Model\SdkProxy;
 
 class TransactionInitialize implements ClientInterface
@@ -24,22 +26,26 @@ class TransactionInitialize implements ClientInterface
     private $logger;
 
     /**
+     * @var OrderDataBuilder
+     */
+    private OrderDataBuilder $orderDataBuilder;
+
+    /**
      * @param SdkProxy $sdkProxy
      * @param LoggerInterface $logger
      */
     public function __construct(
         SdkProxy $sdkProxy,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderDataBuilder $orderDataBuilder
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->logger = $logger;
+        $this->orderDataBuilder = $orderDataBuilder;
     }
 
     /**
      * Place the request via the API call.
-     *
-     * If `is_rvvup_express_payment_update` param is provided in the request data,
-     * perform express update call to complete the payment.
      *
      * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
      * @return array
@@ -48,18 +54,22 @@ class TransactionInitialize implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         try {
-            $requestBody = $transferObject->getBody();
+            if (isset($transferObject->getBody()['id'])) {
+                $order = $this->sdkProxy->getOrder($transferObject->getBody()['id']);
 
-            if (isset($requestBody['is_rvvup_express_payment_update'])
-                && $requestBody['is_rvvup_express_payment_update'] === true
-            ) {
-                $requestBody = $this->limitExpressPaymentUpdateRequestData($requestBody);
+                if ($order['status'] == Method::STATUS_EXPIRED) {
+                    return $this->processExpiredOrder($order['externalReference']);
+                }
 
-                return $this->sdkProxy->updateExpressOrder(['input' => $requestBody]);
+                return $this->sdkProxy->updateOrder(['input' => $transferObject->getBody()]);
             }
 
-            // Otherwise standard order payment.
-            return $this->sdkProxy->createOrder(['input' => $requestBody]);
+            $order = $this->sdkProxy->createOrder(['input' => $transferObject->getBody()]);
+            if ($order['data']['orderCreate']['status'] == Method::STATUS_EXPIRED) {
+                return $this->processExpiredOrder($order['externalReference']);
+            }
+
+            return $order;
         } catch (Exception $ex) {
             $this->logger->error(
                 sprintf('Error placing payment request, original exception %s', $ex->getMessage())
@@ -69,26 +79,9 @@ class TransactionInitialize implements ClientInterface
         }
     }
 
-    /**
-     * Remove any request fields that are not allowed for a payment express update request.
-     *
-     * ToDo: Refactor Order Builder so data can be built differently depending the request type.
-     *
-     * @param array $requestBody
-     * @return array
-     */
-    private function limitExpressPaymentUpdateRequestData(array $requestBody): array
+    private function processExpiredOrder(string $orderId)
     {
-        // Remove not required key values
-        unset(
-            $requestBody['type'],
-            $requestBody['is_rvvup_express_payment_update'],
-            $requestBody['redirectToStoreUrl'],
-            $requestBody['items'],
-            $requestBody['requiresShipping'],
-            $requestBody['method']
-        );
-
-        return $requestBody;
+        $input = $this->orderDataBuilder->createInputForExpiredOrder($orderId);
+        return $this->sdkProxy->createOrder(['input' => $input]);
     }
 }

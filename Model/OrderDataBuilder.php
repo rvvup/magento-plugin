@@ -1,12 +1,20 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
 
 use Magento\Customer\Api\AddressRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
 
@@ -18,7 +26,7 @@ class OrderDataBuilder
     private $customerAddressRepository;
 
     /**
-     * @var \Magento\Framework\UrlInterface
+     * @var UrlInterface
      */
     private $urlBuilder;
 
@@ -28,26 +36,57 @@ class OrderDataBuilder
     private $config;
 
     /**
-     * @param \Magento\Customer\Api\AddressRepositoryInterface $customerAddressRepository
-     * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Rvvup\Payments\Model\ConfigInterface $config
-     * @return void
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * @var CartRepositoryInterface
+     */
+    private CartRepositoryInterface $cartRepository;
+
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private OrderRepositoryInterface $orderRepository;
+
+    /**
+     * @param AddressRepositoryInterface $customerAddressRepository
+     * @param SerializerInterface $serializer
+     * @param UrlInterface $urlBuilder
+     * @param ConfigInterface $config
+     * @param CartRepositoryInterface $cartRepository
+     * @param OrderRepositoryInterface $orderRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      */
     public function __construct(
         AddressRepositoryInterface $customerAddressRepository,
+        SerializerInterface $serializer,
         UrlInterface $urlBuilder,
-        ConfigInterface $config
+        ConfigInterface $config,
+        CartRepositoryInterface $cartRepository,
+        OrderRepositoryInterface $orderRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
+        $this->serializer = $serializer;
         $this->config = $config;
+        $this->cartRepository = $cartRepository;
+        $this->orderRepository = $orderRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
-     * @param \Magento\Quote\Api\Data\CartInterface|\Magento\Quote\Model\Quote $quote
+     * @param CartInterface|Quote $quote
      * @param bool $express
      * @return array
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     * @throws QuoteValidationException
      */
     public function build(CartInterface $quote, bool $express = false): array
     {
@@ -60,9 +99,6 @@ class OrderDataBuilder
 
         $orderDataArray = $this->renderBase($quote, $express);
         $orderDataArray['customer'] = $this->renderCustomer($quote, $express, $billingAddress);
-
-        // Set external reference if this is NOT a request to build express payment data.
-        $orderDataArray['externalReference'] = $express ? null : $quote->getReservedOrderId();
         $orderDataArray['billingAddress'] = $this->renderBillingAddress($quote, $express, $billingAddress);
 
         // We do not require shipping data for virtual orders (orders without tangible items).
@@ -86,12 +122,47 @@ class OrderDataBuilder
     }
 
     /**
+     * @param string $orderId
+     * @return array
+     * @throws NoSuchEntityException
+     * @throws QuoteValidationException
+     */
+    public function createInputForExpiredOrder(string $orderId): array
+    {
+        $quote = $this->getQuoteByOrderIncrementId($orderId);
+        $this->unsetRvvupPayload($quote);
+
+        return $this->build($quote);
+    }
+
+    private function unsetRvvupPayload(CartInterface &$quote): void
+    {
+        $extensionAttributes = $quote->getExtensionAttributes();
+        $extensionAttributes->setRvvupOrderPayload(null);
+        $quote->setExtensionAttributes($extensionAttributes);
+    }
+
+    /**
+     * @param string $orderId
+     * @return CartInterface
+     * @throws NoSuchEntityException
+     */
+    private function getQuoteByOrderIncrementId(string $orderId): CartInterface
+    {
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter(OrderInterface::INCREMENT_ID, $orderId)->create();
+
+        $quoteId = current($this->orderRepository->getList($searchCriteria)->getItems())->getQuoteId();
+
+        return $this->cartRepository->get($quoteId);
+    }
+
+    /**
      * Get the base data, common for all Rvvup payment request types.
      *
-     * @param \Magento\Quote\Api\Data\CartInterface $quote
+     * @param CartInterface $quote
      * @param bool $express
      * @return array
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     * @throws QuoteValidationException
      */
     private function renderBase(CartInterface $quote, bool $express = false): array
     {
@@ -105,12 +176,9 @@ class OrderDataBuilder
             $this->throwException('This order is not paid via Rvvup');
         }
 
-        return [
-            "merchant" => [
-                "id" => $this->config->getMerchantId(),
-            ],
-            "type" => $express ? "EXPRESS" : "STANDARD",
-            "redirectToStoreUrl" => $this->urlBuilder->getUrl('rvvup/redirect/in'),
+        $orderDataArray = [
+            "type" => 'V2',
+            "externalReference" => $quote->getReservedOrderId(),
             "total" => [
                 "amount" => $this->toCurrency($quote->getGrandTotal()),
                 "currency" => $quote->getQuoteCurrencyCode(),
@@ -127,15 +195,31 @@ class OrderDataBuilder
                 "amount" => $this->toCurrency($quote->getTotals()['tax']->getValue()),
                 "currency" => $quote->getQuoteCurrencyCode(),
             ],
-            "items" => $this->renderItems($quote),
             "requiresShipping" => !$quote->getIsVirtual(),
-            // Quote should always have a payment method set and never null when this is called.
-            "method" => str_replace(Method::PAYMENT_TITLE_PREFIX, '', $payment->getMethod())
         ];
+
+        if (!empty($quote->getExtensionAttributes()->getRvvupOrderPayload())) {
+            $data = $this->serializer->unserialize($quote->getExtensionAttributes()->getRvvupOrderPayload());
+            $orderDataArray["id"] = $data["id"];
+            $orderDataArray["externalReference"] = $data["externalReference"];
+            $orderDataArray["merchantId"] = $this->config->getMerchantId();
+            unset($orderDataArray["type"]);
+        } elseif ($payment->getAdditionalInformation("rvvup_express_payment_data")) {
+            unset($orderDataArray["type"]);
+            $orderDataArray['merchantId'] = $this->config->getMerchantId();
+        } else {
+            $orderDataArray["merchant"] = [
+                "id" => $this->config->getMerchantId(),
+            ];
+            $orderDataArray["redirectToStoreUrl"] = $this->urlBuilder->getUrl('rvvup/redirect/in');
+            $orderDataArray["items"] = $this->renderItems($quote);
+        }
+
+        return $orderDataArray;
     }
 
     /**
-     * @param \Magento\Quote\Api\Data\CartInterface $quote
+     * @param CartInterface $quote
      * @return array
      */
     private function renderItems(CartInterface $quote): array
@@ -181,7 +265,7 @@ class OrderDataBuilder
     }
 
     /**
-     * @param \Magento\Quote\Api\Data\CartInterface $quote
+     * @param CartInterface $quote
      * @param bool $express
      * @param \Magento\Quote\Api\Data\AddressInterface|null $billingAddress
      * @return array|null
@@ -194,7 +278,7 @@ class OrderDataBuilder
         // If we have an express payment and quote belongs to a customer, get customer data from customer object.
         if ($express && $quote->getCustomer() !== null && $quote->getCustomer()->getId() !== null) {
             $customerBillingAddress = $quote->getCustomer()->getDefaultBilling() !== null
-                ? $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultBilling())
+                ? $this->renderCustomerAddress((int)$quote->getCustomer()->getDefaultBilling())
                 : null;
 
             return [
@@ -235,11 +319,11 @@ class OrderDataBuilder
     }
 
     /**
-     * @param \Magento\Quote\Api\Data\CartInterface|\Magento\Quote\Model\Quote $quote
+     * @param CartInterface|Quote $quote
      * @param bool $express
      * @param \Magento\Quote\Api\Data\AddressInterface|null $billingAddress
      * @return array|null
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     * @throws QuoteValidationException
      */
     private function renderBillingAddress(
         CartInterface $quote,
@@ -258,15 +342,15 @@ class OrderDataBuilder
         }
 
         // Otherwise, return customer billing address if full.
-        return $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultBilling());
+        return $this->renderCustomerAddress((int)$quote->getCustomer()->getDefaultBilling());
     }
 
     /**
-     * @param \Magento\Quote\Api\Data\CartInterface|\Magento\Quote\Model\Quote $quote
+     * @param CartInterface|Quote $quote
      * @param bool $express
      * @param \Magento\Quote\Api\Data\AddressInterface|null $shippingAddress
      * @return array|null
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     * @throws QuoteValidationException
      */
     private function renderShippingAddress(
         CartInterface $quote,
@@ -285,13 +369,13 @@ class OrderDataBuilder
         }
 
         // Otherwise, return customer billing address if full.
-        return $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultShipping());
+        return $this->renderCustomerAddress((int)$quote->getCustomer()->getDefaultShipping());
     }
 
     /**
      * @param \Magento\Quote\Api\Data\AddressInterface $address
      * @return array
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     * @throws QuoteValidationException
      */
     private function renderAddress(AddressInterface $address): array
     {
@@ -368,7 +452,7 @@ class OrderDataBuilder
      */
     private function toCurrency($amount): string
     {
-        return number_format((float) $amount, 2, '.', '');
+        return number_format((float)$amount, 2, '.', '');
     }
 
     /**
@@ -377,13 +461,13 @@ class OrderDataBuilder
      */
     private function toQty($qty): string
     {
-        return number_format((float) $qty, 0, '.', '');
+        return number_format((float)$qty, 0, '.', '');
     }
 
     /**
      * @param string $error
      * @return void
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     * @throws QuoteValidationException
      */
     private function throwException(string $error): void
     {
