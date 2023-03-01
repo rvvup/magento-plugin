@@ -33,6 +33,7 @@ class TransactionInitialize implements ClientInterface
     /**
      * @param SdkProxy $sdkProxy
      * @param LoggerInterface $logger
+     * @param OrderDataBuilder $orderDataBuilder
      */
     public function __construct(
         SdkProxy $sdkProxy,
