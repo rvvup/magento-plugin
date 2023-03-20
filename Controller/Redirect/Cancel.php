@@ -86,7 +86,8 @@ class Cancel implements HttpGetActionInterface
                     : ''
             );
 
-            $result = $this->processorPool->getProcessor($rvvupData['status'] ?? '')->execute($order, $rvvupData);
+            $result = $this->processorPool->getProcessor($rvvupData['payments'][0]['status'] ?? '')
+                ->execute($order, $rvvupData);
 
             // Restore quote if the result would be of type error.
             if ($result->getResultType() === ProcessOrderResultInterface::RESULT_TYPE_ERROR) {

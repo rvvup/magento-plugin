@@ -99,10 +99,8 @@ class InitializeDataBuilder implements BuilderInterface
         $orderData = $this->orderDataBuilder->build($cart);
 
         // If this is an express payment getting completed, set payment type (express) & additional data.
-        // Setting the custom `is_rvvup_express_payment_update` flag allows the Transaction class to handle the update.
         if ($this->isExpressPayment($payment)) {
             $orderData['id'] = $payment->getAdditionalInformation(Method::ORDER_ID);
-            $orderData['is_rvvup_express_payment_update'] = true;
         }
 
         return $orderData;
