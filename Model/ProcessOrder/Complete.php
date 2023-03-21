@@ -4,6 +4,7 @@ namespace Rvvup\Payments\Model\ProcessOrder;
 
 use Exception;
 use Magento\Framework\Event\ManagerInterface as EventManager;
+use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\InvoiceOrderInterface;
 use Magento\Sales\Model\Order;
@@ -100,6 +101,10 @@ class Complete implements ProcessorInterface
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_SUCCESS);
             $processOrderResult->setRedirectPath(In::SUCCESS);
+        } catch (CommandException $e) {
+            $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
+            $processOrderResult->setRedirectPath(In::FAILURE);
+            $processOrderResult->setCustomerMessage($e->getMessage());
         } catch (Exception $e) {
             $this->logger->error('Error during processing order complete on SUCCESS status: ' . $e->getMessage(), [
                 'order_id' => $order->getEntityId()

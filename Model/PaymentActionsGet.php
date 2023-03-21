@@ -8,6 +8,7 @@ use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
@@ -45,24 +46,39 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     private $logger;
 
     /**
-     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory $paymentActionInterfaceFactory
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
+     * @var SdkProxy
+     */
+    private SdkProxy $sdkProxy;
+
+    /**
+     * @var CommandPoolInterface
+     */
+    private CommandPoolInterface $commandPool;
+
+    /**
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param SortOrderBuilder $sortOrderBuilder
+     * @param OrderRepositoryInterface $orderRepository
+     * @param PaymentActionInterfaceFactory $paymentActionInterfaceFactory
+     * @param SdkProxy $sdkProxy
+     * @param CommandPoolInterface $commandPool
+     * @param LoggerInterface $logger
      */
     public function __construct(
         SearchCriteriaBuilder $searchCriteriaBuilder,
         SortOrderBuilder $sortOrderBuilder,
         OrderRepositoryInterface $orderRepository,
         PaymentActionInterfaceFactory $paymentActionInterfaceFactory,
+        SdkProxy $sdkProxy,
+        CommandPoolInterface $commandPool,
         LoggerInterface $logger
     ) {
         $this->sortOrderBuilder = $sortOrderBuilder;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
         $this->paymentActionInterfaceFactory = $paymentActionInterfaceFactory;
+        $this->sdkProxy = $sdkProxy;
+        $this->commandPool = $commandPool;
         $this->logger = $logger;
     }
 
@@ -72,12 +88,19 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      * @param string $cartId
      * @param string|null $customerId
      * @return PaymentActionInterface[]
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function execute(string $cartId, ?string $customerId = null): array
     {
         $order = $this->getOrderByCartIdAndCustomerId($cartId, $customerId);
-        $paymentActions = $this->getOrderPaymentActions($order, $cartId, $customerId);
+
+        $this->validate($order, $cartId, $customerId);
+
+        if ($order->getPayment()->getAdditionalInformation('is_rvvup_express_payment')) {
+            $paymentActions = $this->getExpressOrderPaymentActions($order);
+        } else {
+            $paymentActions = $this->createRvvupPayment($order);
+        }
 
         $paymentActionsDataArray = [];
 
@@ -126,8 +149,8 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     /**
      * @param string $cartId
      * @param string|null $customerId
-     * @return \Magento\Sales\Api\Data\OrderInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return OrderInterface
+     * @throws LocalizedException
      */
     private function getOrderByCartIdAndCustomerId(string $cartId, ?string $customerId = null): OrderInterface
     {
@@ -175,44 +198,36 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     /**
      * Get the order payment's paymentActions from its additional information
      *
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param string $cartId
-     * @param string|null $customerId
+     * @param OrderInterface $order
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getOrderPaymentActions(OrderInterface $order, string $cartId, ?string $customerId = null): array
+    private function getExpressOrderPaymentActions(OrderInterface $order): array
     {
-        $payment = $order->getPayment();
+        $id = $order->getPayment()->getAdditionalInformation('rvvup_order_id');
+        $rvvupOrder = $this->sdkProxy->getOrder($id);
 
-        // Fail-safe, all orders should have an associated payment record
-        if ($payment === null) {
-            $this->logger->error('Error loading Payment Actions for user. No order payment found.', [
-                'quote_id' => $cartId,
-                'order_id' => $order->getEntityId(),
-                'customer_id' => $customerId,
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
+        if (!empty($rvvupOrder)) {
+            return
+                [
+                    [
+                        "type" => 'authorization',
+                        "method" => 'redirect_url',
+                        "value" => $rvvupOrder["redirectToCheckoutUrl"],
+                    ],
+                    [
+                        "type" => 'cancel',
+                        "method" => 'redirect_url',
+                        "value" => $rvvupOrder['redirectToStoreUrl'],
+                    ],
+                ];
         }
+        return [];
+    }
 
-        $paymentAdditionalInformation = $payment->getAdditionalInformation();
-
-        // Check if payment actions are set as array & not empty
-        if (empty($paymentAdditionalInformation['paymentActions'])
-            || !is_array($paymentAdditionalInformation['paymentActions'])
-        ) {
-            $this->logger->error('Error loading Payment Actions. No order payment additional information found.', [
-                'quote_id' => $cartId,
-                'order_id' => $order->getEntityId(),
-                'payment_id' => $payment->getEntityId(),
-                'customer_id' => $customerId
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
-
-        return $paymentAdditionalInformation['paymentActions'];
+    private function createRvvupPayment($order): array
+    {
+        $result = $this->commandPool->get('createPayment')->execute(['payment' => $order->getPayment()]);
+        return $result['data']['paymentCreate']['summary']['paymentActions'];
     }
 
     /**
@@ -240,5 +255,41 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         }
 
         return $paymentActionData;
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param string $cartId
+     * @param string|null $customerId
+     * @return void
+     * @throws LocalizedException
+     */
+    private function validate(OrderInterface $order, string $cartId, ?string $customerId = null): void
+    {
+        $payment = $order->getPayment();
+
+        // Fail-safe, all orders should have an associated payment record
+        if ($payment === null) {
+            $this->logger->error('Error loading Payment Actions for user. No order payment found.', [
+                'quote_id' => $cartId,
+                'order_id' => $order->getEntityId(),
+                'customer_id' => $customerId,
+            ]);
+
+            throw new LocalizedException(__('Something went wrong'));
+        }
+
+        $paymentAdditionalInformation = $payment->getAdditionalInformation();
+
+        if (!isset($paymentAdditionalInformation['rvvup_order_id'])) {
+            $this->logger->error('Error loading Payment Actions. No order id additional information found.', [
+                'quote_id' => $cartId,
+                'order_id' => $order->getEntityId(),
+                'payment_id' => $payment->getEntityId(),
+                'customer_id' => $customerId
+            ]);
+
+            throw new LocalizedException(__('Something went wrong'));
+        }
     }
 }

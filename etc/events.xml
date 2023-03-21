@@ -23,7 +23,29 @@
                   shared="false" />
     </event>
 
-    <event name="sales_quote_item_save_before">
+    <event name="checkout_cart_product_add_after">
+        <observer name="Rvvup_Payments::Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  instance="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  shared="false" />
+    </event>
+    <event name="sales_quote_remove_item">
+        <observer name="Rvvup_Payments::Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  instance="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  shared="false" />
+    </event>
+    <event name="checkout_cart_update_items_after">
+        <observer name="Rvvup_Payments::Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  instance="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  shared="false" />
+    </event>
+
+    <event name="sales_quote_add_item">
+        <observer name="Rvvup_Payments::Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  instance="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
+                  shared="false" />
+    </event>
+
+    <event name="sales_quote_product_add_after">
         <observer name="Rvvup_Payments::Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
                   instance="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
                   shared="false" />

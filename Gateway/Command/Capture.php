@@ -21,7 +21,7 @@ class Capture extends AbstractCommand implements CommandInterface
         $payment = $commandSubject['payment']->getPayment();
         $paymentId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $rvvupOrder = $this->sdkProxy->getOrder($paymentId);
-        $state = self::STATE_MAP[$rvvupOrder['status']] ?? 'decline';
+        $state = self::STATE_MAP[$rvvupOrder['payments'][0]['status']] ?? 'decline';
         $this->$state($payment);
     }
 

@@ -30,7 +30,7 @@ class LimitCartExpressPayment
         }
 
         // Do not limit if we don't have an express payment method set.
-        if ($payment->getadditionalInformation(Method::EXPRESS_PAYMENT_KEY) !== true) {
+        if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY) !== true) {
             return $result;
         }
 
