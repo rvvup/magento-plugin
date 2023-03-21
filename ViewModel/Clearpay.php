@@ -5,6 +5,8 @@ namespace Rvvup\Payments\ViewModel;
 use Exception;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Helper\Data;
+use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -43,7 +45,17 @@ class Clearpay implements ArgumentInterface
     /** @var null|bool */
     private $isEnabled;
 
+    /**
+     * @var Data
+     */
+    private Data $taxHelper;
+
     public const PROVIDER = 'CLEARPAY';
+
+    /**
+     * @var TaxConfig
+     */
+    private TaxConfig $taxConfig;
 
     /**
      * @param Config $config
@@ -53,7 +65,9 @@ class Clearpay implements ArgumentInterface
      * @param StoreManagerInterface $storeManager
      * @param Resolver $locale
      * @param ComplexProductTypePool $productTypePool
-     * @param \Psr\Log\LoggerInterface|RvvupLog $logger
+     * @param LoggerInterface|RvvupLog $logger
+     * @param Data $taxHelper
+     * @param TaxConfig $taxConfig
      */
     public function __construct(
         Config $config,
@@ -63,7 +77,9 @@ class Clearpay implements ArgumentInterface
         StoreManagerInterface $storeManager,
         Resolver $locale,
         ComplexProductTypePool $productTypePool,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Data $taxHelper,
+        TaxConfig $taxConfig
     ) {
         $this->config = $config;
         $this->productRepository = $productRepository;
@@ -73,6 +89,8 @@ class Clearpay implements ArgumentInterface
         $this->locale = $locale;
         $this->productTypePool = $productTypePool;
         $this->logger = $logger;
+        $this->taxHelper = $taxHelper;
+        $this->taxConfig = $taxConfig;
     }
 
     /**
@@ -110,7 +128,7 @@ class Clearpay implements ArgumentInterface
         if ($isRestricted) {
             return false;
         }
-        $price = $product->getPrice();
+        $price = $this->getPrice($product);
 
         $thresholds = $this->getThresholdsByProviderAndCurrency();
 
@@ -240,7 +258,7 @@ class Clearpay implements ArgumentInterface
         if (in_array($product->getTypeId(), $this->productTypePool->getProductTypes())) {
             return true;
         }
-        $price = (float) $product->getPrice();
+        $price = $this->getPrice($product);
         return $price >= $threshold['min'] && $price <= $threshold['max'];
     }
 
@@ -289,5 +307,18 @@ class Clearpay implements ArgumentInterface
 
             return false;
         }
+    }
+
+    /**
+     * @param ProductInterface $product
+     * @return float
+     */
+    public function getPrice(ProductInterface $product): float
+    {
+        if ($this->taxConfig->getPriceDisplayType() == TaxConfig::DISPLAY_TYPE_BOTH) {
+            return $this->taxHelper->getTaxPrice($product, (float)$product->getPrice(), true);
+        }
+
+        return $this->taxHelper->getTaxPrice($product, (float)$product->getPrice());
     }
 }

@@ -4,6 +4,8 @@ namespace Rvvup\Payments\Test\Unit\ViewModel;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Helper\Data;
+use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Framework\DataObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -23,6 +25,9 @@ class ClearpayMessagingTest extends TestCase
     private $productMock;
     /** @var Clearpay */
     private $viewModel;
+
+    /** @var Data $taxHelperMock */
+    private $taxHelperMock;
 
     /**
      * @return void
@@ -47,6 +52,9 @@ class ClearpayMessagingTest extends TestCase
         $storeManagerMock->method('getStore')->willReturn($store);
         $resolverMock = $this->getMockBuilder(Resolver::class)->disableOriginalConstructor()->getMock();
         $loggerMock = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
+        $this->taxHelperMock = $this->getMockBuilder(Data::class)->disableOriginalConstructor()->getMock();
+        $taxConfigMock = $this->getMockBuilder(TaxConfig::class)->disableOriginalConstructor()->getMock();
+        $taxConfigMock->method('getPriceDisplayType')->willReturn(TaxConfig::DISPLAY_TYPE_BOTH);
         $this->viewModel = new Clearpay(
             $this->configMock,
             $productRepositoryMock,
@@ -59,7 +67,9 @@ class ClearpayMessagingTest extends TestCase
                 "grouped" => 'grouped',
                 "bundle" => 'bundle',
             ])),
-            $loggerMock
+            $loggerMock,
+            $this->taxHelperMock,
+            $taxConfigMock
         );
     }
 
@@ -167,5 +177,7 @@ class ClearpayMessagingTest extends TestCase
 
         $this->productMock->method('getPrice')
             ->willReturn($price);
+
+        $this->taxHelperMock->method('getTaxPrice')->willReturn($price);
     }
 }
