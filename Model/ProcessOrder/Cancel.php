@@ -82,8 +82,20 @@ class Cancel implements ProcessorInterface
     public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
     {
         $this->validateIdExists($rvvupData);
-        $this->validateStatusAllowed($rvvupData, $this->allowedStatuses);
+        $this->validateStatusAllowed($rvvupData['payments'][0], $this->allowedStatuses);
         $this->validateOrderPayment($order);
+
+        if (!$order->canCancel()) {
+            $processOrderResult = $this->processOrderResultFactory->create();
+            $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_SUCCESS);
+
+            $this->logger->debug('Webhook was ignored for payment with order id', [
+                'order_id' => $order->getEntityId(),
+                'order_state' => $order->getState(),
+            ]);
+
+            return $processOrderResult;
+        }
 
         $result = $this->orderManagement->cancel($order->getEntityId());
 
@@ -99,8 +111,9 @@ class Cancel implements ProcessorInterface
             'payment_process_type' => self::TYPE,
             'payment_process_result' => $result,
             'event_message' => $result
-                ? 'Rvvup Payment has status ' . $rvvupData['status'] . '.'
-                : 'Rvvup Payment has status ' . $rvvupData['status'] . ' but failed to cancel the Magento order.',
+                ? 'Rvvup Payment has status ' . $rvvupData['payments'][0]['status']. '.'
+                : 'Rvvup Payment has status ' . $rvvupData['payments'][0]['status']
+                . ' but failed to cancel the Magento order.',
             'order_id' => $order->getEntityId(),
             'rvvup_id' => $rvvupData['id']
         ]);
@@ -110,7 +123,8 @@ class Cancel implements ProcessorInterface
         $processOrderResult = $this->processOrderResultFactory->create();
         $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
         $processOrderResult->setRedirectPath(In::FAILURE);
-        $processOrderResult->setCustomerMessage('Payment ' . ucfirst(mb_strtolower($rvvupData['status'])));
+        $message = 'Payment ' . ucfirst(mb_strtolower($rvvupData['payments'][0]['status']));
+        $processOrderResult->setCustomerMessage($message);
 
         return $processOrderResult;
     }

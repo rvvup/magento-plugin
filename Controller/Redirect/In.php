@@ -140,8 +140,12 @@ class In implements HttpGetActionInterface
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId);
 
-            // If no status provided, allow processor exception to be handled natively.
-            $result = $this->processorPool->getProcessor($rvvupData['status'] ?? '')->execute($order, $rvvupData);
+            if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
+                $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+            }
+
+            $result = $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])
+                ->execute($order, $rvvupData);
 
             /** @var \Magento\Framework\Controller\Result\Redirect $redirect */
             $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
@@ -177,7 +181,7 @@ class In implements HttpGetActionInterface
             $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
                 'order_id' => $order->getEntityId(),
                 'rvvup_order_id' => $rvvupId,
-                'rvvup_order_status' => $rvvupData['status'] ?? ''
+                'rvvup_order_status' => $rvvupData['payments'][0]['status'] ?? ''
             ]);
 
             return $this->redirectToCart();

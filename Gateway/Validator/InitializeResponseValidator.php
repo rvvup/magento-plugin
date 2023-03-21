@@ -26,7 +26,9 @@ class InitializeResponseValidator extends AbstractValidator
 
         $fails = [];
 
-        if (!isset($response['data']['orderCreate']['id']) && !isset($response['data']['orderExpressUpdate']['id'])) {
+        if (!isset($response['data']['orderCreate']['id']) &&
+            !isset($response['data']['orderUpdate']['id'])
+        ) {
             $fails[] = 'Rvvup order ID is not set';
         }
 

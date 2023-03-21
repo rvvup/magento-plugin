@@ -89,7 +89,8 @@ class Processing implements ProcessorInterface
             $processOrderResult->setRedirectPath(In::SUCCESS);
         } catch (Exception $e) {
             $this->logger->error(
-                'Error during order processing on ' . $rvvupData['status'] . ' status: ' . $e->getMessage(),
+                'Error during order processing on ' . $rvvupData['payments'][0]['status']
+                . ' status: ' . $e->getMessage(),
                 [
                     'order_id' => $order->getEntityId()
                 ]
