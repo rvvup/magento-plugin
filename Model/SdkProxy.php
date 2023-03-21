@@ -118,25 +118,17 @@ class SdkProxy
         return $this->getSubject()->createOrder($orderData);
     }
 
-    /**
-     * @param array $orderData
-     * @return false|mixed
-     * @throws \Exception
-     */
-    public function updateExpressOrder(array $orderData)
+    public function createPayment($paymentData)
     {
-        $result = $this->getSubject()->updateExpressOrder($orderData);
+        return $this->getSubject()->createPayment($paymentData);
+    }
 
-        // The SDK strips the nested array keys out. Set them again for easier identification from Gateway Classes.
-        if (is_array($result)) {
-            return [
-                'data' => [
-                    'orderExpressUpdate' => $result
-                ]
-            ];
-        }
-
-        return $result;
+    /**
+     * {@inheritdoc}
+     */
+    public function updateOrder($data)
+    {
+        return $this->getSubject()->updateOrder($data);
     }
 
     /**

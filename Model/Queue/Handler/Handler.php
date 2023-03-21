@@ -118,14 +118,15 @@ class Handler
 
             $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
 
-            if (empty($rvvupData) || !isset($rvvupData['status'])) {
+            if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
                 $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
                     'rvvup_order_id' => $rvvupOrderId
                 ]);
                 return;
             }
 
-            $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+            $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute($order, $rvvupData);
+
         } catch (\Exception $e) {
             $this->logger->debug('Webhook exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,

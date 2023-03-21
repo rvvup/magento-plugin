@@ -19,13 +19,6 @@ class InitializeResponseHandler implements HandlerInterface
     private $dataObjectFactory;
 
     /**
-     * Flag property key to identify whether the response is for an orderExpressUpdate call.
-     *
-     * @var string
-     */
-    private $orderExpressUpdateFlag = 'is_order_express_update_flag';
-
-    /**
      * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
      * @return void
      */
@@ -73,7 +66,7 @@ class InitializeResponseHandler implements HandlerInterface
      *
      * If it is an orderCreate with the express payment flag, then set additional information on unique key.
      * This will allow us to remove the data if the express payment method is cancelled or changed.
-     * Otherwise, we have an orderCreate or orderExpressUpdate call during checkout.
+     * Otherwise, we have an orderCreate or orderUpdate call during checkout.
      *
      * @param \Magento\Payment\Model\InfoInterface $payment
      * @param \Magento\Framework\DataObject $responseDataObject
@@ -98,7 +91,7 @@ class InitializeResponseHandler implements HandlerInterface
 
         // If this is a createOrder call for an express payment,
         // then set the data to separate key.
-        if ($this->isExpressPayment($payment) && $responseDataObject->getData($this->orderExpressUpdateFlag) !== true) {
+        if ($this->isExpressPayment($payment)) {
             $data = [
                 'status' => $responseDataObject->getData('status'),
                 'dashboardUrl' => $responseDataObject->getData('dashboardUrl'),
@@ -132,17 +125,14 @@ class InitializeResponseHandler implements HandlerInterface
     {
         $responseDataObject = $this->dataObjectFactory->create();
 
-        // If orderExpressUpdate, set data & flag and return.
-        if (isset($response['data']['orderExpressUpdate'])) {
-            $responseDataObject->setData($response['data']['orderExpressUpdate']);
-            $responseDataObject->setData($this->orderExpressUpdateFlag, true);
-
-            return $responseDataObject;
-
+        // Otherwise it will be an orderCreate.
+        if (isset($response['data']['orderCreate'])) {
+            $responseDataObject->setData($response['data']['orderCreate']);
         }
 
-        // Otherwise it will be an orderCreate.
-        $responseDataObject->setData($response['data']['orderCreate']);
+        if (isset($response['data']['orderUpdate'])) {
+            $responseDataObject->setData($response['data']['orderUpdate']);
+        }
 
         return $responseDataObject;
     }

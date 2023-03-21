@@ -107,6 +107,7 @@
                 <item name="initialize" xsi:type="string">Rvvup\Payments\Gateway\Command\InitializeCommand</item>
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="createPayment" xsi:type="string">Rvvup\Payments\Gateway\Command\CreatePayment</item>
             </argument>
         </arguments>
     </virtualType>
@@ -144,6 +145,7 @@
     <type name="Rvvup\Payments\Model\CartPaymentActionsGet">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="commandPool" xsi:type="object">RvvupCommandPool</argument>
         </arguments>
     </type>
 
@@ -266,9 +268,11 @@
                 <item name="CANCELLED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
                 <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
                 <item name="EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
+                <item name="FAILED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
                 <item name="PENDING" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
                 <item name="REQUIRES_ACTION" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
                 <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
+                <item name="REQUIRES_PAYMENT" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\UpdateOrder</item>
             </argument>
         </arguments>
     </type>
@@ -283,6 +287,7 @@
     <type name="Rvvup\Payments\Model\PaymentActionsGet">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="commandPool" xsi:type="object">RvvupCommandPool</argument>
         </arguments>
     </type>
 

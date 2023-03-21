@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Quote\Api\PaymentMethodManagementInterface;
 use Psr\Log\LoggerInterface;
@@ -34,19 +35,26 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
     private $logger;
 
     /**
-     * @param \Magento\Quote\Api\PaymentMethodManagementInterface $paymentMethodManagement
-     * @param \Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory $paymentActionInterfaceFactory
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
+     * @var CommandPoolInterface
+     */
+    private CommandPoolInterface $commandPool;
+
+    /**
+     * @param PaymentMethodManagementInterface $paymentMethodManagement
+     * @param PaymentActionInterfaceFactory $paymentActionInterfaceFactory
+     * @param LoggerInterface $logger
+     * @param CommandPoolInterface $commandPool
      */
     public function __construct(
         PaymentMethodManagementInterface $paymentMethodManagement,
         PaymentActionInterfaceFactory $paymentActionInterfaceFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CommandPoolInterface $commandPool
     ) {
         $this->paymentMethodManagement = $paymentMethodManagement;
         $this->paymentActionInterfaceFactory = $paymentActionInterfaceFactory;
         $this->logger = $logger;
+        $this->commandPool = $commandPool;
     }
 
     /**
@@ -118,12 +126,8 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
         if (!$expressActions) {
             return $payment->getAdditionalInformation('paymentActions');
         }
-
-        $expressPaymentData = $payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_DATA_KEY);
-
-        return is_array($expressPaymentData) && isset($expressPaymentData['paymentActions'])
-            ? $expressPaymentData['paymentActions']
-            : [];
+        $data = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
+        return $data['data']['paymentCreate']['summary']['paymentActions'];
     }
 
     /**

@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Observer\Quote\Model\Quote\Item;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Quote\Model\Quote\Item;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\CartExpressPaymentRemoveInterface;
 use Throwable;
@@ -40,24 +41,41 @@ class RemoveExpressPaymentDataObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        /** @var \Magento\Quote\Model\Quote\Item|null $item */
-        $item = $observer->getData('item');
+        $quoteId = $this->getQuoteId($observer);
 
-        // No action if we don't have an item (should not happen as this is an event targeting items) or a quote ID.
-        if ($item === null || !$item->getQuoteId()) {
+        if (!$quoteId) {
             return;
         }
 
         // Catch any errors not handled by service, so we don't interrupt customer journey.
         try {
-            $this->cartExpressPaymentRemove->execute((string) $item->getQuoteId());
+            $this->cartExpressPaymentRemove->execute((string) $quoteId);
         } catch (Throwable $t) {
             $this->logger->error(
                 'Could not remove quote express payment data on quote item saved with message: ' . $t->getMessage(),
                 [
-                    'quote_id' => $item->getQuoteId()
+                    'quote_id' => $quoteId
                 ]
             );
         }
+    }
+
+    private function getQuoteId($observer): ?string
+    {
+        /** @var Item|null $item */
+        $item = $observer->getData('quote_item');
+
+        if ($item !== null && $item->getQuoteId()) {
+            return $item->getQuoteId();
+        }
+
+        if ($observer->getData('cart')) {
+            return $observer->getData('cart')->getQuote()->getId();
+        }
+
+        if ($observer->getData('items')) {
+            return $observer->getData('items')[0]->getQuote()->getId();
+        }
+        return null;
     }
 }
