@@ -22,4 +22,12 @@
                 type="Rvvup\Payments\Plugin\PaymentMethod"
                 sortOrder="1"/>
     </type>
+    <type name="Magento\Framework\Notification\MessageList">
+        <arguments>
+            <argument name="messages" xsi:type="array">
+                <item name="rvvup_missing_queues" xsi:type="string">Rvvup\Payments\Model\System\Message\Queue</item>
+                <item name="rvvup_missing_crons" xsi:type="string">Rvvup\Payments\Model\System\Message\Cron</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
