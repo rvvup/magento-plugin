@@ -58,9 +58,13 @@ class Queue implements MessageInterface
 
     public function getText()
     {
-        return "<b>WARNING</b>: Rvvup requires Magento MessageQueue to be enabled in order to handle payment events that complete asynchronously."
-            . "<br>It appears that this may not be configured on your Magento instance."
-            . "<br>See <a href='https://articles.rvvup.com/getting-started-with-magento-and-rvvup'>our documentation</a> for more information.";
+        $message = "<b>WARNING</b>: Rvvup requires Magento MessageQueue to be enabled in order to handle payment events";
+        $message .= " that complete asynchronously.";
+        $message .= "<br>It appears that this may not be configured on your Magento instance.";
+        $message .= "<br>See <a href='https://articles.rvvup.com/getting-started-with-magento-and-rvvup'>our documentation</a>";
+        $message .= " for more information.";
+
+        return $message;
     }
 
     public function getSeverity()
