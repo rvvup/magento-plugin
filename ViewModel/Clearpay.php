@@ -316,9 +316,9 @@ class Clearpay implements ArgumentInterface
     public function getPrice(ProductInterface $product): float
     {
         if ($this->taxConfig->getPriceDisplayType() == TaxConfig::DISPLAY_TYPE_BOTH) {
-            return $this->taxHelper->getTaxPrice($product, (float)$product->getPrice(), true);
+            return $this->taxHelper->getTaxPrice($product, (float)$product->getFinalPrice(), true);
         }
 
-        return $this->taxHelper->getTaxPrice($product, (float)$product->getPrice());
+        return $this->taxHelper->getTaxPrice($product, (float)$product->getFinalPrice());
     }
 }

@@ -36,8 +36,8 @@ class ClearpayMessagingTest extends TestCase
     {
         $this->configMock = $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock();
         $productRepositoryMock = $this->getMockBuilder(ProductRepositoryInterface::class)->getMock();
-        $this->productMock = $this->getMockBuilder(ProductInterface::class)->addMethods(['getRvvupRestricted'])
-            ->getMockForAbstractClass();
+        $this->productMock = $this->getMockBuilder(ProductInterface::class)
+            ->addMethods(['getRvvupRestricted','getFinalPrice'])->getMockForAbstractClass();
         $thresholdProviderMock = $this->getMockBuilder(ThresholdProvider::class)->disableOriginalConstructor()
             ->onlyMethods(['get'])->getMock();
         $thresholdProviderMock->method('get')->with('CLEARPAY')
@@ -175,7 +175,7 @@ class ClearpayMessagingTest extends TestCase
         $this->productMock->method('getRvvupRestricted')
             ->willReturn($restricted);
 
-        $this->productMock->method('getPrice')
+        $this->productMock->method('getFinalPrice')
             ->willReturn($price);
 
         $this->taxHelperMock->method('getTaxPrice')->willReturn($price);
