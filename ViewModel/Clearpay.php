@@ -45,7 +45,6 @@ class Clearpay implements ArgumentInterface
      */
     private Price $priceViewModel;
 
-
     /** @var null|bool */
     private $isEnabled;
 
@@ -60,6 +59,7 @@ class Clearpay implements ArgumentInterface
      * @param Resolver $locale
      * @param ComplexProductTypePool $productTypePool
      * @param LoggerInterface|RvvupLog $logger
+     * @param Price $priceViewModel
      */
     public function __construct(
         Config $config,
