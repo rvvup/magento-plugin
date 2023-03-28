@@ -45,7 +45,6 @@ class CronTest extends TestCase
         $array = [];
         $this->configureCollection($array);
         $this->assertEquals(
-
             true,
             $this->cron->isDisplayed()
         );
