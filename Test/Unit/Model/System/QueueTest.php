@@ -17,6 +17,16 @@ class QueueTest extends TestCase
      */
     private CollectionFactory $collectionFactory;
 
+    /**
+     * @var Queue $queue
+     */
+    private $queue;
+
+    /**
+     * @var DeploymentConfig $config
+     */
+    private $config;
+
     /** @inheirtDoc  */
     protected function setUp(): void
     {

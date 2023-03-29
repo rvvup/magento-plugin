@@ -16,6 +16,11 @@ class CronTest extends TestCase
      */
     private CollectionFactory $collectionFactory;
 
+    /**
+     * @var Cron $cron
+     */
+    private $cron;
+
     protected function setUp(): void
     {
         $this->collectionFactory = $this->getMockBuilder(CollectionFactory::class)->disableOriginalConstructor()->getMock();
