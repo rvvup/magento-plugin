@@ -59,21 +59,34 @@ class QueueTest extends TestCase
     /**
      * @return void
      */
-    public function testDisplay()
+    public function testDisplayWithAmqpEnabled()
     {
-        $this->configure(false, [1]);
-        $this->assertEquals(
-            true,
-            $this->queue->isDisplayed()
-        );
-
         $this->configure(true);
         $this->assertEquals(
             true,
             $this->queue->isDisplayed()
         );
+    }
 
+    /**
+     * @return void
+     */
+    public function testDisplayWithAmqpDisabled()
+    {
         $this->configure(false);
+        $this->assertEquals(
+            true,
+            $this->queue->isDisplayed()
+        );
+    }
+
+
+    /**
+     * @return void
+     */
+    public function testDisplayWithCronEnabled()
+    {
+        $this->configure(false, [1]);
         $this->assertEquals(
             true,
             $this->queue->isDisplayed()

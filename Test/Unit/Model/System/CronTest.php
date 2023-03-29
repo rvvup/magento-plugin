@@ -45,16 +45,24 @@ class CronTest extends TestCase
         $this->cron = null;
     }
 
-    public function testDisplay()
+    /**
+     * @return void
+     */
+    public function testDisplayWithCronEnabled()
     {
-        $array = [];
-        $this->configureCollection($array);
+        $this->configureCollection([1]);
         $this->assertEquals(
             true,
             $this->cron->isDisplayed()
         );
+    }
 
-        $this->configureCollection([1]);
+    /**
+     * @return void
+     */
+    public function testDisplayWithCronDisabled()
+    {
+        $this->configureCollection();
         $this->assertEquals(
             true,
             $this->cron->isDisplayed()
