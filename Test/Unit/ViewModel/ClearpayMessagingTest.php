@@ -16,6 +16,7 @@ use Rvvup\Payments\ViewModel\Clearpay;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Locale\Resolver;
 use Magento\Store\Model\StoreManagerInterface;
+use Rvvup\Payments\ViewModel\Price;
 
 class ClearpayMessagingTest extends TestCase
 {
@@ -26,8 +27,8 @@ class ClearpayMessagingTest extends TestCase
     /** @var Clearpay */
     private $viewModel;
 
-    /** @var Data $taxHelperMock */
-    private $taxHelperMock;
+    /** @var Price $priceHelperMock */
+    private $priceHelperMock;
 
     /**
      * @return void
@@ -36,8 +37,8 @@ class ClearpayMessagingTest extends TestCase
     {
         $this->configMock = $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock();
         $productRepositoryMock = $this->getMockBuilder(ProductRepositoryInterface::class)->getMock();
-        $this->productMock = $this->getMockBuilder(ProductInterface::class)->addMethods(['getRvvupRestricted'])
-            ->getMockForAbstractClass();
+        $this->productMock = $this->getMockBuilder(ProductInterface::class)
+            ->addMethods(['getRvvupRestricted','getFinalPrice'])->getMockForAbstractClass();
         $thresholdProviderMock = $this->getMockBuilder(ThresholdProvider::class)->disableOriginalConstructor()
             ->onlyMethods(['get'])->getMock();
         $thresholdProviderMock->method('get')->with('CLEARPAY')
@@ -52,9 +53,8 @@ class ClearpayMessagingTest extends TestCase
         $storeManagerMock->method('getStore')->willReturn($store);
         $resolverMock = $this->getMockBuilder(Resolver::class)->disableOriginalConstructor()->getMock();
         $loggerMock = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
-        $this->taxHelperMock = $this->getMockBuilder(Data::class)->disableOriginalConstructor()->getMock();
-        $taxConfigMock = $this->getMockBuilder(TaxConfig::class)->disableOriginalConstructor()->getMock();
-        $taxConfigMock->method('getPriceDisplayType')->willReturn(TaxConfig::DISPLAY_TYPE_BOTH);
+        //$this->priceHelperMock = $this->getMockBuilder(Data::class)->disableOriginalConstructor()->getMock();
+        $this->priceHelperMock = $this->getMockBuilder(Price::class)->disableOriginalConstructor()->getMock();
         $this->viewModel = new Clearpay(
             $this->configMock,
             $productRepositoryMock,
@@ -68,8 +68,7 @@ class ClearpayMessagingTest extends TestCase
                 "bundle" => 'bundle',
             ])),
             $loggerMock,
-            $this->taxHelperMock,
-            $taxConfigMock
+            $this->priceHelperMock
         );
     }
 
@@ -175,9 +174,9 @@ class ClearpayMessagingTest extends TestCase
         $this->productMock->method('getRvvupRestricted')
             ->willReturn($restricted);
 
-        $this->productMock->method('getPrice')
+        $this->productMock->method('getFinalPrice')
             ->willReturn($price);
 
-        $this->taxHelperMock->method('getTaxPrice')->willReturn($price);
+        $this->priceHelperMock->method('getPrice')->willReturn($price);
     }
 }

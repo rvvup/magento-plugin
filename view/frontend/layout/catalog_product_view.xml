@@ -21,6 +21,7 @@
                    before="product.info">
                 <arguments>
                     <argument name="clearpay" xsi:type="object">Rvvup\Payments\ViewModel\Clearpay</argument>
+                    <argument name="price" xsi:type="object">Rvvup\Payments\ViewModel\Price</argument>
                     <argument name="restrictions" xsi:type="object">Rvvup\Payments\ViewModel\Restrictions</argument>
                     <argument name="rvvup_payments_paypal_view_model" xsi:type="object">Rvvup\Payments\ViewModel\PayPal</argument>
                 </arguments>
