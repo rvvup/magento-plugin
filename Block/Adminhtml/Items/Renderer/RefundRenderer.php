@@ -7,8 +7,10 @@ namespace Rvvup\Payments\Block\Adminhtml\Items\Renderer;
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
+use Magento\Framework\DataObject;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Block\Adminhtml\Items\Renderer\DefaultRenderer;
 use Magento\Sales\Model\Order\Item;
 use Rvvup\Payments\Model\PendingQty;
@@ -50,10 +52,10 @@ class RefundRenderer extends DefaultRenderer
 
     /**
      * Get rvvup qty in pending refund state
-     * @param $item
+     * @param OrderItemInterface|null $item
      * @return float
      */
-    public function getQtyRvvupPendingRefund($item = null): float
+    public function getQtyRvvupPendingRefund(?OrderItemInterface $item = null): float
     {
         $orderItem = $item ?: $this->getItem()->getOrderItem();
 
@@ -75,10 +77,10 @@ class RefundRenderer extends DefaultRenderer
     }
 
     /**
-     * @param Item $item
+     * @param DataObject $item
      * @return float
      */
-    public function getCreditmemoAvailableQty(Item $item): float
+    public function getCreditmemoAvailableQty(DataObject $item): float
     {
         $orderItem = $item->getOrderItem();
 

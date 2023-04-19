@@ -2,6 +2,7 @@
 
 namespace Rvvup\Payments\Model;
 
+use Magento\Framework\DataObject;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\Order\Creditmemo\Item;
@@ -25,11 +26,11 @@ class PendingQty
     }
 
     /**
-     * @param $subject
+     * @param DataObject $subject
      * @param bool $result
      * @return bool
      */
-    public function isRefundApplicable($subject, bool $result): bool
+    public function isRefundApplicable(DataObject $subject, bool $result): bool
     {
         if ($subject->getEventPrefix() == self::SALES_ORDER) {
             $order = $subject;

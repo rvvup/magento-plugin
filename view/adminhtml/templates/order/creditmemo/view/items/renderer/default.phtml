@@ -12,7 +12,7 @@ $block->setPriceDataObject($item) ?>
         <?= $block->getColumnHtml($item, 'price') ?>
     </td>
     <?php
-    if ($block->getQtyRvvupPendingRefund($item->getOrderItem())) :?>
+    if ($block->getQtyRvvupPendingRefund($item->getOrderItem())):?>
         <td>
             <?= 'Refunded Qty ' . ((float)$item->getQty() - $block->getQtyRvvupPendingRefund($item->getOrderItem())) ?>
             <br>
@@ -24,8 +24,7 @@ $block->setPriceDataObject($item) ?>
         </td>
     <?php else:?>
         <td class="col-qty"><?= (float)$item->getQty() ?></td>
-    <?php
-    endif; ?>
+    <?php endif; ?>
     <td class="col-subtotal">
         <?= $block->getColumnHtml($item, 'subtotal') ?>
     </td>

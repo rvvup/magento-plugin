@@ -98,7 +98,8 @@ class Complete implements ProcessorInterface
      * @param array $payload
      * @return void
      */
-    private function writeErrorMessage(array $payload) {
+    private function writeErrorMessage(array $payload): void
+    {
         $data = $this->serializer->serialize($payload);
         $this->logger->error(
             'Error during refund processing with data' . json_encode($data)
