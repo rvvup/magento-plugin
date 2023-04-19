@@ -20,8 +20,8 @@ $block->setPriceDataObject($item); ?>
                        class="admin__control-checkbox"
                        name="creditmemo[items][<?= (int)$item->getOrderItemId()?>][back_to_stock]"
                        value="1"<?php
-                if ($item->getBackToStock()):?> checked<?php
-                endif; ?>/>
+                if ($item->getBackToStock()):?> checked
+                <?php endif; ?>/>
                 <label class="admin__field-label"></label>
             <?php endif; ?>
         </td>
@@ -32,9 +32,9 @@ $block->setPriceDataObject($item); ?>
             <input type="text"
                    class="input-text admin__control-text qty-input"
                    name="creditmemo[items][<?= (int)$item->getOrderItemId()?>][qty]"
-                   value="<?= $block->getCreditmemoAvailableQty($item)?>"/>
+                   value="<?= $block->escapeHtml($block->getCreditmemoAvailableQty($item))?>"/>
         <?php else:?>
-            <?= $block->getCreditmemoAvailableQty($item)?>
+            <?= $block->escapeHtml($block->getCreditmemoAvailableQty($item)) ?>
         <?php endif; ?>
     </td>
     <td class="col-subtotal">

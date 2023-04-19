@@ -32,7 +32,7 @@ if ($item = $block->getItem()):?>
         if ($block->getQtyRvvupPendingRefund($item)):?>
             <tr>
                 <th><?= $block->escapeHtml(__('Pending refund from Rvvup')); ?></th>
-                <td><?= $block->getQtyRvvupPendingRefund($item)?></td>
+                <td><?= $block->escapeHtml($block->getQtyRvvupPendingRefund($item))?></td>
             </tr>
         <?php endif; ?>
         <?php

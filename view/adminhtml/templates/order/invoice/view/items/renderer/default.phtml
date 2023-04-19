@@ -11,7 +11,7 @@ $block->setPriceDataObject($item);
         <?= $block->getColumnHtml($item, 'price') ?>
     </td>
 
-    <?php if ($block->getQtyRvvupPendingRefund()) : ?>
+    <?php if ($block->getQtyRvvupPendingRefund()):?>
         <td>
             <?= 'Invoiced qty ' . (float)$item->getQty() ?>
             <br>
