@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="invoice_items.default"
+                        class="Rvvup\Payments\Block\Adminhtml\Items\Renderer\RefundRenderer"
+                        template="Rvvup_Payments::order/invoice/view/items/renderer/default.phtml"/>
+    </body>
+</page>

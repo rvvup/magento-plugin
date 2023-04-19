@@ -13,6 +13,8 @@ use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Model\ProcessRefund\Complete;
+use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 
 class Handler
 {
@@ -36,6 +38,11 @@ class Handler
     private $logger;
 
     /**
+     * @var RefundPool
+     */
+    private RefundPool $refundPool;
+
+    /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
      * @param ConfigInterface $config
@@ -44,6 +51,7 @@ class Handler
      * @param OrderRepositoryInterface $orderRepository
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
+     * @param RefundPool $refundPool
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -55,6 +63,7 @@ class Handler
         OrderRepositoryInterface $orderRepository,
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
+        RefundPool $refundPool,
         LoggerInterface $logger
     ) {
         $this->webhookRepository = $webhookRepository;
@@ -65,6 +74,7 @@ class Handler
         $this->orderRepository = $orderRepository;
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
+        $this->refundPool = $refundPool;
         $this->logger = $logger;
     }
 
@@ -113,6 +123,10 @@ class Handler
 
             // if Payment method is not Rvvup, exit.
             if (strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
+                return;
+            }
+            if ($payload['event_type'] == Complete::TYPE) {
+                $this->refundPool->getProcessor($payload['event_type'])->execute($order, $payload);
                 return;
             }
 

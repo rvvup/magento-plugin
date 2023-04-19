@@ -1,0 +1,54 @@
+
+<?php
+/** @var $block \Magento\Sales\Block\Adminhtml\Items\Renderer\DefaultRenderer */ ?>
+<?php
+$item = $block->getItem() ?>
+<?php
+$block->setPriceDataObject($item); ?>
+<tr>
+    <td class="col-product"><?= $block->getColumnHtml($item, 'name') ?></td>
+    <td class="col-price">
+        <?= $block->getColumnHtml($item, 'price') ?>
+    </td>
+    <td class="col-ordered-qty"><?= $block->getColumnHtml($item, 'qty') ?></td>
+    <?php
+    if ($block->canParentReturnToStock($item)) : ?>
+        <td class="col-return-to-stock">
+            <?php
+            if ($block->canReturnItemToStock($item)) : ?>
+                <input type="checkbox"
+                       class="admin__control-checkbox"
+                       name="creditmemo[items][<?= (int)$item->getOrderItemId() ?>][back_to_stock]"
+                       value="1"<?php
+                if ($item->getBackToStock()) : ?> checked<?php
+                endif; ?>/>
+                <label class="admin__field-label"></label>
+            <?php
+            endif; ?>
+        </td>
+    <?php
+    endif; ?>
+    <td class="col-refund col-qty">
+        <?php
+        if ($block->canEditQty()) : ?>
+            <input type="text"
+                   class="input-text admin__control-text qty-input"
+                   name="creditmemo[items][<?= (int)$item->getOrderItemId() ?>][qty]"
+                   value="<?= $block->getCreditmemoAvailableQty($item) ?>"/>
+        <?php
+        else : ?>
+            <?= $block->getCreditmemoAvailableQty($item) ?>
+        <?php
+        endif; ?>
+    </td>
+    <td class="col-subtotal">
+        <?= $block->getColumnHtml($item, 'subtotal') ?>
+    </td>
+    <td class="col-tax-amount"><?= /* @noEscape */
+        $block->displayPriceAttribute('tax_amount') ?></td>
+    <td class="col-discont"><?= /* @noEscape */
+        $block->displayPriceAttribute('discount_amount') ?></td>
+    <td class="col-total last">
+        <?= $block->getColumnHtml($item, 'total') ?>
+    </td>
+</tr>

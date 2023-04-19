@@ -277,6 +277,14 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Model\ProcessRefund\ProcessorPool">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+                <item name="REFUND_COMPLETED" xsi:type="object">Rvvup\Payments\Model\ProcessRefund\Complete</item>
+            </argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Model\Environment\GetEnvironmentVersions">
         <arguments>
             <argument name="fileIo" xsi:type="object">Magento\Framework\Filesystem\Io\File</argument>
@@ -321,6 +329,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Model\ProcessRefund\Complete">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Model\Quote\QuoteMaskedQuoteIdGet">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
@@ -359,4 +373,21 @@
 
     <preference for="Rvvup\Payments\Api\Data\WebhookInterface" type="Rvvup\Payments\Model\Data\WebhookData"/>
     <preference for="Rvvup\Payments\Api\WebhookRepositoryInterface" type="Rvvup\Payments\Model\WebhookRepository"/>
+
+    <type name="Magento\Sales\Model\Order\Creditmemo">
+        <plugin name="disableCreditMemoRefunds"
+                type="Rvvup\Payments\Plugin\Refund\CreditMemo"
+                sortOrder="1"/>
+    </type>
+    <type name="Magento\Sales\Model\Order\Invoice">
+        <plugin name="pendingRefunds"
+                type="Rvvup\Payments\Plugin\Refund\Invoice"
+                sortOrder="1"/>
+    </type>
+    <type name="Magento\Sales\Model\Order">
+        <plugin name="canCreditMemoDisable"
+                type="Rvvup\Payments\Plugin\Refund\Order"
+                sortOrder="1"/>
+    </type>
+
 </config>

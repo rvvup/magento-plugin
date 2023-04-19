@@ -76,6 +76,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         try {
             $merchantId = $this->request->getParam('merchant_id', false);
             $rvvupOrderId = $this->request->getParam('order_id', false);
+            $eventType = $this->request->getParam('event_type', false);
+            $paymentId = $this->request->getParam('payment_id', false);
+            $refundId = $this->request->getParam('refund_id', false);
 
             // Ensure required params are present
             if (!$merchantId || !$rvvupOrderId) {
@@ -95,6 +98,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $payload = $this->serializer->serialize([
                 'order_id' => $rvvupOrderId,
                 'merchant_id' => $merchantId,
+                'refund_id' => $refundId,
+                'payment_id' => $paymentId,
+                'event_type' => $eventType,
             ]);
             $webhook = $this->webhookRepository->new(['payload' => $payload]);
             $this->webhookRepository->save($webhook);

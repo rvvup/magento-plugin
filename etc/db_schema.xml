@@ -12,4 +12,9 @@
             <column name="webhook_id"/>
         </index>
     </table>
+
+    <table name="sales_order_item">
+        <column xsi:type="text" name="rvvup_pending_refund_data"  nullable="true" comment="Pending refund data"/>
+    </table>
+
 </schema>
