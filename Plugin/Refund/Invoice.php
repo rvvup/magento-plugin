@@ -35,11 +35,11 @@ class Invoice
 
     /**
      * @param BaseInvoice $subject
-     * @param $result
+     * @param int|null $result
      * @return bool
      */
-    public function afterGetIsUsedForRefund(BaseInvoice $subject, $result): bool
+    public function afterGetIsUsedForRefund(BaseInvoice $subject, ?int $result): bool
     {
-        return !$this->pendingQtyService->isRefundApplicable($subject, $result);
+        return !$this->pendingQtyService->isRefundApplicable($subject, (bool)$result);
     }
 }

@@ -1,5 +1,6 @@
 <?php
-if ($item = $block->getItem()) : ?>
+
+if ($item = $block->getItem()) :?>
     <table class="qty-table">
         <tr>
             <th><?= $block->escapeHtml(__('Ordered')); ?></th>
@@ -7,7 +8,7 @@ if ($item = $block->getItem()) : ?>
         </tr>
 
         <?php
-        if ((float)$item->getQtyInvoiced()) : ?>
+        if ((float)$item->getQtyInvoiced()) :?>
             <tr>
                 <th><?= $block->escapeHtml(__('Invoiced')); ?></th>
                 <td><?= (float)$item->getQtyInvoiced() ?></td>
@@ -15,7 +16,7 @@ if ($item = $block->getItem()) : ?>
         <?php
         endif; ?>
         <?php
-        if ((float)$item->getQtyShipped()) : ?>
+        if ((float)$item->getQtyShipped()) :?>
             <tr>
                 <th><?= $block->escapeHtml(__('Shipped')); ?></th>
                 <td><?= (float)$item->getQtyShipped() ?></td>
@@ -23,7 +24,7 @@ if ($item = $block->getItem()) : ?>
         <?php
         endif; ?>
         <?php
-        if ((float)$item->getQtyRefunded()) : ?>
+        if ((float)$item->getQtyRefunded()) :?>
             <tr>
                 <th><?= $block->escapeHtml(__('Refunded')); ?></th>
                 <td><?= (float)$item->getQtyRefunded() ?></td>
@@ -31,7 +32,7 @@ if ($item = $block->getItem()) : ?>
         <?php
         endif; ?>
         <?php
-        if ($block->getQtyRvvupPendingRefund($item)) : ?>
+        if ($block->getQtyRvvupPendingRefund($item)) :?>
             <tr>
                 <th><?= $block->escapeHtml(__('Pending refund from Rvvup')); ?></th>
                 <td><?= $block->getQtyRvvupPendingRefund($item) ?></td>
@@ -39,7 +40,7 @@ if ($item = $block->getItem()) : ?>
         <?php
         endif; ?>
         <?php
-        if ((float)$item->getQtyCanceled()) : ?>
+        if ((float)$item->getQtyCanceled()) :?>
             <tr>
                 <th><?= $block->escapeHtml(__('Canceled')); ?></th>
                 <td><?= (float)$item->getQtyCanceled() ?></td>

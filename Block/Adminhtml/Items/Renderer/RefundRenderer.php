@@ -10,6 +10,7 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Block\Adminhtml\Items\Renderer\DefaultRenderer;
+use Magento\Sales\Model\Order\Item;
 use Rvvup\Payments\Model\PendingQty;
 
 class RefundRenderer extends DefaultRenderer
@@ -74,10 +75,10 @@ class RefundRenderer extends DefaultRenderer
     }
 
     /**
-     * @param $item
+     * @param Item $item
      * @return float
      */
-    public function getCreditmemoAvailableQty($item): float
+    public function getCreditmemoAvailableQty(Item $item): float
     {
         $orderItem = $item->getOrderItem();
 

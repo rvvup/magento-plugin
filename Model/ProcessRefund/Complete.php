@@ -7,6 +7,7 @@ namespace Rvvup\Payments\Model\ProcessRefund;
 use Exception;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
@@ -29,7 +30,6 @@ class Complete implements ProcessorInterface
      * @var OrderItemRepositoryInterface
      */
     private OrderItemRepositoryInterface $orderItemRepository;
-
 
     /**
      * @param LoggerInterface $logger
@@ -76,12 +76,12 @@ class Complete implements ProcessorInterface
     }
 
     /**
-     * @param $data
-     * @param $payload
-     * @param $item
+     * @param array $data
+     * @param array $payload
+     * @param OrderItemInterface $item
      * @return void
      */
-    private function completeRefund($data, $payload, $item): void
+    private function completeRefund(array $data, array $payload, OrderItemInterface $item): void
     {
         foreach ($data as $creditMemoId => $refundData) {
             if ($refundData['refund_id'] == $payload['refund_id']) {
@@ -95,10 +95,10 @@ class Complete implements ProcessorInterface
     }
 
     /**
-     * @param $payload
+     * @param array $payload
      * @return void
      */
-    private function writeErrorMessage($payload) {
+    private function writeErrorMessage(array $payload) {
         $data = $this->serializer->serialize($payload);
         $this->logger->error(
             'Error during refund processing with data' . json_encode($data)

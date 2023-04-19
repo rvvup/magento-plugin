@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Model;
 
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\Order\Creditmemo\Item;
 
 class PendingQty
@@ -25,7 +26,7 @@ class PendingQty
 
     /**
      * @param $subject
-     * @param $result
+     * @param bool $result
      * @return bool
      */
     public function isRefundApplicable($subject, bool $result): bool
@@ -46,10 +47,10 @@ class PendingQty
     }
 
     /**
-     * @param $item
+     * @param OrderItemInterface $item
      * @return float|int
      */
-    public function getRvvupPendingQty($item)
+    public function getRvvupPendingQty(OrderItemInterface $item)
     {
         if (empty($item->getRvvupPendingRefundData())) {
             return 0;

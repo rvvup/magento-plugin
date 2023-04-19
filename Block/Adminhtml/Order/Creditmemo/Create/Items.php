@@ -26,7 +26,7 @@ class Items extends \Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Items
 
         if ($this->getCreditmemo()->canRefund()) {
             if ($this->getCreditmemo()->getInvoice() && $this->getCreditmemo()->getInvoice()->getTransactionId()
-                || strpos($this->getOrder()->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) == 0 &&
+                || strpos($this->getOrder()->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0 &&
                 $this->getOrder()->getPayment()->getLastTransId()) {
                 $this->addChild(
                     'submit_button',

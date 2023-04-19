@@ -12,15 +12,15 @@ $block->setPriceDataObject($item); ?>
     </td>
     <td class="col-ordered-qty"><?= $block->getColumnHtml($item, 'qty') ?></td>
     <?php
-    if ($block->canParentReturnToStock($item)) : ?>
+    if ($block->canParentReturnToStock($item)) :?>
         <td class="col-return-to-stock">
             <?php
-            if ($block->canReturnItemToStock($item)) : ?>
+            if ($block->canReturnItemToStock($item)) :?>
                 <input type="checkbox"
                        class="admin__control-checkbox"
                        name="creditmemo[items][<?= (int)$item->getOrderItemId() ?>][back_to_stock]"
                        value="1"<?php
-                if ($item->getBackToStock()) : ?> checked<?php
+                if ($item->getBackToStock()) :?> checked<?php
                 endif; ?>/>
                 <label class="admin__field-label"></label>
             <?php
@@ -30,13 +30,13 @@ $block->setPriceDataObject($item); ?>
     endif; ?>
     <td class="col-refund col-qty">
         <?php
-        if ($block->canEditQty()) : ?>
+        if ($block->canEditQty()) :?>
             <input type="text"
                    class="input-text admin__control-text qty-input"
                    name="creditmemo[items][<?= (int)$item->getOrderItemId() ?>][qty]"
                    value="<?= $block->getCreditmemoAvailableQty($item) ?>"/>
         <?php
-        else : ?>
+        else :?>
             <?= $block->getCreditmemoAvailableQty($item) ?>
         <?php
         endif; ?>

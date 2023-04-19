@@ -8,7 +8,10 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Sales\Api\CreditmemoRepositoryInterface;
+use Magento\Sales\Api\Data\CreditmemoItemInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
+use Magento\Sales\Model\Order\Item;
+use Magento\Sales\Model\Order\Payment;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Sdk\Factories\Inputs\RefundCreateInputFactory;
 
@@ -60,7 +63,7 @@ class Refund implements CommandInterface
 
     public function execute(array $commandSubject)
     {
-        /** @var \Magento\Sales\Model\Order\Payment $payment */
+        /** @var Payment $payment */
         $payment = $commandSubject['payment']->getPayment();
         $idempotencyKey = $payment->getTransactionId() . '-' . time();
 
@@ -99,13 +102,18 @@ class Refund implements CommandInterface
     }
 
     /**
-     * @param $orderItem
-     * @param $item
-     * @param $payment
+     * @param Item $orderItem
+     * @param CreditmemoItemInterface $item
+     * @param Payment $payment
+     * @param string $refundId
      * @return void
      */
-    private function setPendingRefundData($orderItem, $item, $payment, $refundId): void
-    {
+    private function setPendingRefundData(
+        Item $orderItem,
+        CreditmemoItemInterface $item,
+        Payment $payment,
+        string $refundId
+    ): void {
         $creditMemo = $this->creditmemoRepository->save($payment->getCreditmemo());
         if ($orderItem->getRvvupPendingRefundData()) {
             $data = $this->serializer->unserialize($orderItem->getRvvupPendingRefundData());
