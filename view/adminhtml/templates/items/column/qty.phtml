@@ -4,28 +4,28 @@ if ($item = $block->getItem()):?>
     <table class="qty-table">
         <tr>
             <th><?= $block->escapeHtml(__('Ordered')); ?></th>
-            <td><?= (float)$item->getQtyOrdered()?></td>
+            <td><?= (int)$item->getQtyOrdered()?></td>
         </tr>
 
         <?php
-        if ((float)$item->getQtyInvoiced()):?>
+        if ((int)$item->getQtyInvoiced()):?>
             <tr>
                 <th><?= $block->escapeHtml(__('Invoiced')); ?></th>
-                <td><?= (float)$item->getQtyInvoiced()?></td>
+                <td><?= (int)$item->getQtyInvoiced()?></td>
             </tr>
         <?php endif; ?>
         <?php
-        if ((float)$item->getQtyShipped()):?>
+        if ((int)$item->getQtyShipped()):?>
             <tr>
                 <th><?= $block->escapeHtml(__('Shipped')); ?></th>
-                <td><?= (float)$item->getQtyShipped()?></td>
+                <td><?= (int)$item->getQtyShipped()?></td>
             </tr>
         <?php endif; ?>
         <?php
-        if ((float)$item->getQtyRefunded()):?>
+        if ((int)$item->getQtyRefunded()):?>
             <tr>
                 <th><?= $block->escapeHtml(__('Refunded')); ?></th>
-                <td><?= (float)$item->getQtyRefunded()?></td>
+                <td><?= (int)$item->getQtyRefunded()?></td>
             </tr>
         <?php endif; ?>
         <?php
@@ -36,10 +36,10 @@ if ($item = $block->getItem()):?>
             </tr>
         <?php endif; ?>
         <?php
-        if ((float)$item->getQtyCanceled()):?>
+        if ((int)$item->getQtyCanceled()):?>
             <tr>
                 <th><?= $block->escapeHtml(__('Canceled')); ?></th>
-                <td><?= (float)$item->getQtyCanceled()?></td>
+                <td><?= (int)$item->getQtyCanceled()?></td>
             </tr>
         <?php endif; ?>
     </table>

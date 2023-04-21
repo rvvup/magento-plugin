@@ -12,7 +12,6 @@ use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Block\Adminhtml\Items\Renderer\DefaultRenderer;
-use Magento\Sales\Model\Order\Item;
 use Rvvup\Payments\Model\PendingQty;
 
 class RefundRenderer extends DefaultRenderer
@@ -68,7 +67,7 @@ class RefundRenderer extends DefaultRenderer
         }
 
         $id = $this->getCreditmemo()->getId();
-        $data = $this->serializer->unserialize($orderItem->getRvvupPendingRefundData());
+        $data = $this->unserialize($orderItem->getRvvupPendingRefundData());
         if (isset($data[$id])) {
             return (float)$data[$id]['qty'];
         }
@@ -80,17 +79,27 @@ class RefundRenderer extends DefaultRenderer
      * @param DataObject $item
      * @return float
      */
-    public function getCreditmemoAvailableQty(DataObject $item): float
+    public function getCreditMemoAvailableQty(DataObject $item): int
     {
         $orderItem = $item->getOrderItem();
 
         $value = $this->getQtyRvvupPendingRefund($orderItem) ?: $this->pendingQtyService->getRvvupPendingQty(
             $orderItem
         );
-        $qty = (float)$orderItem->getQtyInvoiced() - $value;
+
+        $qty = (int)$orderItem->getQtyInvoiced() - $value;
         if ($item->getQty() < $qty) {
-            return (float)$item->getQty();
+            return (int)$item->getQty();
         }
         return $qty;
+    }
+
+    /**
+     * @param string $data
+     * @return array
+     */
+    protected function unserialize(string $data): array
+    {
+        return $this->serializer->unserialize($data);
     }
 }

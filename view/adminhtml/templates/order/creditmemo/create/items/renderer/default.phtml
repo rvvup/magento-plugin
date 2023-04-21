@@ -32,9 +32,9 @@ $block->setPriceDataObject($item); ?>
             <input type="text"
                    class="input-text admin__control-text qty-input"
                    name="creditmemo[items][<?= (int)$item->getOrderItemId()?>][qty]"
-                   value="<?= $block->escapeHtml($block->getCreditmemoAvailableQty($item))?>"/>
+                   value="<?= $block->escapeHtml($block->getCreditMemoAvailableQty($item))?>"/>
         <?php else:?>
-            <?= $block->escapeHtml($block->getCreditmemoAvailableQty($item)) ?>
+            <?= $block->escapeHtml($block->getCreditMemoAvailableQty($item)) ?>
         <?php endif; ?>
     </td>
     <td class="col-subtotal">

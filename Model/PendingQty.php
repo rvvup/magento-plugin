@@ -5,11 +5,10 @@ namespace Rvvup\Payments\Model;
 use Magento\Framework\DataObject;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Api\Data\OrderItemInterface;
-use Magento\Sales\Model\Order\Creditmemo\Item;
 
 class PendingQty
 {
-    private const SALES_ORDER = 'sales_order';
+    public const SALES_ORDER = 'sales_order';
 
     /**
      * @var Json
@@ -49,9 +48,9 @@ class PendingQty
 
     /**
      * @param OrderItemInterface $item
-     * @return float|int
+     * @return int
      */
-    public function getRvvupPendingQty(OrderItemInterface $item)
+    public function getRvvupPendingQty(OrderItemInterface $item): int
     {
         if (empty($item->getRvvupPendingRefundData())) {
             return 0;
@@ -61,7 +60,7 @@ class PendingQty
         $data = $this->serializer->unserialize($item->getRvvupPendingRefundData());
 
         foreach ($data as $item) {
-            $qty += $item['qty'];
+            $qty += (int)$item['qty'];
         }
 
         return $qty;
