@@ -26,7 +26,6 @@ class PendingQty
 
     /**
      * @param DataObject $subject
-     * @param bool $result
      * @return bool
      */
     public function isRefundApplicable(DataObject $subject): bool
