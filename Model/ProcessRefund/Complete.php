@@ -85,11 +85,13 @@ class Complete implements ProcessorInterface
     {
         foreach ($data as $creditMemoId => $refundData) {
             if ($refundData['refund_id'] == $payload['refund_id']) {
-                $item->setQtyRefunded($item->getQtyRefunded() + (int)$refundData['qty']);
-                $refundData['qty'] = 0;
-                $data[$creditMemoId] = $refundData;
-                $item->setRvvupPendingRefundData($this->serializer->serialize($data));
-                $this->orderItemRepository->save($item);
+                if ($refundData['qty'] > 0) {
+                    $item->setQtyRefunded($item->getQtyRefunded() + (int)$refundData['qty']);
+                    $refundData['qty'] = 0;
+                    $data[$creditMemoId] = $refundData;
+                    $item->setRvvupPendingRefundData($this->serializer->serialize($data));
+                    $this->orderItemRepository->save($item);
+                }
             }
         }
     }
