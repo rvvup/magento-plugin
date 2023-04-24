@@ -38,8 +38,8 @@ class PendingQty
         }
 
         foreach ($order->getAllItems() as $item) {
-            if ($item->getQtyInvoiced() - $item->getQtyRefunded() - $this->getRvvupPendingQty($item) <= 0) {
-                return false;
+            if ($item->getQtyInvoiced() - $item->getQtyRefunded() - $this->getRvvupPendingQty($item) >= 0) {
+                return true;
             }
         }
 
