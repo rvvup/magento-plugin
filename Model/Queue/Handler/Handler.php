@@ -4,17 +4,13 @@ namespace Rvvup\Payments\Model\Queue\Handler;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Api\OrderPaymentRepositoryInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
-use Rvvup\Payments\Model\ProcessRefund\Complete;
-use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
+use Rvvup\Payments\Service\Order;
 
 class Handler
 {
@@ -27,12 +23,6 @@ class Handler
     /** @var ConfigInterface */
     private $config;
     /** @var SearchCriteriaBuilder */
-    private $searchCriteriaBuilder;
-    /** @var OrderPaymentRepositoryInterface */
-    private $orderPaymentRepository;
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
-    /** @var PaymentDataGetInterface */
     private $paymentDataGet;
     /** @var ProcessorPool */
     private $processorPool;
@@ -40,43 +30,34 @@ class Handler
     private $logger;
 
     /**
-     * @var RefundPool
+     * @var Order
      */
-    private RefundPool $refundPool;
+    private Order $orderService;
 
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
      * @param ConfigInterface $config
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param OrderPaymentRepositoryInterface $orderPaymentRepository
-     * @param OrderRepositoryInterface $orderRepository
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
-     * @param RefundPool $refundPool
      * @param LoggerInterface $logger
+     * @param Order $orderService
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
         SerializerInterface $serializer,
         ConfigInterface $config,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        OrderPaymentRepositoryInterface $orderPaymentRepository,
-        OrderRepositoryInterface $orderRepository,
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
-        RefundPool $refundPool,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Order $orderService
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
         $this->config = $config;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->orderPaymentRepository = $orderPaymentRepository;
-        $this->orderRepository = $orderRepository;
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
-        $this->refundPool = $refundPool;
+        $this->orderService = $orderService;
         $this->logger = $logger;
     }
 
@@ -102,33 +83,11 @@ class Handler
             }
 
             $rvvupOrderId = $payload['order_id'];
-            // Saerch for the payment record by the Rvvup order ID which is stored in the credit card field.
-            $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-                OrderPaymentInterface::CC_TRANS_ID,
-                $rvvupOrderId
-            )->create();
 
-            $resultSet = $this->orderPaymentRepository->getList($searchCriteria);
-
-            // We always expect 1 payment object for a Rvvup Order ID.
-            if ($resultSet->getTotalCount() !== 1) {
-                $this->logger->warning('Webhook error. Payment not found for order.', [
-                    'rvvup_order_id' => $rvvupOrderId,
-                    'payments_count' => $resultSet->getTotalCount()
-                ]);
-            }
-
-            $payments = $resultSet->getItems();
-            /** @var \Magento\Sales\Api\Data\OrderPaymentInterface $payment */
-            $payment = reset($payments);
-            $order = $this->orderRepository->get($payment->getParentId());
+            $order = $this->orderService->getOrderByRvvupId($rvvupOrderId);
 
             // if Payment method is not Rvvup, exit.
-            if (strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
-                return;
-            }
-            if ($payload['event_type'] == Complete::TYPE) {
-                $this->refundPool->getProcessor($payload['event_type'])->execute($order, $payload);
+            if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
                 return;
             }
 

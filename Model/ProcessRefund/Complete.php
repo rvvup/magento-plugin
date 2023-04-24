@@ -11,6 +11,7 @@ use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
+use Rvvup\Payments\Service\Order;
 
 class Complete implements ProcessorInterface
 {
@@ -32,18 +33,26 @@ class Complete implements ProcessorInterface
     private OrderItemRepositoryInterface $orderItemRepository;
 
     /**
+     * @var Order
+     */
+    private Order $orderService;
+
+    /**
      * @param LoggerInterface $logger
      * @param Json $serializer
      * @param OrderItemRepositoryInterface $orderItemRepository
+     * @param Order $orderService
      */
     public function __construct(
         LoggerInterface $logger,
         Json $serializer,
-        OrderItemRepositoryInterface $orderItemRepository
+        OrderItemRepositoryInterface $orderItemRepository,
+        Order $orderService
     ) {
         $this->logger = $logger;
         $this->serializer = $serializer;
         $this->orderItemRepository = $orderItemRepository;
+        $this->orderService = $orderService;
     }
 
     /**
@@ -52,26 +61,37 @@ class Complete implements ProcessorInterface
      * @param OrderInterface $order
      * @param array $payload
      * @return void
-     * @throws PaymentValidationException
      */
-    public function execute(OrderInterface $order, array $payload): void
+    public function execute(array $payload): void
     {
+        $order = $this->orderService->getOrderByRvvupId($payload['order_id']);
+
         if (!$order->getId()) {
             $this->writeErrorMessage($payload);
             return;
         }
 
         try {
-            foreach ($order->getItems() as $item) {
-                if (!$item->getRvvupPendingRefundData()) {
-                    continue;
-                } else {
-                    $data = $this->serializer->unserialize($item->getRvvupPendingRefundData());
-                    $this->completeRefund($data, $payload, $item);
-                }
-            }
+            $this->refundItems($order->getItems(), $payload);
         } catch (Exception $e) {
             $this->writeErrorMessage($payload);
+        }
+    }
+
+    /**
+     * @param array $items
+     * @param array $payload
+     * @return void
+     */
+    private function refundItems(array $items, array $payload): void
+    {
+        foreach ($items as $item) {
+            if (!$item->getRvvupPendingRefundData()) {
+                continue;
+            } else {
+                $data = $this->serializer->unserialize($item->getRvvupPendingRefundData());
+                $this->completeRefund($data, $payload, $item);
+            }
         }
     }
 

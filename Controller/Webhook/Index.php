@@ -13,6 +13,8 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\MessageQueue\PublisherInterface;
 use Rvvup\Payments\Model\ConfigInterface;
+use Rvvup\Payments\Model\ProcessRefund\Complete;
+use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\WebhookRepository;
 
 /**
@@ -42,6 +44,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     private $logger;
 
     /**
+     * @var RefundPool
+     */
+    private RefundPool $refundPool;
+
+    /**
      * @param RequestInterface $request
      * @param ConfigInterface $config
      * @param SerializerInterface $serializer
@@ -49,6 +56,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param LoggerInterface $logger
      * @param PublisherInterface $publisher
      * @param WebhookRepository $webhookRepository
+     * @param RefundPool $refundPool
      */
     public function __construct(
         RequestInterface $request,
@@ -57,7 +65,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         ResultFactory $resultFactory,
         LoggerInterface $logger,
         PublisherInterface $publisher,
-        WebhookRepository $webhookRepository
+        WebhookRepository $webhookRepository,
+        RefundPool $refundPool
     ) {
         $this->request = $request;
         $this->config = $config;
@@ -66,6 +75,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->logger = $logger;
         $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
+        $this->refundPool = $refundPool;
     }
 
     /**
@@ -95,14 +105,20 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $this->returnInvalidResponse();
             }
 
-            $payload = $this->serializer->serialize([
+            $payload = [
                 'order_id' => $rvvupOrderId,
                 'merchant_id' => $merchantId,
                 'refund_id' => $refundId,
                 'payment_id' => $paymentId,
                 'event_type' => $eventType,
-            ]);
-            $webhook = $this->webhookRepository->new(['payload' => $payload]);
+            ];
+
+            if ($payload['event_type'] == Complete::TYPE) {
+                $this->refundPool->getProcessor($eventType)->execute($payload);
+                return $this->returnSuccessfulResponse();
+            }
+
+            $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
             $this->webhookRepository->save($webhook);
             $this->publisher->publish('rvvup.webhook', (int) $webhook->getId());
 
