@@ -18,6 +18,8 @@ use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 
 class Handler
 {
+    private const PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
+
     /** @var WebhookRepositoryInterface */
     private $webhookRepository;
     /** @var SerializerInterface */
@@ -130,17 +132,23 @@ class Handler
                 return;
             }
 
-            $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
-
-            if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
-                $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
-                    'rvvup_order_id' => $rvvupOrderId
-                ]);
-                return;
+            if (isset($rvvupOrderId)) {
+                $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
+                if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
+                    $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
+                        'rvvup_order_id' => $rvvupOrderId
+                    ]);
+                    return;
+                }
+                if ($rvvupData['payments'][0]['status'] == self::PAYMENT_COMPLETED) {
+                    $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
+                        $order,
+                        $rvvupData
+                    );
+                }
             }
 
-            $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute($order, $rvvupData);
-
+            return;
         } catch (\Exception $e) {
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,
