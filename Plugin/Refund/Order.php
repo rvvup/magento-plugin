@@ -29,6 +29,6 @@ class Order
      */
     public function afterCanCreditmemo(\Magento\Sales\Model\Order $subject, bool $result): bool
     {
-        return $this->pendingQtyService->isRefundApplicable($subject, $result);
+        return $this->pendingQtyService->isRefundApplicable($subject);
     }
 }

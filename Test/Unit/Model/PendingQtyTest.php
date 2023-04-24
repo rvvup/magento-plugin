@@ -75,7 +75,7 @@ class PendingQtyTest extends TestCase
 
         $this->order->method('getAllItems')->willReturn([$item1, $item2]);
         $this->order->method('getEventPrefix')->willReturn(PendingQty::SALES_ORDER);
-        $this->assertTrue($this->pendingQty->isRefundApplicable($this->order, true));
+        $this->assertTrue($this->pendingQty->isRefundApplicable($this->order));
     }
 
     public function testIsRefundApplicableReturnsFalse()
@@ -90,6 +90,6 @@ class PendingQtyTest extends TestCase
 
         $this->order->method('getAllItems')->willReturn([$item1, $item2]);
         $this->order->method('getEventPrefix')->willReturn(PendingQty::SALES_ORDER);
-        $this->assertFalse($this->pendingQty->isRefundApplicable($this->order, true));
+        $this->assertFalse($this->pendingQty->isRefundApplicable($this->order));
     }
 }

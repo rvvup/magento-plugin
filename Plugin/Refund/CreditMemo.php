@@ -30,6 +30,6 @@ class CreditMemo
      */
     public function afterCanRefund(BaseCreditmemo $subject, bool $result): bool
     {
-        return $this->pendingQtyService->isRefundApplicable($subject, $result);
+        return $this->pendingQtyService->isRefundApplicable($subject);
     }
 }

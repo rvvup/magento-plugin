@@ -29,7 +29,7 @@ class PendingQty
      * @param bool $result
      * @return bool
      */
-    public function isRefundApplicable(DataObject $subject, bool $result): bool
+    public function isRefundApplicable(DataObject $subject): bool
     {
         if ($subject->getEventPrefix() == self::SALES_ORDER) {
             $order = $subject;
@@ -38,12 +38,12 @@ class PendingQty
         }
 
         foreach ($order->getAllItems() as $item) {
-            if ($item->getQtyInvoiced() - $item->getQtyRefunded() - $this->getRvvupPendingQty($item) >= 0) {
+            if ($item->getQtyInvoiced() - $item->getQtyRefunded() - $this->getRvvupPendingQty($item) > 0) {
                 return true;
             }
         }
 
-        return $result;
+        return false;
     }
 
     /**
