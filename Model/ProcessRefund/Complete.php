@@ -58,7 +58,6 @@ class Complete implements ProcessorInterface
     /**
      * Complete refund
      *
-     * @param OrderInterface $order
      * @param array $payload
      * @return void
      */
