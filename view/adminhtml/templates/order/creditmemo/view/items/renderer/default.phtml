@@ -14,7 +14,7 @@ $block->setPriceDataObject($item) ?>
     <?php
     if ($block->getQtyRvvupPendingRefund($item->getOrderItem())):?>
         <td>
-            <?= 'Refunded Qty ' . ((float)$item->getQty() - $block->getQtyRvvupPendingRefund($item->getOrderItem())) ?>
+            <?= 'Refunded Qty ' . ((int)$item->getQty() - $block->getQtyRvvupPendingRefund($item->getOrderItem())) ?>
             <br>
             <?=
             $block->escapeHtml(

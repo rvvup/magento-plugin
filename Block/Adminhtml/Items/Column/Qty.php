@@ -39,7 +39,7 @@ class Qty extends \Magento\Sales\Block\Adminhtml\Items\Column\Qty
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry, $optionFactory);
     }
 
-    public function getQtyRvvupPendingRefund(Item $item): float
+    public function getQtyRvvupPendingRefund(Item $item): int
     {
         if (!$item->getRvvupPendingRefundData()) {
             return 0;

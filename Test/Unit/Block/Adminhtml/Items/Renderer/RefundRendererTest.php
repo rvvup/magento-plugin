@@ -62,6 +62,6 @@ class RefundRendererTest extends TestCase
         $this->creditMemo->method('getId')->willReturn(1);
         $this->refundRenderer->method('getCreditmemo')->willReturn($this->creditMemo);
         $this->refundRenderer->method('unserialize')->willReturn([1 => ['qty' => 3]]);
-        $this->assertEquals(3.00, $this->refundRenderer->getQtyRvvupPendingRefund($this->orderItem));
+        $this->assertEquals(3, $this->refundRenderer->getQtyRvvupPendingRefund($this->orderItem));
     }
 }

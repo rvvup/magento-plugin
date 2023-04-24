@@ -54,7 +54,7 @@ class RefundRenderer extends DefaultRenderer
      * @param OrderItemInterface|null $item
      * @return float
      */
-    public function getQtyRvvupPendingRefund(?OrderItemInterface $item = null): float
+    public function getQtyRvvupPendingRefund(?OrderItemInterface $item = null): int
     {
         $orderItem = $item ?: $this->getItem()->getOrderItem();
 
@@ -69,7 +69,7 @@ class RefundRenderer extends DefaultRenderer
         $id = $this->getCreditmemo()->getId();
         $data = $this->unserialize($orderItem->getRvvupPendingRefundData());
         if (isset($data[$id])) {
-            return (float)$data[$id]['qty'];
+            return (int)$data[$id]['qty'];
         }
 
         return 0;
