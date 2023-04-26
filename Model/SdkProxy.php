@@ -158,6 +158,14 @@ class SdkProxy
     /**
      * {@inheritdoc}
      */
+    public function refundCreate(\Rvvup\Sdk\Inputs\RefundCreateInput $input)
+    {
+        return $this->getSubject()->refundCreate($input);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function ping(): bool
     {
         return $this->getSubject()->ping();

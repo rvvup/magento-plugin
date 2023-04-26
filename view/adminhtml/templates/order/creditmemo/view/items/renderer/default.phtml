@@ -1,0 +1,38 @@
+<?php
+/** @var $block \Magento\Sales\Block\Adminhtml\Items\Renderer\DefaultRenderer */ ?>
+<?php
+$item = $block->getItem() ?>
+<?php
+$item->setStoreId($item->getCreditMemo()->getStoreId()) ?>
+<?php
+$block->setPriceDataObject($item) ?>
+<tr>
+    <td class="col-product"><?= $block->getColumnHtml($item, 'name') ?></td>
+    <td class="col-price">
+        <?= $block->getColumnHtml($item, 'price') ?>
+    </td>
+    <?php
+    if ($block->getQtyRvvupPendingRefund($item->getOrderItem())):?>
+        <td>
+            <?= 'Refunded Qty ' . ((int)$item->getQty() - $block->getQtyRvvupPendingRefund($item->getOrderItem())) ?>
+            <br>
+            <?=
+            $block->escapeHtml(
+                __('Pending refund from Rvvup ' . $block->getQtyRvvupPendingRefund($item->getOrderItem()))
+            );
+            ?>
+        </td>
+    <?php else:?>
+        <td class="col-qty"><?= (float)$item->getQty() ?></td>
+    <?php endif; ?>
+    <td class="col-subtotal">
+        <?= $block->getColumnHtml($item, 'subtotal') ?>
+    </td>
+    <td class="col-tax"><?= /* @noEscape */
+        $block->displayPriceAttribute('tax_amount') ?></td>
+    <td class="col-discount"><?= /* @noEscape */
+        $block->displayPriceAttribute('discount_amount') ?></td>
+    <td class="col-total last">
+        <?= $block->getColumnHtml($item, 'total') ?>
+    </td>
+</tr>
