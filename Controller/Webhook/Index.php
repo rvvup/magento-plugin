@@ -23,6 +23,8 @@ use Rvvup\Payments\Model\WebhookRepository;
  */
 class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 {
+    private const PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
+
     /** @var RequestInterface */
     private $request;
     /** @var ConfigInterface */
@@ -116,11 +118,12 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             if ($payload['event_type'] == Complete::TYPE) {
                 $this->refundPool->getProcessor($eventType)->execute($payload);
                 return $this->returnSuccessfulResponse();
+            } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED) {
+                $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
+                $this->webhookRepository->save($webhook);
+                $this->publisher->publish('rvvup.webhook', (int) $webhook->getId());
+                return $this->returnSuccessfulResponse();
             }
-
-            $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
-            $this->webhookRepository->save($webhook);
-            $this->publisher->publish('rvvup.webhook', (int) $webhook->getId());
 
             return $this->returnSuccessfulResponse();
         } catch (Exception $e) {

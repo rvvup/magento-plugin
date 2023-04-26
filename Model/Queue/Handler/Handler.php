@@ -14,7 +14,6 @@ use Rvvup\Payments\Service\Order;
 
 class Handler
 {
-    private const PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
 
     /** @var WebhookRepositoryInterface */
     private $webhookRepository;
@@ -99,12 +98,10 @@ class Handler
                     ]);
                     return;
                 }
-                if ($rvvupData['payments'][0]['status'] == self::PAYMENT_COMPLETED) {
-                    $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
-                        $order,
-                        $rvvupData
-                    );
-                }
+                $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
+                    $order,
+                    $rvvupData
+                );
             }
 
             return;
