@@ -37,8 +37,8 @@ class Version extends Field
         Context $context,
         ComponentRegistrarInterface $componentRegistrar,
         ReadFactory $readFactory,
-        array $data = [],
-        ?SecureHtmlRenderer $secureRenderer = null
+        SecureHtmlRenderer $secureRenderer,
+        array $data = []
     ) {
         $this->componentRegistrar = $componentRegistrar;
         $this->readFactory = $readFactory;
