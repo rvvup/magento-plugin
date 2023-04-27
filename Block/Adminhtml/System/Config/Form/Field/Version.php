@@ -12,7 +12,6 @@ use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
-use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
 class Version extends Field
 {
@@ -31,21 +30,18 @@ class Version extends Field
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param ReadFactory $readFactory
      * @param array $data
-     * @param SecureHtmlRenderer|null $secureRenderer
      */
     public function __construct(
         Context $context,
         ComponentRegistrarInterface $componentRegistrar,
         ReadFactory $readFactory,
-        SecureHtmlRenderer $secureRenderer,
         array $data = []
     ) {
         $this->componentRegistrar = $componentRegistrar;
         $this->readFactory = $readFactory;
         parent::__construct(
             $context,
-            $data,
-            $secureRenderer
+            $data
         );
     }
 
