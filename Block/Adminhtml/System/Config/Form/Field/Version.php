@@ -12,6 +12,7 @@ use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
+use Magento\Framework\Serialize\Serializer\Json;
 
 class Version extends Field
 {
@@ -26,19 +27,27 @@ class Version extends Field
     private ReadFactory $readFactory;
 
     /**
+     * @var Json
+     */
+    private Json $serializer;
+
+    /**
      * @param Context $context
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param ReadFactory $readFactory
+     * @param Json $serializer
      * @param array $data
      */
     public function __construct(
         Context $context,
         ComponentRegistrarInterface $componentRegistrar,
         ReadFactory $readFactory,
+        Json $serializer,
         array $data = []
     ) {
         $this->componentRegistrar = $componentRegistrar;
         $this->readFactory = $readFactory;
+        $this->serializer = $serializer;
         parent::__construct(
             $context,
             $data
@@ -58,15 +67,51 @@ class Version extends Field
      * @throws FileSystemException
      * @throws ValidatorException
      */
-    private function getRvvupPluginVersion(): string
+    public function getRvvupPluginVersion(): string
     {
-        $path = $this->componentRegistrar->getPath(
+        $path = $this->getPath();
+        $composerJsonData = $this->getComposerData($path);
+        return $this->getModuleVersion($composerJsonData);
+    }
+
+    /**
+     * @return string|null
+     */
+    protected function getPath(): ?string
+    {
+        return $this->componentRegistrar->getPath(
             ComponentRegistrar::MODULE,
             'Rvvup_Payments'
         );
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     * @throws FileSystemException
+     * @throws ValidatorException
+     */
+    protected function getComposerData(string $path): string
+    {
         $directoryRead = $this->readFactory->create($path);
-        $composerJsonData = $directoryRead->readFile('composer.json');
-        $data = json_decode($composerJsonData, true);
+        return $directoryRead->readFile('composer.json');
+    }
+
+    /**
+     * @param string $composerJsonData
+     * @return string
+     */
+    protected function getModuleVersion(string $composerJsonData): string
+    {
+        $data = $this->getSerializer()->unserialize($composerJsonData);
         return $data['version'] ?? '';
+    }
+
+    /**
+     * @return Json
+     */
+    protected function getSerializer(): Json
+    {
+        return $this->serializer;
     }
 }
