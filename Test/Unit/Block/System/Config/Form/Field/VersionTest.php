@@ -4,18 +4,30 @@ declare(strict_types=1);
 
 namespace Unit\Block\System\Config\Form\Field;
 
-use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\ValidatorException;
-use Magento\Framework\Filesystem\Directory\ReadFactory;
-use Magento\Framework\Json\Helper\Data;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\Component\ComponentRegistrarInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Rvvup\Payments\Block\Adminhtml\System\Config\Form\Field\Version;
 
 class VersionTest extends TestCase
 {
+    /**
+     * @var (ComponentRegistrarInterface&MockObject)|MockObject
+     */
+    private $componentRegistrar;
+
+    /**
+     * @var Json
+     */
+    private $serializer;
+
+    /**
+     * @var MockObject
+     */
+    private $version;
 
     /**
     * @return void
