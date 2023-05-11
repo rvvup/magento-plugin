@@ -66,7 +66,7 @@ class VersionTest extends TestCase
     public function testGetRvvupPluginVersionEmpty()
     {
         $this->version->method('getPath')->willReturn('');
-        $this->version->method('getComposerData')->willReturn('{}');
+        $this->version->method('getComposerData')->willReturn('');
         $this->assertEquals('', $this->version->getRvvupPluginVersion());
     }
 }

@@ -96,10 +96,9 @@ class Version extends Field
         $directoryRead = $this->readFactory->create($path);
         try {
             return $directoryRead->readFile('composer.json');
-        } catch (FileSystemException $e) {
+        } catch (\Exception $e) {
             return '';
         }
-
     }
 
     /**
@@ -111,7 +110,6 @@ class Version extends Field
         if (empty($composerJsonData)) {
             return '';
         }
-
 
         $data = $this->getSerializer()->unserialize($composerJsonData);
         return $data['version'] ?? '';
