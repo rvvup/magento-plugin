@@ -94,7 +94,12 @@ class Version extends Field
     protected function getComposerData(string $path): string
     {
         $directoryRead = $this->readFactory->create($path);
-        return $directoryRead->readFile('composer.json');
+        try {
+            return $directoryRead->readFile('composer.json');
+        } catch (FileSystemException $e) {
+            return '';
+        }
+
     }
 
     /**
@@ -103,6 +108,11 @@ class Version extends Field
      */
     protected function getModuleVersion(string $composerJsonData): string
     {
+        if (empty($composerJsonData)) {
+            return '';
+        }
+
+
         $data = $this->getSerializer()->unserialize($composerJsonData);
         return $data['version'] ?? '';
     }
