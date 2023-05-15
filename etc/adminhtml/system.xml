@@ -19,6 +19,10 @@
                 <field id="key_validation" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <frontend_model>Rvvup\Payments\Block\Adminhtml\CredentialValidator</frontend_model>
                 </field>
+                <field id="plugin_version" type="text" sortOrder="35" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Plugin version</label>
+                    <frontend_model>Rvvup\Payments\Block\Adminhtml\System\Config\Form\Field\Version</frontend_model>
+                </field>
                 <field id="environment" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Current Environment</label>
                     <backend_model>Rvvup\Payments\Model\Config\Env\Indicator</backend_model>

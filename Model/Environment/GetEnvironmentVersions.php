@@ -146,7 +146,7 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
      *
      * @return string
      */
-    private function getRvvupModuleVersion(): string
+    public function getRvvupModuleVersion(): string
     {
         // Attempt to figure out what plugin version we have depending on installation method
         $packages = $this->composerInformation->getInstalledMagentoPackages();
