@@ -187,6 +187,33 @@ class Config implements ConfigInterface
     }
 
     /**
+     *
+     * @return string
+     */
+    public function getPaypalBlockStyling(string $config): string
+    {
+        if ($config == self::XML_PATH_STYLE) {
+            if ($this->getPayPalBlockConfig(self::XML_PATH_USE_PLACE_ORDER_STYLING)) {
+                return $this->getPayPalBlockConfig(self::XML_PATH_PLACE_ORDER_STYLING);
+            }
+            return $this->getPayPalBlockConfig(self::XML_PATH_STYLE);
+        }
+        return $this->getPayPalBlockConfig($config);
+    }
+
+    private function getPayPalBlockConfig(
+        string $config,
+        string $scopeType = ScopeInterface::SCOPE_STORE,
+        string $scopeCode = null
+    ): string
+    {
+        return $this->scopeConfig->getValue(
+            self::RVVUP_CONFIG . self::XML_PATH_PAYPAL_BLOCK . $config,
+            $scopeType, $scopeCode
+        );
+    }
+
+    /**
      * @param string $scopeType
      * @param string|null $scopeCode
      * @return bool
