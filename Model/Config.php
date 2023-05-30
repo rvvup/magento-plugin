@@ -188,6 +188,7 @@ class Config implements ConfigInterface
 
     /**
      *
+     * @param string $config
      * @return string
      */
     public function getPaypalBlockStyling(string $config): string
@@ -205,12 +206,11 @@ class Config implements ConfigInterface
         string $config,
         string $scopeType = ScopeInterface::SCOPE_STORE,
         string $scopeCode = null
-    ): string
-    {
-        return $this->scopeConfig->getValue(
-            self::RVVUP_CONFIG . self::XML_PATH_PAYPAL_BLOCK . $config,
-            $scopeType, $scopeCode
-        );
+    ): string {
+
+        $config = self::RVVUP_CONFIG . self::XML_PATH_PAYPAL_BLOCK . $config;
+
+        return $this->scopeConfig->getValue($config, $scopeType, $scopeCode);
     }
 
     /**
