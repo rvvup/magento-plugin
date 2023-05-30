@@ -147,17 +147,14 @@ class ConfigProvider implements ConfigProviderInterface
             ];
 
             if ($method['name'] == 'PAYPAL') {
-                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['style'] = $this->config->getPaypalBlockStyling(
-                    ConfigInterface::XML_PATH_STYLE
-                );
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['style'] =
+                    $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_STYLE);
 
-                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['border'] = $this->config->getPaypalBlockStyling(
-                    ConfigInterface::XML_PATH_BORDER_STYLING
-                );
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['border'] =
+                    $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_BORDER_STYLING);
 
-                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['background'] = $this->config->getPaypalBlockStyling(
-                    ConfigInterface::XML_PATH_BACKGROUND_STYLING
-                );
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['background'] =
+                    $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_BACKGROUND_STYLING);
             }
         }
 
