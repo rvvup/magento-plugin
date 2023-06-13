@@ -390,7 +390,9 @@ define([
              * Handle setting cancel URL in the modal, prevents multiple clicks.
              */
             triggerModalCancelUrl: function () {
-                if (!orderPaymentAction.getCancelUrl() || rvvupMethodProperties.getIsCancellationTriggered() === true) {
+                if (!orderPaymentAction.getCancelUrl()
+                    || rvvupMethodProperties.getIsCancellationTriggered() === true
+                    || this.preventClose) {
                     return;
                 }
 
