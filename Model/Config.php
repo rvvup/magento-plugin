@@ -202,7 +202,7 @@ class Config implements ConfigInterface
         return $this->getPayPalBlockConfig($config);
     }
 
-    private function getPayPalBlockConfig(
+    public function getPayPalBlockConfig(
         string $config,
         string $scopeType = ScopeInterface::SCOPE_STORE,
         string $scopeCode = null
