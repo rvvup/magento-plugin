@@ -11,6 +11,12 @@ use Rvvup\Payments\Model\ConfigInterface;
 
 class Config extends TestCase
 {
+    /** @var ScopeConfigInterface */
+    private $scopeConfigMock;
+
+    /** @var \Rvvup\Payments\Model\Config */
+    private $config;
+
     protected function setUp(): void
     {
         $this->scopeConfigMock = $this->getMockBuilder(ScopeConfigInterface::class)
