@@ -189,6 +189,9 @@ class ConfigProvider implements ConfigProviderInterface
             case 'PAYPAL':
                 $url = sprintf($base, 'paypal');
                 break;
+            case 'CARD':
+                $url = sprintf($base, 'card');
+                break;
             case 'FAKE_PAYMENT_METHOD':
             default:
                 $url = sprintf($base, 'rvvup');
