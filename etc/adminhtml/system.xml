@@ -64,6 +64,27 @@
                         <source_model>Magento\Catalog\Model\Product\Type</source_model>
                     </field>
                 </group>
+                <group id="paypal_block" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Paypal Block Styling</label>
+                    <field id="use_place_order_styling" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Use Place Order button styling</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="style" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Block styling</label>
+                    </field>
+                    <field id="place_order_styling" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Place order button styling</label>
+                    </field>
+                    <field id="background_styling" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Background style</label>
+                    </field>
+                    <field id="border_styling" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Border styling</label>
+                    </field>
+                    <comment>This settings will be used as styling for paypal buttons</comment>
+                </group>
+
                 <group id="clearpay_messaging" sortOrder="200" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Clearpay Messaging</label>
                     <comment>These setting will require cleaning full-page-cache before changes take effect</comment>

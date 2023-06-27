@@ -25,6 +25,13 @@
                     <checkout_message>You have some restricted items in your cart, not all payment methods may be available</checkout_message>
                     <enabled_product_types>simple,virtual,downloadable,bundle,grouped,configurable</enabled_product_types>
                 </product_restrictions>
+                <paypal_block>
+                    <use_place_order_styling>1</use_place_order_styling>
+                    <style>action-toolbar</style>
+                    <border_styling>none</border_styling>
+                    <background_styling>none</background_styling>
+                    <place_order_styling>action primary checkout</place_order_styling>
+                </paypal_block>
                 <clearpay_messaging>
                     <active>1</active>
                     <icon_type>badge</icon_type>
