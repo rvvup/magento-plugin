@@ -14,7 +14,7 @@ class Version extends Field
     /**
      * @var GetEnvironmentVersions
      */
-    private GetEnvironmentVersions $environmentVersions;
+    private $environmentVersions;
 
     /**
      * @param Context $context

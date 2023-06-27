@@ -19,12 +19,12 @@ class RefundRenderer extends DefaultRenderer
     /**
      * @var PendingQty
      */
-    private PendingQty $pendingQtyService;
+    private $pendingQtyService;
 
     /**
      * @var Json
      */
-    private Json $serializer;
+    private $serializer;
 
     /**
      * @param Context $context

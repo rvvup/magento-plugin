@@ -19,12 +19,12 @@ class Restore implements ObserverInterface
     /**
      * @var array
      */
-    public array $restrictedPaths = [];
+    public $restrictedPaths = [];
 
     /**
      * @var SessionManagerInterface
      */
-    public SessionManagerInterface $session;
+    public $session;
 
     /**
      * @param SessionManagerInterface $session

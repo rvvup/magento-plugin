@@ -30,8 +30,10 @@ class Cancel implements HttpGetActionInterface
 
     /** @var ManagerInterface */
     private $messageManager;
+
     /** @var PaymentDataGetInterface */
     private $paymentDataGet;
+
     /** @var ProcessorPool */
     private $processorPool;
 

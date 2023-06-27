@@ -21,7 +21,7 @@ class PaymentMethod
     /**
      * @var ConfigInterface
      */
-    private ConfigInterface $config;
+    private $config;
 
     /**
      * @param SdkProxy $sdkProxy

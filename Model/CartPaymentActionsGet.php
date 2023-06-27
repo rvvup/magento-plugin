@@ -37,7 +37,7 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
     /**
      * @var CommandPoolInterface
      */
-    private CommandPoolInterface $commandPool;
+    private $commandPool;
 
     /**
      * @param PaymentMethodManagementInterface $paymentMethodManagement

@@ -19,17 +19,17 @@ class PreventOrderClean
     /**
      * @var CollectionFactory
      */
-    private CollectionFactory $collectionFactory;
+    private $collectionFactory;
 
     /**
      * @var LoggerInterface
      */
-    private LoggerInterface $logger;
+    private $logger;
 
     /**
      * @var StoresConfig
      */
-    private StoresConfig $storesConfig;
+    private $storesConfig;
 
     /**
      * @param CollectionFactory $collectionFactory

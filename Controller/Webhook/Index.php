@@ -48,7 +48,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /**
      * @var RefundPool
      */
-    private RefundPool $refundPool;
+    private $refundPool;
 
     /**
      * @param RequestInterface $request

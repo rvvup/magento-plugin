@@ -14,7 +14,7 @@ class Cron implements MessageInterface
     /**
      * @var CollectionFactory
      */
-    private CollectionFactory $collectionFactory;
+    private $collectionFactory;
 
     /**
      * @param CollectionFactory $collectionFactory

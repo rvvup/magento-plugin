@@ -25,17 +25,17 @@ class Complete implements ProcessorInterface
     /**
      * @var Json
      */
-    private Json $serializer;
+    private $serializer;
 
     /**
      * @var OrderItemRepositoryInterface
      */
-    private OrderItemRepositoryInterface $orderItemRepository;
+    private $orderItemRepository;
 
     /**
      * @var Order
      */
-    private Order $orderService;
+    private $orderService;
 
     /**
      * @param LoggerInterface $logger
