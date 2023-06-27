@@ -24,7 +24,7 @@ class Restore implements ObserverInterface
     /**
      * @var SessionManagerInterface
      */
-    public SessionManagerInterface $session;
+    public $session;
 
     /**
      * @param SessionManagerInterface $session

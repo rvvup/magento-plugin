@@ -31,7 +31,7 @@ class Handler
     /**
      * @var Order
      */
-    private Order $orderService;
+    private $orderService;
 
     /**
      * @param WebhookRepositoryInterface $webhookRepository

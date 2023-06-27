@@ -16,22 +16,22 @@ class Order
     /**
      * @var LoggerInterface
      */
-    private LoggerInterface $logger;
+    private $logger;
 
     /**
      * @var SearchCriteriaBuilder
      */
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private $searchCriteriaBuilder;
 
     /**
      * @var OrderPaymentRepositoryInterface
      */
-    private OrderPaymentRepositoryInterface $orderPaymentRepository;
+    private $orderPaymentRepository;
 
     /**
      * @var OrderRepositoryInterface
      */
-    private OrderRepositoryInterface $orderRepository;
+    private $orderRepository;
 
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder

@@ -14,7 +14,7 @@ class CronTest extends TestCase
     /**
      * @var CollectionFactory
      */
-    private CollectionFactory $collectionFactory;
+    private $collectionFactory;
 
     /**
      * @var Cron $cron

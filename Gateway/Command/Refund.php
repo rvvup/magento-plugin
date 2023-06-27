@@ -23,12 +23,12 @@ class Refund implements CommandInterface
     /**
      * @var RefundCreateInputFactory
      */
-    private RefundCreateInputFactory $refundCreateInputFactory;
+    private $refundCreateInputFactory;
 
     /**
      * @var Json
      */
-    private Json $serializer;
+    private $serializer;
 
     /**
      * @var OrderItemRepositoryInterface

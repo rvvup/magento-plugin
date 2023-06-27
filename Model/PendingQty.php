@@ -13,7 +13,7 @@ class PendingQty
     /**
      * @var Json
      */
-    private Json $serializer;
+    private $serializer;
 
     /**
      * @param Json $serializer

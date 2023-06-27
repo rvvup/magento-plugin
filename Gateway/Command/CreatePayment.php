@@ -16,7 +16,7 @@ class CreatePayment implements CommandInterface
     /**
      * @var ConfigInterface
      */
-    private ConfigInterface $config;
+    private $config;
 
     /**
      * @param SdkProxy $sdkProxy
