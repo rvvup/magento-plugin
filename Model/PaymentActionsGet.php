@@ -48,12 +48,12 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     /**
      * @var SdkProxy
      */
-    private SdkProxy $sdkProxy;
+    private $sdkProxy;
 
     /**
      * @var CommandPoolInterface
      */
-    private CommandPoolInterface $commandPool;
+    private $commandPool;
 
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder

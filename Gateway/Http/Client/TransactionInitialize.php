@@ -30,7 +30,7 @@ class TransactionInitialize implements ClientInterface
     /**
      * @var OrderDataBuilder
      */
-    private OrderDataBuilder $orderDataBuilder;
+    private $orderDataBuilder;
 
     /**
      * @param SdkProxy $sdkProxy

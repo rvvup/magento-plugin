@@ -21,13 +21,13 @@ use Rvvup\Sdk\GraphQlSdkFactory;
 class Validator extends Encrypted
 {
     /** @var UrlInterface */
-    private UrlInterface $urlBuilder;
+    private $urlBuilder;
     /** @var UserAgentBuilder */
-    private UserAgentBuilder $userAgentBuilder;
+    private $userAgentBuilder;
     /** @var GraphQlSdkFactory */
-    private GraphQlSdkFactory $sdkFactory;
+    private $sdkFactory;
     /** @var ManagerInterface */
-    private ManagerInterface $messageManager;
+    private $messageManager;
 
     /**
      * @param Context $context

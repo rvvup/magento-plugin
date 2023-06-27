@@ -43,7 +43,7 @@ class Clearpay implements ArgumentInterface
     /**
      * @var Price
      */
-    private Price $priceViewModel;
+    private $priceViewModel;
 
     /** @var null|bool */
     private $isEnabled;

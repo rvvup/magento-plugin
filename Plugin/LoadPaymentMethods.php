@@ -19,27 +19,27 @@ class LoadPaymentMethods
     /**
      * @var array
      */
-    private array $methods;
+    private $methods;
 
     /**
      * @var ConfigInterface
      */
-    private ConfigInterface $config;
+    private $config;
 
     /**
      * @var SessionManagerInterface
      */
-    private SessionManagerInterface $checkoutSession;
+    private $checkoutSession;
 
     /**
      * @var SdkProxy
      */
-    private SdkProxy $sdkProxy;
+    private $sdkProxy;
 
     /**
      * @var StoreManagerInterface
      */
-    private StoreManagerInterface $storeManager;
+    private $storeManager;
 
     /**
      * @param SessionManagerInterface $checkoutSession

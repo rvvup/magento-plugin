@@ -11,7 +11,7 @@ class Order
     /**
      * @var PendingQty
      */
-    private PendingQty $pendingQtyService;
+    private $pendingQtyService;
 
     /**
      * @param PendingQty $pendingQtyService

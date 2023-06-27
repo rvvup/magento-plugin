@@ -12,7 +12,7 @@ class Invoice
     /**
      * @var PendingQty
      */
-    private PendingQty $pendingQtyService;
+    private $pendingQtyService;
 
     /**
      * @param PendingQty $pendingQtyService

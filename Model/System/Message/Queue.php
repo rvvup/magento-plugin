@@ -15,12 +15,12 @@ class Queue implements MessageInterface
     /**
      * @var CollectionFactory
      */
-    private CollectionFactory $collectionFactory;
+    private $collectionFactory;
 
     /**
      * @var DeploymentConfig
      */
-    private DeploymentConfig $config;
+    private $config;
 
     /**
      * @param CollectionFactory $collectionFactory
