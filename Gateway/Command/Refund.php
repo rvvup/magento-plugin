@@ -33,12 +33,12 @@ class Refund implements CommandInterface
     /**
      * @var OrderItemRepositoryInterface
      */
-    private OrderItemRepositoryInterface $orderItemRepository;
+    private $orderItemRepository;
 
     /**
      * @var CreditmemoRepositoryInterface
      */
-    private CreditmemoRepositoryInterface $creditmemoRepository;
+    private $creditmemoRepository;
 
     /**
      * @param SdkProxy $sdkProxy

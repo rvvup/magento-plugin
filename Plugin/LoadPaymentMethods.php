@@ -19,7 +19,7 @@ class LoadPaymentMethods
     /**
      * @var array
      */
-    private array $methods;
+    private $methods;
 
     /**
      * @var ConfigInterface
