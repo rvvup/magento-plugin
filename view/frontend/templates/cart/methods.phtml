@@ -22,7 +22,7 @@ $clearpay = $block->getClearpay();
     </script>
     <div class="clearpay">
         <afterpay-placement style="display:none" id="clearpay-summary"
-            data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
+            data-locale="en_GB"
             data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
             data-amount="<?= $escaper->escapeHtmlAttr($clearpay->getCartTotal()) ?>"
             data-logo-type="<?= $escaper->escapeHtmlAttr($clearpay->getLogoType()) ?>"
