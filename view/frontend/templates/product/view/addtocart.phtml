@@ -39,7 +39,7 @@ $thresholds = $clearpay->getThresholds($product);
     </script>
     <div class="clearpay">
         <afterpay-placement style="display:none" id="clearpay-summary"
-                            data-locale="en_GB"
+                            data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
                             data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
                             data-amount="<?= $escaper->escapeHtmlAttr($priceViewModel->getPrice($product)) ?>"
                             data-logo-type="<?= $escaper->escapeHtmlAttr($clearpay->getLogoType()) ?>"
