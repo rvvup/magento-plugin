@@ -13,7 +13,6 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\Clearpay\Config;
 use Rvvup\Payments\Model\ComplexProductTypePool;
 use Rvvup\Payments\Model\ThresholdProvider;
-use Magento\Framework\Locale\Resolver;
 use Magento\Store\Model\StoreManagerInterface;
 
 class Clearpay implements ArgumentInterface
@@ -28,8 +27,6 @@ class Clearpay implements ArgumentInterface
     private $session;
     /** @var StoreManagerInterface */
     private $storeManager;
-    /** @var Resolver */
-    private $locale;
     /** @var ComplexProductTypePool */
     private $productTypePool;
 
@@ -56,7 +53,6 @@ class Clearpay implements ArgumentInterface
      * @param ThresholdProvider $thresholdProvider
      * @param Session $session
      * @param StoreManagerInterface $storeManager
-     * @param Resolver $locale
      * @param ComplexProductTypePool $productTypePool
      * @param LoggerInterface|RvvupLog $logger
      * @param Price $priceViewModel
@@ -67,7 +63,6 @@ class Clearpay implements ArgumentInterface
         ThresholdProvider $thresholdProvider,
         Session $session,
         StoreManagerInterface $storeManager,
-        Resolver $locale,
         ComplexProductTypePool $productTypePool,
         LoggerInterface $logger,
         Price $priceViewModel
@@ -77,7 +72,6 @@ class Clearpay implements ArgumentInterface
         $this->thresholdProvider = $thresholdProvider;
         $this->session = $session;
         $this->storeManager = $storeManager;
-        $this->locale = $locale;
         $this->productTypePool = $productTypePool;
         $this->logger = $logger;
         $this->priceViewModel = $priceViewModel;
@@ -219,6 +213,11 @@ class Clearpay implements ArgumentInterface
     public function getCurrentCurrencyCode(): string
     {
         return $this->storeManager->getStore()->getCurrentCurrency()->getCode();
+    }
+
+    public function getCurrentLocale(): string
+    {
+        return "en_GB";
     }
 
     /**
