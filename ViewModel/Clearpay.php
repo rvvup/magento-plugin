@@ -223,6 +223,14 @@ class Clearpay implements ArgumentInterface
 
     /**
      * @return string
+     */
+    public function getCurrentLocale(): string
+    {
+        return $this->locale->getLocale();
+    }
+
+    /**
+     * @return string
      * @throws NoSuchEntityException
      */
     public function getStoreCode(): string
