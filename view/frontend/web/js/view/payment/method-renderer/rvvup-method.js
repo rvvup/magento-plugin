@@ -14,7 +14,8 @@ define([
         'Rvvup_Payments/js/helper/get-paypal-checkout-button-style',
         'Rvvup_Payments/js/helper/is-express-payment',
         'Rvvup_Payments/js/model/checkout/payment/order-payment-action',
-        'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties'
+        'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
+        'Rvvup_Payments/js/method/paypal/cancel'
     ], function (
         Component,
         $,
@@ -31,7 +32,8 @@ define([
         getPayPalCheckoutButtonStyle,
         isExpressPayment,
         orderPaymentAction,
-        rvvupMethodProperties
+        rvvupMethodProperties,
+        cancel
     ) {
         'use strict';
 
@@ -329,6 +331,12 @@ define([
                 return $t('You are currently paying with %1. If you want to cancel this process, please click %2')
                     .replace('%1', this.getTitle())
                     .replace('%2', cancelLink);
+            },
+
+            getCancelButtonOnClick() {
+                $(document).on('click', '#' + this.getCancelExpressPaymentLinkId(), function(){
+                    cancel.cancelPayment();
+                });
             },
 
             /**

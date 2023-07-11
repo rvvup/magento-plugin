@@ -79,6 +79,7 @@
         <!-- Cancel Express Payment link, currently show only if PayPal & Express payment process -->
         <div class="action-toolbar" data-bind="style: {display: shouldDisplayCancelExpressPaymentLink() ? '' : 'none'}">
             <p data-bind="html: getCancelExpressPaymentLink()"></p>
+            <p data-bind="html: getCancelButtonOnClick()"></p>
         </div>
     </div>
 </div>
