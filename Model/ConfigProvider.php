@@ -25,7 +25,7 @@ use Rvvup\Payments\Model\ConfigInterface as RvvupConfig;
 class ConfigProvider implements ConfigProviderInterface
 {
     /**
-     * @var \Rvvup\Payments\Model\ConfigInterface|RvvupConfig
+     * @var ConfigInterface|RvvupConfig
      */
     private $config;
 
@@ -79,7 +79,7 @@ class ConfigProvider implements ConfigProviderInterface
     private $clearpayConfig;
 
     /**
-     * @param \Rvvup\Payments\Model\ConfigInterface|RvvupConfig $config
+     * @param ConfigInterface|RvvupConfig $config
      * @param \Rvvup\Payments\Model\SdkProxy $sdkProxy
      * @param \Magento\Customer\Api\AddressMetadataInterface $addressMetadata
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
@@ -145,6 +145,17 @@ class ConfigProvider implements ConfigProviderInterface
                 ),
                 'assets' => $method['assets'],
             ];
+
+            if ($method['name'] == 'PAYPAL') {
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['style'] =
+                    $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_STYLE);
+
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['border'] =
+                    $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_BORDER_STYLING);
+
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['background'] =
+                    $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_BACKGROUND_STYLING);
+            }
         }
 
         // We need to add the address data only if we have an express payment for logged in customers with addresses.
@@ -177,6 +188,9 @@ class ConfigProvider implements ConfigProviderInterface
                 break;
             case 'PAYPAL':
                 $url = sprintf($base, 'paypal');
+                break;
+            case 'CARD':
+                $url = sprintf($base, 'card');
                 break;
             case 'FAKE_PAYMENT_METHOD':
             default:

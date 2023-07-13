@@ -15,7 +15,7 @@ class QueueTest extends TestCase
     /**
      * @var CollectionFactory
      */
-    private CollectionFactory $collectionFactory;
+    private $collectionFactory;
 
     /**
      * @var Queue $queue

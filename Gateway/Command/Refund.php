@@ -23,22 +23,22 @@ class Refund implements CommandInterface
     /**
      * @var RefundCreateInputFactory
      */
-    private RefundCreateInputFactory $refundCreateInputFactory;
+    private $refundCreateInputFactory;
 
     /**
      * @var Json
      */
-    private Json $serializer;
+    private $serializer;
 
     /**
      * @var OrderItemRepositoryInterface
      */
-    private OrderItemRepositoryInterface $orderItemRepository;
+    private $orderItemRepository;
 
     /**
      * @var CreditmemoRepositoryInterface
      */
-    private CreditmemoRepositoryInterface $creditmemoRepository;
+    private $creditmemoRepository;
 
     /**
      * @param SdkProxy $sdkProxy

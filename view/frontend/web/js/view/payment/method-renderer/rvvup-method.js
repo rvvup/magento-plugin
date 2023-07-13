@@ -156,6 +156,18 @@ define([
                 this.showModal(url);
             },
 
+            getPaypalBlockStyling: function () {
+                return window.checkoutConfig.payment[this.index].style;
+            },
+
+            getPaypalBlockBorderStyling: function () {
+                return window.checkoutConfig.payment[this.index].border;
+            },
+
+            getPaypalBlockABackgroundStyling: function () {
+                return window.checkoutConfig.payment[this.index].background;
+            },
+
             /**
              * Render the PayPal button if the PayPal container is in place.
              */
@@ -390,7 +402,9 @@ define([
              * Handle setting cancel URL in the modal, prevents multiple clicks.
              */
             triggerModalCancelUrl: function () {
-                if (!orderPaymentAction.getCancelUrl() || rvvupMethodProperties.getIsCancellationTriggered() === true) {
+                if (!orderPaymentAction.getCancelUrl()
+                    || rvvupMethodProperties.getIsCancellationTriggered() === true
+                    || this.preventClose) {
                     return;
                 }
 

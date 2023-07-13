@@ -15,12 +15,12 @@ class Price implements ArgumentInterface
     /**
      * @var Data
      */
-    private Data $taxHelper;
+    private $taxHelper;
 
     /**
      * @var TaxConfig
      */
-    private TaxConfig $taxConfig;
+    private $taxConfig;
 
     public function __construct(
         Data $taxHelper,
