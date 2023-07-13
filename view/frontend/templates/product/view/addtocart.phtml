@@ -28,15 +28,6 @@ $thresholds = $clearpay->getThresholds($product);
     </p>
 <?php endif; ?>
 <?php if (is_array($thresholds) && $clearpay->isInThreshold($product, $thresholds)): ?>
-    <script type="text/x-magento-init">
-        {
-            "*": {
-                "Rvvup_Payments/js/method/clearpay": {
-                    "storeCode": "<?= /** @noEscape */ $clearpay->getStoreCode() ?>"
-                }
-            }
-        }
-    </script>
     <div class="clearpay">
         <afterpay-placement style="display:none" id="clearpay-summary"
                             data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
@@ -47,6 +38,15 @@ $thresholds = $clearpay->getThresholds($product);
                             data-modal-theme="<?= $escaper->escapeHtmlAttr($clearpay->getModalTheme()) ?>"
         ></afterpay-placement>
     </div>
+    <script type="text/x-magento-init">
+        {
+            "*": {
+                "Rvvup_Payments/js/method/clearpay": {
+                    "storeCode": "<?= /** @noEscape */ $clearpay->getStoreCode() ?>"
+                }
+            }
+        }
+    </script>
     <?php if ($product->getTypeId() === 'configurable'): // Load thresholds for configurable products?>
         <script type="text/x-magento-init">
             {
