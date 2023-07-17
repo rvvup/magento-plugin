@@ -163,6 +163,11 @@ class SdkProxy
         return $this->getSubject()->refundCreate($input);
     }
 
+    public function cancelPayment(string $paymentId, string $orderId): array
+    {
+        return $this->getSubject()->cancelPayment($paymentId, $orderId);
+    }
+
     /**
      * {@inheritdoc}
      */

@@ -19,6 +19,7 @@ define(
         'Rvvup_Payments/js/helper/get-pdp-form',
         'Rvvup_Payments/js/helper/is-paypal-pdp-button-enabled',
         'Rvvup_Payments/js/helper/validate-pdp-form',
+        'Rvvup_Payments/js/method/paypal/cancel',
         'domReady!'
     ],
     function (
@@ -40,7 +41,8 @@ define(
         getPayPalPdpButtonStyle,
         getPdpForm,
         isPayPalPdpButtonEnabled,
-        validatePdpForm
+        validatePdpForm,
+        cancel
     ) {
         'use strict';
         return Component.extend({
@@ -114,7 +116,7 @@ define(
                      * @param actions
                      * @returns {Promise<never>|*}
                      */
-                    onClick: function(data, actions) {
+                    onClick: function (data, actions) {
                         $('body').trigger('processStart');
                         return new Promise((resolve, reject) => {
                             return getCurrentQuoteId() === null
@@ -134,8 +136,7 @@ define(
                             if (!validatePdpForm(form)) {
                                 $('body').trigger('processStop');
                                 return actions.reject();
-                            }
-                            else {
+                            } else {
                                 return addToCart(cartId, getAddToCartPayload(form, cartId)).done(() => {
                                     return actions.resolve();
                                 });
@@ -153,7 +154,7 @@ define(
                      *
                      * @returns {Promise<unknown>}
                      */
-                    createOrder: function() {
+                    createOrder: function () {
                         return new Promise((resolve, reject) => {
                             return createExpressPayment(self.cartId, 'paypal')
                                 .done((response) => {
@@ -161,7 +162,7 @@ define(
                                         /* First check get the authorization action */
                                         let paymentAction = _.find(
                                             response.data,
-                                            function(action) {
+                                            function (action) {
                                                 return action.type === 'authorization'
                                             }
                                         );
@@ -250,6 +251,7 @@ define(
                                 setSessionMessage($t('You cancelled the payment process'), 'error');
                             });
 
+                        cancel.cancelPayment();
                     },
                     /**
                      * On error, display error message in the container.
