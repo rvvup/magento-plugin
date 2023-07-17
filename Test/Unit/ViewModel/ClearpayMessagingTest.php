@@ -51,7 +51,6 @@ class ClearpayMessagingTest extends TestCase
         $currency = new DataObject(['code' => 'GBP']);
         $store = new DataObject(['current_currency' => $currency]);
         $storeManagerMock->method('getStore')->willReturn($store);
-        $resolverMock = $this->getMockBuilder(Resolver::class)->disableOriginalConstructor()->getMock();
         $loggerMock = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
         //$this->priceHelperMock = $this->getMockBuilder(Data::class)->disableOriginalConstructor()->getMock();
         $this->priceHelperMock = $this->getMockBuilder(Price::class)->disableOriginalConstructor()->getMock();
@@ -61,7 +60,6 @@ class ClearpayMessagingTest extends TestCase
             $thresholdProviderMock,
             $sessionMock,
             $storeManagerMock,
-            $resolverMock,
             (new ComplexProductTypePool([
                 "configurable" => 'configurable',
                 "grouped" => 'grouped',
