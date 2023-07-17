@@ -11,7 +11,7 @@
         "guzzlehttp/guzzle": ">=6",
         "magento/module-catalog": "^103.0 || ^104.0",
         "magento/module-grouped-product": ">=100.1",
-        "rvvup/sdk": "0.12.0",
+        "rvvup/sdk": "0.13.0",
         "ext-json": "*",
         "php": "^7.3 || ^8.0"
     },
