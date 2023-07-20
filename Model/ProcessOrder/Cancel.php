@@ -87,6 +87,7 @@ class Cancel implements ProcessorInterface
 
         if (!$order->canCancel()) {
             $processOrderResult = $this->processOrderResultFactory->create();
+            $processOrderResult->setRedirectPath(In::ERROR);
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_SUCCESS);
 
             $this->logger->debug('Webhook was ignored for payment with order id', [
