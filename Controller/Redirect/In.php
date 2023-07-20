@@ -140,6 +140,11 @@ class In implements HttpGetActionInterface
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId);
 
+            if (empty($rvvupData)) {
+                $this->checkoutSession->restoreQuote();
+                return $this->redirectToCart();
+            }
+
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
                 $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
             }
@@ -153,7 +158,8 @@ class In implements HttpGetActionInterface
             $params = ['_secure' => true];
 
             // Restore quote if the result would be of type error.
-            if ($result->getResultType() === ProcessOrderResultInterface::RESULT_TYPE_ERROR) {
+            if ($result->getResultType() === ProcessOrderResultInterface::RESULT_TYPE_ERROR
+                || $result->getRedirectPath() == self::ERROR) {
                 $this->checkoutSession->restoreQuote();
             }
 
