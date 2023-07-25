@@ -100,15 +100,38 @@ class LoadPaymentMethods
                 $currency = $quote->getQuoteCurrencyCode();
             }
 
-            $this->methods = $this->sdkProxy->getMethods(
+            $methods = $this->sdkProxy->getMethods(
                 $quote === null ? '0' : (string) $quote->getGrandTotal(),
                 $currency
             );
+
+            if ($quote->getBillingAddress()) {
+                $country = $quote->getBillingAddress()->getCountryId();
+                if ($country !== 'GB') {
+                    $this->removePaymentMethodByCode('YAPILY', $methods);
+                }
+            }
+            $this->methods = $methods;
         }
 
         return array_merge(
             $result,
             $this->processMethods($this->methods)
         );
+    }
+
+    /**
+     * @param string $code
+     * @param array $methods
+     * @return void
+     */
+    private function removePaymentMethodByCode(string $code, array &$methods)
+    {
+        foreach ($methods as $key => $method) {
+            if ($method['name'] === $code) {
+                unset($methods[$key]);
+                break;
+            }
+        }
     }
 }
