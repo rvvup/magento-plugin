@@ -6,7 +6,11 @@ define([
         storage.get('/rest/' + config.storeCode + '/V1/rvvup/clearpay')
             .done(function(res) {
                 if (res === true) {
-                    document.getElementById('clearpay-summary').removeAttribute('style');
+                    let clearpaySummaryElement = document.getElementById('clearpay-summary');
+
+                    if (clearpaySummaryElement !== null && clearpaySummaryElement.length !== 0) {
+                        clearpaySummaryElement.removeAttribute('style');
+                    }
                 }
             })
     }
