@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Plugin;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Helper\Data;
 use Magento\Store\Model\StoreManagerInterface;
 use Rvvup\Payments\Model\ConfigInterface;
+use Rvvup\Payments\Model\RvvupConfigProvider as Config;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Traits\LoadMethods;
 
@@ -42,21 +44,29 @@ class LoadPaymentMethods
     private $storeManager;
 
     /**
+     * @var ScopeConfigInterface
+     */
+    private $scopeConfig;
+
+    /**
      * @param SessionManagerInterface $checkoutSession
      * @param ConfigInterface $config
      * @param StoreManagerInterface $storeManager
      * @param SdkProxy $sdkProxy
+     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         SessionManagerInterface $checkoutSession,
         ConfigInterface $config,
         StoreManagerInterface $storeManager,
-        SdkProxy $sdkProxy
+        SdkProxy $sdkProxy,
+        ScopeConfigInterface $scopeConfig
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->config = $config;
         $this->sdkProxy = $sdkProxy;
         $this->storeManager = $storeManager;
+        $this->scopeConfig = $scopeConfig;
         $this->methods = [];
     }
 
@@ -79,6 +89,14 @@ class LoadPaymentMethods
 
             if (!$this->config->isActive()) {
                 return $result;
+            }
+            if ($this->scopeConfig->getValue(Config::ALLOW_SPECIFIC_PATH)) {
+                $country = $quote->getBillingAddress()->getCountryId();
+                $countries = $this->scopeConfig->getValue(Config::SPECIFIC_COUNTRY_PATH);
+                $availableCountries = explode(',', $countries);
+                if (!in_array($country, $availableCountries)) {
+                    return $result;
+                }
             }
 
             $productTypes = $this->config->getValidProductTypes();

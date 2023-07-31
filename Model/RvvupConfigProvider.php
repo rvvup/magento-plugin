@@ -10,5 +10,9 @@ class RvvupConfigProvider
      */
     public const CODE = 'rvvup';
 
+    public const ALLOW_SPECIFIC_PATH = 'payment/rvvup/allowspecific';
+
+    public const SPECIFIC_COUNTRY_PATH = 'payment/rvvup/specificcountry';
+
     public const GROUP_CODE =  self::CODE .'_group';
 }
