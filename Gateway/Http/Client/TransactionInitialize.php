@@ -69,6 +69,9 @@ class TransactionInitialize implements ClientInterface
                 if ($order['status'] == Method::STATUS_EXPIRED) {
                     return $this->processExpiredOrder($order['externalReference']);
                 }
+                /** Remove express flag from body */
+                $body = $transferObject->getBody();
+                unset($body['express']);
 
                 $input = $this->orderDataBuilder->createInputForExpressOrder($order['externalReference']);
 
