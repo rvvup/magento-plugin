@@ -4,6 +4,7 @@ namespace Rvvup\Payments\Gateway\Http\Client;
 
 use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -19,6 +20,11 @@ class TransactionInitialize implements ClientInterface
      * @var \Rvvup\Payments\Model\SdkProxy
      */
     private $sdkProxy;
+
+    /**
+     * @var SessionManagerInterface
+     */
+    private $session;
 
     /**
      * Set via di.xml
@@ -69,7 +75,10 @@ class TransactionInitialize implements ClientInterface
                 return $this->sdkProxy->updateOrder(['input' => $input]);
             }
 
-            $order = $this->sdkProxy->createOrder(['input' => $transferObject->getBody()]); // todo: Should we modify this too
+            $quote = $this->session->getQuote();
+            $input = $this->orderDataBuilder->build($quote);
+            $order = $this->sdkProxy->createOrder(['input' => $input]);
+
             if ($order['data']['orderCreate']['status'] == Method::STATUS_EXPIRED) {
                 return $this->processExpiredOrder($order['externalReference']);
             }
