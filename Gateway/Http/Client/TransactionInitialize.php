@@ -126,10 +126,10 @@ class TransactionInitialize implements ClientInterface
     }
 
     /**
-     * @param float $amount
+     * @param string $amount
      * @return string
      */
-    private function toCurrency(float $amount): string
+    private function toCurrency(string $amount): string
     {
         return number_format((float) $amount, 2, '.', '');
     }
