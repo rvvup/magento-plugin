@@ -4,7 +4,6 @@ namespace Rvvup\Payments\Gateway\Http\Client;
 
 use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -20,11 +19,6 @@ class TransactionInitialize implements ClientInterface
      * @var \Rvvup\Payments\Model\SdkProxy
      */
     private $sdkProxy;
-
-    /**
-     * @var SessionManagerInterface
-     */
-    private $session;
 
     /**
      * Set via di.xml
@@ -73,13 +67,12 @@ class TransactionInitialize implements ClientInterface
                 $body = $transferObject->getBody();
                 unset($body['express']);
 
-                $input = $this->orderDataBuilder->createInputForExpressOrder($order['externalReference']);
+                $input = $this->roundOrderValues($body);
 
                 return $this->sdkProxy->updateOrder(['input' => $input]);
             }
 
-            $quote = $this->session->getQuote();
-            $input = $this->orderDataBuilder->build($quote);
+            $input = $this->roundOrderValues($transferObject->getBody());
             $order = $this->sdkProxy->createOrder(['input' => $input]);
 
             if ($order['data']['orderCreate']['status'] == Method::STATUS_EXPIRED) {
@@ -106,5 +99,38 @@ class TransactionInitialize implements ClientInterface
     {
         $input = $this->orderDataBuilder->createInputForExpiredOrder($orderId);
         return $this->sdkProxy->createOrder(['input' => $input]);
+    }
+
+    /**
+     * @param array $body
+     * @return array
+     */
+    private function roundOrderValues(array $body): array
+    {
+        // Round the order total values
+        $body['total']['amount'] = $this->toCurrency($body['total']['amount']);
+        $body['shippingTotal']['amount'] = $this->toCurrency($body['shippingTotal']['amount']);
+        $body['discountTotal']['amount'] = $this->toCurrency($body['discountTotal']['amount']);
+        $body['taxTotal']['amount'] = $this->toCurrency($body['taxTotal']['amount']);
+
+        // Round the values for each item in the cart
+        foreach ($body['items'] as $key => $item) {
+            $body['items'][$key]['price']['amount'] = $this->toCurrency($item['price']['amount']);
+            $body['items'][$key]['priceWithTax']['amount'] = $this->toCurrency($item['priceWithTax']['amount']);
+            $body['items'][$key]['tax']['amount'] = $this->toCurrency($item['tax']['amount']);
+            $body['items'][$key]['total']['amount'] = $this->toCurrency($item['total']['amount']);
+        }
+
+        // Return order input with rounded figures
+        return $body;
+    }
+
+    /**
+     * @param string $amount
+     * @return string
+     */
+    private function toCurrency(string $amount): string
+    {
+        return number_format((float) $amount, 2, '.', '');
     }
 }

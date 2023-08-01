@@ -136,19 +136,6 @@ class OrderDataBuilder
 
     /**
      * @param string $orderId
-     * @return array
-     * @throws NoSuchEntityException
-     * @throws QuoteValidationException
-     */
-    public function createInputForExpressOrder(string $orderId): array
-    {
-        $quote = $this->getQuoteByOrderIncrementId($orderId);
-
-        return $this->build($quote, true);
-    }
-
-    /**
-     * @param string $orderId
      * @return CartInterface
      * @throws NoSuchEntityException
      */
