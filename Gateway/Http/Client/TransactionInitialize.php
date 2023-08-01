@@ -4,7 +4,6 @@ namespace Rvvup\Payments\Gateway\Http\Client;
 
 use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -20,11 +19,6 @@ class TransactionInitialize implements ClientInterface
      * @var \Rvvup\Payments\Model\SdkProxy
      */
     private $sdkProxy;
-
-    /**
-     * @var SessionManagerInterface
-     */
-    private $session;
 
     /**
      * Set via di.xml
