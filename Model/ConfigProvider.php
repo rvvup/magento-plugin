@@ -173,6 +173,7 @@ class ConfigProvider implements ConfigProviderInterface
 
     /**
      * @param string $code
+     * @param string $logoUrl
      * @return string
      */
     private function getLogo(string $code, string $logoUrl): string
