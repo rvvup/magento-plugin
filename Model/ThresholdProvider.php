@@ -34,7 +34,8 @@ class ThresholdProvider
         if (isset($this->thresholds[$provider])) {
             return $this->thresholds[$provider];
         }
-        throw new LocalizedException(__('No threshold available'));
+
+        return [];
     }
 
     /**

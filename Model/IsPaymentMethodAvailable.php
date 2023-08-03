@@ -50,13 +50,6 @@ class IsPaymentMethodAvailable implements IsPaymentMethodAvailableInterface
             return true;
         }
 
-        // Log debug & Default to false if not found.
-        $this->logger->debug('Rvvup payment method is not available', [
-            'method_code' => $formattedMethodCode,
-            'value' => $value,
-            'currency' => $currency
-        ]);
-
         return false;
     }
 }
