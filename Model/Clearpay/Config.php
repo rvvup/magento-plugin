@@ -14,6 +14,9 @@ class Config
      */
     private $sdkProxy;
 
+    /**
+     * @var string
+     */
     private $settings;
 
     /**
