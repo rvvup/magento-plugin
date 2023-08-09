@@ -182,27 +182,30 @@ class Clearpay implements ArgumentInterface
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getLogoType(): string
+    public function getLogoType(string $area): string
     {
-        return $this->config->getIconType();
+        return $this->config->getIconType($area);
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getBadgeTheme(): string
+    public function getBadgeTheme(string $area): string
     {
-        return $this->config->getTheme();
+        return $this->config->getTheme($area);
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getModalTheme(): string
+    public function getModalTheme(string $area): string
     {
-        return $this->config->getModalTheme();
+        return $this->config->getModalTheme($area);
     }
 
     /**
@@ -249,7 +252,7 @@ class Clearpay implements ArgumentInterface
     private function isEnabled(): bool
     {
         if ($this->isEnabled === null) {
-            $this->isEnabled = $this->config->isEnabled();
+            $this->isEnabled = $this->config->isEnabled('product');
         }
         return $this->isEnabled;
     }

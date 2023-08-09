@@ -84,28 +84,6 @@
                     </field>
                     <comment>This settings will be used as styling for paypal buttons</comment>
                 </group>
-
-                <group id="clearpay_messaging" sortOrder="200" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                    <label>Clearpay Messaging</label>
-                    <comment>These setting will require cleaning full-page-cache before changes take effect</comment>
-                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Enabled</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    </field>
-                    <field id="icon_type" type="select" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Icon Type</label>
-                        <source_model>Rvvup\Payments\Model\Source\IconType</source_model>
-                    </field>
-                    <field id="badge_theme" type="select" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Badge Theme</label>
-                        <source_model>Rvvup\Payments\Model\Source\BadgeTheme</source_model>
-                        <comment>Only applies to "Button" icon type</comment>
-                    </field>
-                    <field id="modal_theme" type="select" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Modal Theme</label>
-                        <source_model>Rvvup\Payments\Model\Source\ModalTheme</source_model>
-                    </field>
-                </group>
             </group>
         </section>
     </system>

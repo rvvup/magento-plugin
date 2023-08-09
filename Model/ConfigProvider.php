@@ -138,7 +138,7 @@ class ConfigProvider implements ConfigProviderInterface
                 'component' => 'Rvvup_Payments/js/view/payment/method-renderer/rvvup-method',
                 'isBillingAddressRequired' => true,
                 'description' => $method['description'],
-                'logo' => $this->getLogo($method['name'], $method['logoUrl']),
+                'logo' => $method['logoUrl'],
                 'summary_url' => $this->getSummaryUrl(
                     $this->isExpressPaymentCart($quote),
                     $method['summaryUrl'] ?? null
@@ -169,24 +169,6 @@ class ConfigProvider implements ConfigProviderInterface
             $this->getCartShippingAddressData($quote),
             $this->getCartBillingAddressData($quote)
         );
-    }
-
-    /**
-     * @param string $code
-     * @param string $logoUrl
-     * @return string
-     */
-    private function getLogo(string $code, string $logoUrl): string
-    {
-        $base = 'Rvvup_Payments::images/%s.svg';
-        switch ($code) {
-            case 'CLEARPAY':
-                $theme = $this->clearpayConfig->getTheme();
-                $url = sprintf($base, 'clearpay/' . $theme);
-                return $this->template->getViewFileUrl($url);
-            default:
-                return $logoUrl;
-        }
     }
 
     /**
