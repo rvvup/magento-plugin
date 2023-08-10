@@ -86,7 +86,7 @@ class Clearpay implements ArgumentInterface
      */
     public function getThresholds(ProductInterface $product)
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('product')) {
             return false;
         }
         // Use getRvvupRestricted method instead of getData('rvvup_restricted') as this is mocked on unit tests.
@@ -104,7 +104,7 @@ class Clearpay implements ArgumentInterface
      */
     public function showByProduct(ProductInterface $product): bool
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('product')) {
             return false;
         }
         // Use getRvvupRestricted method instead of getData('rvvup_restricted') as this is mocked on unit tests.
@@ -129,7 +129,7 @@ class Clearpay implements ArgumentInterface
      */
     public function showBySku(string $sku): bool
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('product')) {
             return false;
         }
         try {
@@ -145,7 +145,7 @@ class Clearpay implements ArgumentInterface
      */
     public function showByCart(): bool
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('cart')) {
             return false;
         }
 
@@ -249,10 +249,10 @@ class Clearpay implements ArgumentInterface
     /**
      * @return bool
      */
-    private function isEnabled(): bool
+    private function isEnabled(string $area): bool
     {
         if ($this->isEnabled === null) {
-            $this->isEnabled = $this->config->isEnabled('product');
+            $this->isEnabled = $this->config->isEnabled($area);
         }
         return $this->isEnabled;
     }

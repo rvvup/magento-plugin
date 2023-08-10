@@ -12,14 +12,12 @@ use Magento\Framework\Api\CustomAttributesDataInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Framework\View\Element\Template;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\AddressInterfaceFactory;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Address;
 use Magento\Ui\Component\Form\Element\Multiline;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\Clearpay\Config;
 use Rvvup\Payments\Model\ConfigInterface as RvvupConfig;
 
 class ConfigProvider implements ConfigProviderInterface
@@ -59,11 +57,6 @@ class ConfigProvider implements ConfigProviderInterface
     private $customerSession;
 
     /**
-     * @var \Magento\Framework\View\Element\Template
-     */
-    private $template;
-
-    /**
      * @var \Magento\Quote\Api\Data\AddressInterfaceFactory
      */
     private $addressFactory;
@@ -74,21 +67,14 @@ class ConfigProvider implements ConfigProviderInterface
     private $addressResourceModel;
 
     /**
-     * @var \Rvvup\Payments\Model\Clearpay\Config
-     */
-    private $clearpayConfig;
-
-    /**
      * @param ConfigInterface|RvvupConfig $config
      * @param \Rvvup\Payments\Model\SdkProxy $sdkProxy
      * @param \Magento\Customer\Api\AddressMetadataInterface $addressMetadata
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      * @param \Magento\Framework\Session\SessionManagerInterface $checkoutSession
      * @param \Magento\Framework\Session\SessionManagerInterface $customerSession
-     * @param \Magento\Framework\View\Element\Template $template
      * @param \Magento\Quote\Api\Data\AddressInterfaceFactory $addressFactory
      * @param \Magento\Quote\Model\ResourceModel\Quote\Address $addressResourceModel
-     * @param \Rvvup\Payments\Model\Clearpay\Config $clearpayConfig
      * @return void
      */
     public function __construct(
@@ -98,10 +84,8 @@ class ConfigProvider implements ConfigProviderInterface
         CustomerRepositoryInterface $customerRepository,
         SessionManagerInterface $checkoutSession,
         SessionManagerInterface $customerSession,
-        Template $template,
         AddressInterfaceFactory $addressFactory,
-        Address $addressResourceModel,
-        Config $clearpayConfig
+        Address $addressResourceModel
     ) {
         $this->config = $config;
         $this->sdkProxy = $sdkProxy;
@@ -109,10 +93,8 @@ class ConfigProvider implements ConfigProviderInterface
         $this->customerRepository = $customerRepository;
         $this->checkoutSession = $checkoutSession;
         $this->customerSession = $customerSession;
-        $this->template = $template;
         $this->addressFactory = $addressFactory;
         $this->addressResourceModel = $addressResourceModel;
-        $this->clearpayConfig = $clearpayConfig;
     }
 
     /**
