@@ -35,7 +35,7 @@ class Config
     public function isEnabled(string $area): bool
     {
         $settings = $this->getClearPayMethodSettings($area);
-        return $settings && (bool)$settings['messaging']['enabled'];
+        return $settings && $settings['messaging']['enabled'];
     }
 
     /**
