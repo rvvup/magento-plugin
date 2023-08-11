@@ -247,6 +247,7 @@ class Clearpay implements ArgumentInterface
     }
 
     /**
+     * @param string $area
      * @return bool
      */
     private function isEnabled(string $area): bool
