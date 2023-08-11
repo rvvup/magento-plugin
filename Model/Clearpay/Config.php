@@ -1,59 +1,89 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Rvvup\Payments\Model\Clearpay;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Rvvup\Payments\Model\ConfigInterface as RvvupConfig;
+use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\ViewModel\Clearpay;
 
 class Config
 {
-    /** @var ScopeConfigInterface */
-    private $scopeConfig;
-
-    private const CLEARPAY_CONFIG = RvvupConfig::RVVUP_CONFIG . 'clearpay_messaging/';
-    private const ACTIVE = 'active';
-    private const BADGE_THEME = 'badge_theme';
-    private const ICON_TYPE = 'icon_type';
-    private const MODAL_THEME = 'modal_theme';
 
     /**
-     * @param ScopeConfigInterface $scopeConfig
+     * @var SdkProxy
+     */
+    private $sdkProxy;
+
+    /**
+     * @var array
+     */
+    private $settings;
+
+    /**
+     * @param SdkProxy $sdkProxy
      */
     public function __construct(
-        ScopeConfigInterface $scopeConfig
+        SdkProxy $sdkProxy
     ) {
-        $this->scopeConfig = $scopeConfig;
+        $this->sdkProxy = $sdkProxy;
     }
 
     /**
+     * @param string $area
      * @return bool
      */
-    public function isEnabled(): bool
+    public function isEnabled(string $area): bool
     {
-        return (bool) $this->scopeConfig->getValue(self::CLEARPAY_CONFIG . self::ACTIVE);
+        $settings = $this->getClearPayMethodSettings($area);
+        return $settings && $settings['messaging']['enabled'];
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getTheme(): string
+    public function getTheme(string $area): string
     {
-        return (string) $this->scopeConfig->getValue(self::CLEARPAY_CONFIG . self::BADGE_THEME);
+        $settings = $this->getClearPayMethodSettings($area);
+        return $settings ? (string)$settings['theme']['value'] : "";
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getIconType(): string
+    public function getIconType(string $area): string
     {
-        return (string) $this->scopeConfig->getValue(self::CLEARPAY_CONFIG . self::ICON_TYPE);
+        $settings = $this->getClearPayMethodSettings($area);
+        return $settings ? (string)$settings['messaging']['iconType']['value'] : "";
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getModalTheme(): string
+    public function getModalTheme(string $area): string
     {
-        return (string) $this->scopeConfig->getValue(self::CLEARPAY_CONFIG . self::MODAL_THEME);
+        $settings = $this->getClearPayMethodSettings($area);
+        return $settings ? (string)$settings['messaging']['modalTheme']['value'] : '';
+    }
+
+    /**
+     * @param string $area
+     * @return array
+     */
+    private function getClearPayMethodSettings(string $area): array
+    {
+        if (!isset($this->settings[$area])) {
+            foreach ($this->sdkProxy->getMethods() as $method) {
+                if ($method['name'] == Clearpay::PROVIDER) {
+                    $result = $method['settings'][$area];
+                    $this->settings[$area] = $result;
+                    return $result;
+                }
+            }
+            return [];
+        }
+        return $this->settings[$area];
     }
 }

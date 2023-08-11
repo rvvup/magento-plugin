@@ -16,9 +16,9 @@ $clearpay = $block->getClearpay();
             data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
             data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
             data-amount="<?= $escaper->escapeHtmlAttr($clearpay->getCartTotal()) ?>"
-            data-logo-type="<?= $escaper->escapeHtmlAttr($clearpay->getLogoType()) ?>"
-            data-badge-theme="<?= $escaper->escapeHtmlAttr($clearpay->getBadgeTheme()) ?>"
-            data-modal-theme="<?= $escaper->escapeHtmlAttr($clearpay->getModalTheme()) ?>"
+            data-logo-type="<?= $escaper->escapeHtmlAttr($clearpay->getLogoType('cart')) ?>"
+            data-badge-theme="<?= $escaper->escapeHtmlAttr($clearpay->getBadgeTheme('cart')) ?>"
+            data-modal-theme="<?= $escaper->escapeHtmlAttr($clearpay->getModalTheme('cart')) ?>"
         ></afterpay-placement>
     </div>
     <script type="text/x-magento-init">

@@ -86,7 +86,7 @@ class Clearpay implements ArgumentInterface
      */
     public function getThresholds(ProductInterface $product)
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('product')) {
             return false;
         }
         // Use getRvvupRestricted method instead of getData('rvvup_restricted') as this is mocked on unit tests.
@@ -104,7 +104,7 @@ class Clearpay implements ArgumentInterface
      */
     public function showByProduct(ProductInterface $product): bool
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('product')) {
             return false;
         }
         // Use getRvvupRestricted method instead of getData('rvvup_restricted') as this is mocked on unit tests.
@@ -129,7 +129,7 @@ class Clearpay implements ArgumentInterface
      */
     public function showBySku(string $sku): bool
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('product')) {
             return false;
         }
         try {
@@ -145,7 +145,7 @@ class Clearpay implements ArgumentInterface
      */
     public function showByCart(): bool
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled('cart')) {
             return false;
         }
 
@@ -182,27 +182,30 @@ class Clearpay implements ArgumentInterface
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getLogoType(): string
+    public function getLogoType(string $area): string
     {
-        return $this->config->getIconType();
+        return $this->config->getIconType($area);
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getBadgeTheme(): string
+    public function getBadgeTheme(string $area): string
     {
-        return $this->config->getTheme();
+        return $this->config->getTheme($area);
     }
 
     /**
+     * @param string $area
      * @return string
      */
-    public function getModalTheme(): string
+    public function getModalTheme(string $area): string
     {
-        return $this->config->getModalTheme();
+        return $this->config->getModalTheme($area);
     }
 
     /**
@@ -244,12 +247,13 @@ class Clearpay implements ArgumentInterface
     }
 
     /**
+     * @param string $area
      * @return bool
      */
-    private function isEnabled(): bool
+    private function isEnabled(string $area): bool
     {
         if ($this->isEnabled === null) {
-            $this->isEnabled = $this->config->isEnabled();
+            $this->isEnabled = $this->config->isEnabled($area);
         }
         return $this->isEnabled;
     }
