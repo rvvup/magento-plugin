@@ -8,6 +8,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Helper\Data;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\RvvupConfigProvider as Config;
@@ -78,6 +79,7 @@ class LoadPaymentMethods
     public function afterGetPaymentMethods(Data $subject, array $result): array
     {
         try {
+            /** @var \Magento\Quote\Api\Data\CartInterface $quote */
             $quote = $this->checkoutSession->getQuote();
         } catch (LocalizedException $ex) {
             // Silently handle exception.
@@ -123,12 +125,11 @@ class LoadPaymentMethods
                 $currency
             );
 
-            if ($quote->getBillingAddress()) {
-                $country = $quote->getBillingAddress()->getCountryId();
-                if ($country !== 'GB') {
-                    $this->removePaymentMethodByCode('YAPILY', $methods);
-                }
+            $country = $this->getCountryUsed($quote);
+            if ($country && $country !== 'GB') {
+                $this->removePaymentMethodByCode('YAPILY', $methods);
             }
+
             $this->methods = $methods;
         }
 
@@ -136,6 +137,23 @@ class LoadPaymentMethods
             $result,
             $this->processMethods($this->methods)
         );
+    }
+
+    /**
+     * Get country used for checkout
+     * @param CartInterface $quote
+     * @return string|false
+     */
+    private function getCountryUsed(CartInterface $quote)
+    {
+        $address = $quote->getShippingAddress();
+        if ($address && $address->getShippingMethod()) {
+            if ($address->getShippingRateByCode($address->getShippingMethod())) {
+                $addressId = $address->getShippingRateByCode($address->getShippingMethod())->getAddressId();
+                return $quote->getAddressById($addressId)->getCountryId();
+            }
+        }
+        return $quote->getBillingAddress() ? $quote->getBillingAddress()->getCountryId() : false;
     }
 
     /**
