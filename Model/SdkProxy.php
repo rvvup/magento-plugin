@@ -108,7 +108,7 @@ class SdkProxy
     {
         $identifier = $value . '_' . $currency;
 
-        if (!$this->cache->load($identifier)) {
+        if (!$methods = $this->cache->load($identifier)) {
 
             // If value & currency are both not null, use separate method.
             if ($value !== null && $currency !== null) {
@@ -130,7 +130,7 @@ class SdkProxy
             return $methods;
         }
 
-        return $this->serializer->unserialize($this->cache->load($identifier));
+        return $this->serializer->unserialize($methods);
     }
 
     /**
@@ -141,8 +141,12 @@ class SdkProxy
     private function saveMethodsToCache(array $methods, string $identifier): void
     {
         $lifetime = $this->getShortestLifetime($methods);
-        $lifetime = $lifetime - strtotime('now');
-        $this->cache->save($this->serializer->serialize($methods), $identifier, [], $lifetime);
+        if ($lifetime) {
+            $lifetime =  $lifetime - strtotime('now');
+            $this->cache->save($this->serializer->serialize($methods), $identifier, [], $lifetime);
+        } else {
+            $this->cache->save($this->serializer->serialize($methods), $identifier);
+        }
     }
 
     /**
