@@ -159,7 +159,11 @@ class SdkProxy
 
         foreach ($methods as $method) {
             if (isset($method['limits']['expiresAt'])) {
-                if (strtotime($method['limits']['expiresAt']) > $lifetime) {
+                if (!$lifetime) {
+                    $lifetime = strtotime($method['limits']['expiresAt']);
+                }
+
+                if (strtotime($method['limits']['expiresAt']) < $lifetime) {
                     $lifetime = strtotime($method['limits']['expiresAt']);
                 }
             }
