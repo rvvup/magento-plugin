@@ -145,7 +145,7 @@ class SdkProxy
             $lifetime =  $lifetime - strtotime('now');
             $this->cache->save($this->serializer->serialize($methods), $identifier, [], $lifetime);
         } else {
-            $this->cache->save($this->serializer->serialize($methods), $identifier, strtotime('15 mins'));
+            $this->cache->save($this->serializer->serialize($methods), $identifier, [], strtotime('15 mins'));
         }
     }
 
