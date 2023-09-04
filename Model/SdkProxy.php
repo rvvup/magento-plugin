@@ -7,29 +7,28 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
 use Rvvup\Sdk\GraphQlSdkFactory;
 use Rvvup\Sdk\GraphQlSdk;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 
 class SdkProxy
 {
     /** @var ConfigInterface */
     private $config;
+
     /** @var UserAgentBuilder */
     private $userAgent;
+
     /** @var GraphQlSdkFactory */
     private $sdkFactory;
+
     /** @var LoggerInterface */
     private $logger;
+
     /** @var GraphQlSdk */
     private $subject;
 
-    /**
-     * @var \Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface
-     */
+    /** @var GetEnvironmentVersionsInterface */
     private $getEnvironmentVersions;
-
-    /**
-     * @var array|null
-     */
-    private $methods;
 
     /**
      * @var array
@@ -37,10 +36,22 @@ class SdkProxy
     private $monetizedMethods = [];
 
     /**
+     * @var CacheInterface
+     */
+    private $cache;
+
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @param ConfigInterface $config
      * @param UserAgentBuilder $userAgent
      * @param GraphQlSdkFactory $sdkFactory
-     * @param \Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface $getEnvironmentVersions
+     * @param GetEnvironmentVersionsInterface $getEnvironmentVersions
+     * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -48,12 +59,16 @@ class SdkProxy
         UserAgentBuilder $userAgent,
         GraphQlSdkFactory $sdkFactory,
         GetEnvironmentVersionsInterface $getEnvironmentVersions,
+        CacheInterface $cache,
+        SerializerInterface $serializer,
         LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->userAgent = $userAgent;
         $this->sdkFactory = $sdkFactory;
         $this->getEnvironmentVersions = $getEnvironmentVersions;
+        $this->cache = $cache;
+        $this->serializer = $serializer;
         $this->logger = $logger;
     }
 
@@ -91,12 +106,17 @@ class SdkProxy
      */
     public function getMethods(string $value = null, string $currency = null, ?array $inputOptions = null): array
     {
-        // If value & currency are both not null, use separate method.
-        if ($value !== null && $currency !== null) {
-            return $this->getMethodsByValueAndCurrency($value, $currency, $inputOptions);
-        }
+        $identifier = $value . '_' . $currency;
 
-        if (!$this->methods) {
+        if (!$methods = $this->cache->load($identifier)) {
+
+            // If value & currency are both not null, use separate method.
+            if ($value !== null && $currency !== null) {
+                $methods = $this->getMethodsByValueAndCurrency($value, $currency, $inputOptions);
+                $this->saveMethodsToCache($methods, $identifier);
+                return $methods;
+            }
+
             $value = $value === null ? $value : (string) round((float) $value, 2);
 
             $methods = $this->getSubject()->getMethods($value, $currency, $inputOptions);
@@ -104,10 +124,51 @@ class SdkProxy
              * Due to all Rvvup methods having the same `sort_order`values the way Magento sorts methods we need to
              * reverse the array so that they are presented in the order specified in the Rvvup dashboard
              */
-            $this->methods = $this->filterApiMethods($methods);
+            $methods = $this->filterApiMethods($methods);
+            $this->saveMethodsToCache($methods, $identifier);
+
+            return $methods;
         }
 
-        return $this->methods;
+        return $this->serializer->unserialize($methods);
+    }
+
+    /**
+     * @param array $methods
+     * @param string $identifier
+     * @return void
+     */
+    private function saveMethodsToCache(array $methods, string $identifier): void
+    {
+        $lifetime = $this->getShortestLifetime($methods);
+        if ($lifetime) {
+            $lifetime =  $lifetime - strtotime('now');
+            $this->cache->save($this->serializer->serialize($methods), $identifier, [], $lifetime);
+        } else {
+            $this->cache->save($this->serializer->serialize($methods), $identifier, [], strtotime('15 mins'));
+        }
+    }
+
+    /**
+     * @param array $methods
+     * @return int
+     */
+    private function getShortestLifetime(array $methods): int
+    {
+        $lifetime = 0;
+
+        foreach ($methods as $method) {
+            if (isset($method['limits']['expiresAt'])) {
+                if (!$lifetime) {
+                    $lifetime = strtotime($method['limits']['expiresAt']);
+                }
+
+                if (strtotime($method['limits']['expiresAt']) < $lifetime) {
+                    $lifetime = strtotime($method['limits']['expiresAt']);
+                }
+            }
+        }
+        return (int)$lifetime;
     }
 
     /**
