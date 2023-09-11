@@ -83,7 +83,6 @@ class TransactionInitialize implements ClientInterface
 
             $input = $this->roundOrderValues($transferObject->getBody());
 
-            // Monitor the domain
             $secureBaseUrl = $this->storeManager->getStore()->getBaseUrl('\Magento\Framework\UrlInterface::URL_TYPE_WEB', true);
             $domain = parse_url($secureBaseUrl)['host'];
             $input['metadata']['domain'] = $domain;
@@ -114,7 +113,6 @@ class TransactionInitialize implements ClientInterface
     {
         $input = $this->orderDataBuilder->createInputForExpiredOrder($orderId);
 
-        // Monitor the domain
         $secureBaseUrl = $this->storeManager->getStore()->getBaseUrl('\Magento\Framework\UrlInterface::URL_TYPE_WEB', true);
         $domain = parse_url($secureBaseUrl)['host'];
         $input['metadata']['domain'] = $domain;
