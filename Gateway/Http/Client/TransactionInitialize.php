@@ -4,6 +4,7 @@ namespace Rvvup\Payments\Gateway\Http\Client;
 
 use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\UrlInterface;
 use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -84,10 +85,10 @@ class TransactionInitialize implements ClientInterface
             $input = $this->roundOrderValues($transferObject->getBody());
 
             $secureBaseUrl = $this->storeManager->getStore()->getBaseUrl(
-                '\Magento\Framework\UrlInterface::URL_TYPE_WEB',
+                UrlInterface::URL_TYPE_WEB,
                 true
             );
-            $domain = parse_url($secureBaseUrl)['host'];
+            $domain = pathinfo($secureBaseUrl)['basename'];
             $input['metadata']['domain'] = $domain;
 
             $order = $this->sdkProxy->createOrder(['input' => $input]);
@@ -117,10 +118,10 @@ class TransactionInitialize implements ClientInterface
         $input = $this->orderDataBuilder->createInputForExpiredOrder($orderId);
 
         $secureBaseUrl = $this->storeManager->getStore()->getBaseUrl(
-            '\Magento\Framework\UrlInterface::URL_TYPE_WEB',
+            UrlInterface::URL_TYPE_WEB,
             true
         );
-        $domain = parse_url($secureBaseUrl)['host'];
+        $domain = pathinfo($secureBaseUrl)['basename'];
         $input['metadata']['domain'] = $domain;
 
         return $this->sdkProxy->createOrder(['input' => $input]);
