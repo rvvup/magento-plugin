@@ -21,6 +21,7 @@
                    before="checkout.cart.methods.bottom">
                 <arguments>
                     <argument name="clearpay" xsi:type="object">Rvvup\Payments\ViewModel\Clearpay</argument>
+                    <argument name="paypal" xsi:type="object">Rvvup\Payments\ViewModel\PayPal</argument>
                 </arguments>
             </block>
         </referenceContainer>

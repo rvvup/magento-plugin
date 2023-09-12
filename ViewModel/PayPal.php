@@ -6,6 +6,9 @@ namespace Rvvup\Payments\ViewModel;
 
 use Exception;
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -39,24 +42,32 @@ class PayPal implements ArgumentInterface
     private $apiSettingsProvider;
 
     /**
+     * @var Session
+     */
+    private $session;
+
+    /**
      * @param ConfigInterface $config
      * @param IsPaymentMethodAvailableInterface $isPaymentMethodAvailable
      * @param StoreManagerInterface $storeManager
      * @param LoggerInterface|RvvupLog $logger
      * @param ApiSettingsProvider $apiSettingsProvider
+     * @param Session $session
      */
     public function __construct(
         ConfigInterface $config,
         IsPaymentMethodAvailableInterface $isPaymentMethodAvailable,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
-        ApiSettingsProvider $apiSettingsProvider
+        ApiSettingsProvider $apiSettingsProvider,
+        Session $session
     ) {
         $this->config = $config;
         $this->isPaymentMethodAvailable = $isPaymentMethodAvailable;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
         $this->apiSettingsProvider = $apiSettingsProvider;
+        $this->session = $session;
     }
 
     /**
@@ -142,5 +153,73 @@ class PayPal implements ArgumentInterface
             return $this->apiSettingsProvider->getByPath('PAYPAL', "settings/product/payLaterMessaging/$path");
         }
         return $this->apiSettingsProvider->getByPath('PAYPAL', "settings/product/payLaterMessaging/$path/value");
+    }
+
+    /**
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getAmount(): float
+    {
+        $quote = $this->session->getQuote();
+        if ($quote) {
+            return (float)$this->session->getQuote()->getBaseGrandTotal();
+        }
+        return 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHtmlContainers()
+    {
+        return '<div class="paypal-messaging" id="credit"></div> <div class="paypal-messaging" id="pay-in-three"></div>';
+    }
+
+    /**
+     * @param string $amount
+     * @return string
+     */
+    public function getMessagingScripts(string $amount): string
+    {
+        return $this->getCreditScript($amount) . $this->getPayInThreeScript($amount);
+    }
+
+    /**
+     * @param string $amount
+     * @return string
+     */
+    public function getCreditScript(string $amount): string
+    {
+        $creditUrl = 'https://www.paypal.com/sdk/js?client-id=AYeow1IuiTABhP_c_hT7MAlLg4dp2b2pk2vPEc6mivf7CLhFWDIW3OlXLw52eFqbYwFkv5oRJIm-ZSke&merchant-id=HPPKWZK7HQXHC&components=messages';
+        $creditScript = "<script src=$creditUrl data-namespace='credit'></script>";
+        $js = "<script>
+        credit.Messages({
+            amount: $amount,
+            channel: 'Upstream'
+        }).render('#credit');
+        </script>";
+
+        return $creditScript . $js;
+    }
+
+    /**
+     * @param string $amount
+     * @return string
+     */
+    private function getPayInThreeScript(string $amount): string
+    {
+        $payInThreeUrl = 'https://www.paypal.com/sdk/js?client-id=AVugn8jhq9GAoM2IYkZ-GxKtscZSh7E1J-aTLw-vgVROngG5Ftv8-e02WtIpB5t_9AAWcqZbogJjTdIA&merchant-id=HPPKWZK7HQXHC&components=messages';
+
+        $payInThreeScript = "<script src=$payInThreeUrl data-namespace='pay'></script>";
+        $js = "<script>
+        pay.Messages({
+            amount: $amount,
+            channel: 'Upstream'
+        }).render('#pay-in-three');
+        </script>";
+
+        return $payInThreeScript . $js;
     }
 }

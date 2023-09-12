@@ -9,7 +9,16 @@ if (!isset($escaper)) {
     $escaper = $block;
 }
 $clearpay = $block->getClearpay();
+/** @var Rvvup\Payments\ViewModel\PayPal $paypal */
+$paypal = $block->getPaypal();
+$amount =  (string)$paypal->getAmount();
 ?>
+
+<?php if ($paypal && $paypal->isAvailable($amount)): ?>
+<?= $paypal->getHtmlContainers() ?>
+<?= $paypal->getMessagingScripts($amount) ?>
+<?php endif; ?>
+
 <?php if (!$block->hasError() && $clearpay->showByCart()): ?>
     <div class="clearpay">
         <afterpay-placement style="display:none" id="clearpay-summary"

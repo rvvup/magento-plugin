@@ -90,5 +90,7 @@ $thresholds = $clearpay->getThresholds($product);
          data-pp-style-color="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('color')) ?>"
          data-pp-style-ratio="<?= $escaper->escapeHtmlAttr($paypalViewModel->getPayLaterMessagingValue('ratio')) ?>"
     ></div>
+    <?= $paypalViewModel->getHtmlContainers() ?>
+    <?= $paypalViewModel->getCreditScript($priceViewModel->getPrice($product)) ?>
 </div>
 <?php endif; ?>
