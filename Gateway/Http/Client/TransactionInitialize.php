@@ -88,7 +88,7 @@ class TransactionInitialize implements ClientInterface
                 UrlInterface::URL_TYPE_WEB,
                 true
             );
-            $input['metadata']['domain'] = basename($secureBaseUrl);
+            $input['metadata']['domain'] = $secureBaseUrl;
 
             $order = $this->sdkProxy->createOrder(['input' => $input]);
 
@@ -120,7 +120,7 @@ class TransactionInitialize implements ClientInterface
             UrlInterface::URL_TYPE_WEB,
             true
         );
-        $input['metadata']['domain'] = basename($secureBaseUrl);
+        $input['metadata']['domain'] = $secureBaseUrl;
 
         return $this->sdkProxy->createOrder(['input' => $input]);
     }
