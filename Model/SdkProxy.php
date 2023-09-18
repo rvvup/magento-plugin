@@ -211,6 +211,22 @@ class SdkProxy
     /**
      * {@inheritdoc}
      */
+    public function isOrderVoidable($orderId)
+    {
+        return $this->getSubject()->isOrderVoidable($orderId);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function voidPayment($orderId, $paymentId)
+    {
+        return $this->getSubject()->voidPayment($orderId, $paymentId);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function refundOrder($orderId, $amount, $reason, $idempotency)
     {
         return $this->getSubject()->refundOrder($orderId, $amount, $reason, $idempotency);

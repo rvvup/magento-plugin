@@ -30,4 +30,9 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Sales\Model\Order\Payment">
+        <plugin name="isRvvupVoidable"
+                type="Rvvup\Payments\Plugin\IsVoidable"
+                sortOrder="1"/>
+    </type>
 </config>
