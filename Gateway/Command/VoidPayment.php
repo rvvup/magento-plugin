@@ -29,6 +29,7 @@ class VoidPayment implements CommandInterface
     /**
      * @param SdkProxy $sdkProxy
      * @param InvoiceRepository $invoiceRepository
+     * @param LoggerInterface $logger
      */
     public function __construct(
         SdkProxy $sdkProxy,
@@ -53,7 +54,7 @@ class VoidPayment implements CommandInterface
             $this->disableOnlineRefunds($payment->getOrder());
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
-            throw new LocalizedException(__('Rvvup payment failed during void operation'));
+            throw new LocalizedException(__('Something went wrong when trying to void a Rvvup payment'));
         }
     }
 

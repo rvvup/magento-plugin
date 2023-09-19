@@ -21,6 +21,11 @@ class CanVoid implements ValueHandlerInterface
         $this->sdkProxy = $sdkProxy;
     }
 
+    /**
+     * @param array $subject
+     * @param $storeId
+     * @return bool
+     */
     public function handle(array $subject, $storeId = null)
     {
         try {
