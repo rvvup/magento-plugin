@@ -33,7 +33,7 @@ class CanVoid implements ValueHandlerInterface
      * @param int|null $storeId
      * @return bool
      */
-    public function handle(array $subject, int $storeId = null): bool
+    public function handle(array $subject, $storeId = null): bool
     {
         try {
             $payment = $subject['payment']->getPayment();
