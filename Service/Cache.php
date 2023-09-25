@@ -23,10 +23,10 @@ class Cache
 
     /**
      * @param string $orderId
-     * @param string $property
+     * @param string $type
      * @return mixed
      */
-    public function get(string $orderId, string $type)
+    public function get(string $orderId, string $type): string
     {
         $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type;
         return $this->cache->load($identifier);
@@ -34,7 +34,7 @@ class Cache
 
     /**
      * @param string $orderId
-     * @param string $property
+     * @param string $type
      * @param bool $value
      * @return void
      */
@@ -52,4 +52,3 @@ class Cache
         $this->cache->remove($voidIdentifier);
     }
 }
-
