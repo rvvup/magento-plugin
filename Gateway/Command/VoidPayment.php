@@ -12,6 +12,7 @@ use Magento\Sales\Model\Order\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\Service\Cache;
 
 class VoidPayment implements CommandInterface
 {
@@ -26,22 +27,30 @@ class VoidPayment implements CommandInterface
      */
     private $logger;
 
+    /** @var Cache */
+    private $cache;
+
     /**
      * @param SdkProxy $sdkProxy
      * @param InvoiceRepository $invoiceRepository
+     * @param Cache $cache
      * @param LoggerInterface $logger
      */
     public function __construct(
         SdkProxy $sdkProxy,
         InvoiceRepository $invoiceRepository,
+        Cache $cache,
         LoggerInterface $logger
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->invoiceRepository = $invoiceRepository;
+        $this->cache = $cache;
         $this->logger = $logger;
     }
 
     /**
+     * @param array $commandSubject
+     * @return void
      * @throws LocalizedException
      */
     public function execute(array $commandSubject)
@@ -51,6 +60,7 @@ class VoidPayment implements CommandInterface
             list($rvvupOrderId, $paymentId) = $this->getRvvupData($payment);
 
             $this->sdkProxy->voidPayment($rvvupOrderId, $paymentId);
+            $this->cache->clear($rvvupOrderId);
             $this->disableOnlineRefunds($payment->getOrder());
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());

@@ -6,26 +6,45 @@ use Exception;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\Service\Cache;
 
 class CanRefund implements ValueHandlerInterface
 {
     /** @var SdkProxy */
     private $sdkProxy;
 
+    /** @var Cache */
+    private $cache;
+
     /**
      * @param SdkProxy $sdkProxy
+     * @param Cache $cache
      */
     public function __construct(
-        SdkProxy $sdkProxy
+        SdkProxy $sdkProxy,
+        Cache $cache
     ) {
         $this->sdkProxy = $sdkProxy;
+        $this->cache = $cache;
     }
 
-    public function handle(array $subject, $storeId = null)
+    /**
+     * @param array $subject
+     * @param $storeId
+     * @return bool
+     */
+    public function handle(array $subject, $storeId = null): bool
     {
         try {
             $payment = $subject['payment']->getPayment();
-            return $this->sdkProxy->isOrderRefundable($payment->getAdditionalInformation(Method::ORDER_ID));
+            $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
+            if ($value = $this->cache->get($orderId, 'refund')) {
+                return (bool) $value;
+            }
+            $value = $this->sdkProxy->isOrderRefundable($orderId);
+            $this->cache->set($orderId, 'refund', $value);
+
+            return $value;
         } catch (Exception $e) {
             return false;
         }

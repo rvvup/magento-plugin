@@ -13,6 +13,7 @@ use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Magento\Sales\Model\Order\Item;
 use Magento\Sales\Model\Order\Payment;
 use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\Service\Cache;
 use Rvvup\Sdk\Factories\Inputs\RefundCreateInputFactory;
 
 class Refund implements CommandInterface
@@ -40,25 +41,31 @@ class Refund implements CommandInterface
      */
     private $creditmemoRepository;
 
+    /** @var Cache  */
+    private $cache;
+
     /**
      * @param SdkProxy $sdkProxy
      * @param RefundCreateInputFactory $refundCreateInputFactory
      * @param Json $serializer
      * @param OrderItemRepositoryInterface $orderItemRepository
      * @param CreditmemoRepositoryInterface $creditmemoRepository
+     * @param Cache $cache
      */
     public function __construct(
         SdkProxy $sdkProxy,
         RefundCreateInputFactory $refundCreateInputFactory,
         Json $serializer,
         OrderItemRepositoryInterface $orderItemRepository,
-        CreditmemoRepositoryInterface $creditmemoRepository
+        CreditmemoRepositoryInterface $creditmemoRepository,
+        Cache $cache
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->refundCreateInputFactory = $refundCreateInputFactory;
         $this->serializer = $serializer;
         $this->orderItemRepository = $orderItemRepository;
         $this->creditmemoRepository = $creditmemoRepository;
+        $this->cache = $cache;
     }
 
     public function execute(array $commandSubject)
@@ -68,9 +75,10 @@ class Refund implements CommandInterface
         $idempotencyKey = $payment->getTransactionId() . '-' . time();
 
         $order = $payment->getOrder();
+        $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
 
         $input = $this->refundCreateInputFactory->create(
-            $payment->getAdditionalInformation('rvvup_order_id'),
+            $rvvupOrderId,
             $commandSubject['amount'],
             $order->getOrderCurrency()->getCurrencyCode(),
             $idempotencyKey,
@@ -78,6 +86,7 @@ class Refund implements CommandInterface
         );
 
         $result = $this->sdkProxy->refundCreate($input);
+        $this->cache->clear($rvvupOrderId);
         $refundId = $result['id'];
         $refundStatus = $result['status'];
 
