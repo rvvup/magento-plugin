@@ -26,7 +26,7 @@ class Cache
      * @param string $type
      * @return mixed
      */
-    public function get(string $orderId, string $type): string
+    public function get(string $orderId, string $type)
     {
         $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type;
         return $this->cache->load($identifier);
