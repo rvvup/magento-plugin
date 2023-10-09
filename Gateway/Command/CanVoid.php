@@ -38,7 +38,8 @@ class CanVoid implements ValueHandlerInterface
         try {
             $payment = $subject['payment']->getPayment();
             $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
-            if ($value = $this->cache->get($orderId, 'void')) {
+            $value = $this->cache->get($orderId, 'void');
+            if ($value !== '') {
                 return (bool) $value;
             }
             $value = $this->sdkProxy->isOrderVoidable($orderId);
