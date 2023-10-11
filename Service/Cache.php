@@ -38,7 +38,7 @@ class Cache
      * @param bool $value
      * @return void
      */
-    public function set(string $orderId, string $type, bool $value): void
+    public function set(string $orderId, string $type, string $value): void
     {
         $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type;
         $this->cache->save($value, $identifier, [], strtotime('15 mins'));

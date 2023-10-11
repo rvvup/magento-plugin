@@ -1,8 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Rvvup\Payments\Gateway\Command;
 
 use Exception;
+use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
@@ -16,16 +19,22 @@ class CanRefund implements ValueHandlerInterface
     /** @var Cache */
     private $cache;
 
+    /** @var Json */
+    private $serializer;
+
     /**
      * @param SdkProxy $sdkProxy
      * @param Cache $cache
+     * @param Json $serializer
      */
     public function __construct(
         SdkProxy $sdkProxy,
-        Cache $cache
+        Cache $cache,
+        Json $serializer
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->cache = $cache;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -39,11 +48,12 @@ class CanRefund implements ValueHandlerInterface
             $payment = $subject['payment']->getPayment();
             $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
             $value = $this->cache->get($orderId, 'refund');
-            if ($value !== '') {
-                return (bool) $value;
+            if ($value) {
+                return $this->serializer->unserialize($value)['available'];
             }
             $value = $this->sdkProxy->isOrderRefundable($orderId);
-            $this->cache->set($orderId, 'refund', $value);
+            $data = $this->serializer->serialize(['available' => $value]);
+            $this->cache->set($orderId, 'refund', $data);
 
             return $value;
         } catch (Exception $e) {
