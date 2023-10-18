@@ -15,6 +15,7 @@
                 <value id="rvvup-paypal-script" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-script" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-paypal-objects-script" type="host">www.paypalobjects.com</value>
+                <value id="rvvup-card-objects-script" type="host">cdn.eu.trustpayments.com</value>
             </values>
         </policy>
         <policy id="img-src">
