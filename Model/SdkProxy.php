@@ -175,7 +175,8 @@ class SdkProxy
         string $paymentId,
         string $orderId,
         string $authorizationResponse,
-        ?string $threeDSecureResponse): array {
+        ?string $threeDSecureResponse
+    ): array {
         return $this->getSubject()->confirmCardAuthorization(
             $paymentId,
             $orderId,
