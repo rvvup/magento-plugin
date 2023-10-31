@@ -138,11 +138,13 @@ class TransactionInitialize implements ClientInterface
         $body['taxTotal']['amount'] = $this->toCurrency($body['taxTotal']['amount']);
 
         // Round the values for each item in the cart
-        foreach ($body['items'] as $key => $item) {
-            $body['items'][$key]['price']['amount'] = $this->toCurrency($item['price']['amount']);
-            $body['items'][$key]['priceWithTax']['amount'] = $this->toCurrency($item['priceWithTax']['amount']);
-            $body['items'][$key]['tax']['amount'] = $this->toCurrency($item['tax']['amount']);
-            $body['items'][$key]['total']['amount'] = $this->toCurrency($item['total']['amount']);
+        if (isset($body['items'])) {
+            foreach ($body['items'] as $key => $item) {
+                $body['items'][$key]['price']['amount'] = $this->toCurrency($item['price']['amount']);
+                $body['items'][$key]['priceWithTax']['amount'] = $this->toCurrency($item['priceWithTax']['amount']);
+                $body['items'][$key]['tax']['amount'] = $this->toCurrency($item['tax']['amount']);
+                $body['items'][$key]['total']['amount'] = $this->toCurrency($item['total']['amount']);
+            }
         }
 
         // Return order input with rounded figures
