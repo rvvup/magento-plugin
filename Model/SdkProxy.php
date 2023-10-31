@@ -171,6 +171,23 @@ class SdkProxy
     /**
      * {@inheritdoc}
      */
+    public function confirmCardAuthorization(
+        string $paymentId,
+        string $orderId,
+        string $authorizationResponse,
+        ?string $threeDSecureResponse): array
+    {
+        return $this->getSubject()->confirmCardAuthorization(
+            $paymentId,
+            $orderId,
+            $authorizationResponse,
+            $threeDSecureResponse
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function ping(): bool
     {
         return $this->getSubject()->ping();

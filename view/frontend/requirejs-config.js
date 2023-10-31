@@ -17,5 +17,13 @@ var config = {
                 'Rvvup_Payments/js/view/billing-address-mixin': true
             }
         }
-    }
+    },
+    map: {
+        '*': {
+            'trustPayment': 'Rvvup_Payments/js/method/pay-by-card/trustPayment'
+        }
+    },
+    paths: {
+        trustPayment: 'Rvvup_Payments/js/method/pay-by-card/trustPayment',
+    },
 };

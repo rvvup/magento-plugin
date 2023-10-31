@@ -17,7 +17,7 @@ if ($assetsViewModel === null) {
     return;
 }
 ?>
-<?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets([]) as $method => $scripts): ?>
+<?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets() as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
         <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable ?>
         <?php if (!is_array($script)): ?>

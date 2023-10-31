@@ -61,6 +61,18 @@
                  data-bind="attr: {'id': getPayPalId()}, css: {disabled: !isPlaceOrderActionAllowed()}"></div>
         </div>
         <!-- Place Order button, hide if PayPal option is selected -->
+        <!--Pay By Card Form-->
+        <!-- ko if: (getCode() == 'rvvup_CARD' && rvvup_parameters.settings.card.flow === 'INLINE') -->
+        <div id="st-notification-frame"></div>
+        <form id="st-form" method="POST">
+            <div id="st-card-number"></div>
+            <div id="st-expiration-date"></div>
+            <div id="st-security-code"></div>
+            <input type="hidden" id="tp_place_order">
+        </form>
+        <div data-bind="afterRender: renderTrustPayments"></div>
+        <!--/ko-->
+
         <div class="actions-toolbar" data-bind="style: {display: !shouldDisplayPayPalButton() ? '' : 'none'}">
             <div class="primary">
                 <button class="action primary checkout"
@@ -81,30 +93,5 @@
             <p data-bind="html: getCancelExpressPaymentLink()"></p>
             <p data-bind="html: getCancelButtonOnClick()"></p>
         </div>
-
-        <!--Pay By Card Form-->
-        <!-- ko if: (getCode() == 'rvvup_CARD') -->
-        <div id="st-notification-frame"></div>
-        <form id="st-form" action="https://www.example.com" method="POST">
-            <div id="st-card-number"></div>
-            <div id="st-expiration-date"></div>
-            <div id="st-security-code"></div>
-        </form>
-        <script>
-            jQuery(document).ready(function () {
-                window.st = SecureTrading({
-                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTc1NTE4NDksImlzcyI6ImRldmp3dEBydnZ1cGx0ZC5jb20iLCJwYXlsb2FkIjp7ImFjY291bnR0eXBlZGVzY3JpcHRpb24iOiJFQ09NIiwibWFpbmFtb3VudCI6IjAuMDAiLCJjdXJyZW5jeWlzbzNhIjoiR0JQIiwic2l0ZXJlZmVyZW5jZSI6InRlc3RfcnZ2dXBkZXYxMTI4OTgiLCJzZXR0bGVzdGF0dXMiOjIsInJlcXVlc3R0eXBlZGVzY3JpcHRpb25zIjpbIlRIUkVFRFFVRVJZIiwiQVVUSCJdLCJiaWxsaW5nZmlyc3RuYW1lIjpudWxsLCJiaWxsaW5nbGFzdG5hbWUiOm51bGwsImJpbGxpbmdwcmVtaXNlIjpudWxsLCJiaWxsaW5nc3RyZWV0IjpudWxsLCJiaWxsaW5ndG93biI6bnVsbCwiYmlsbGluZ3Bvc3Rjb2RlIjpudWxsLCJiaWxsaW5nY291bnR5IjpudWxsLCJiaWxsaW5nY291bnRyeWlzbzJhIjpudWxsLCJiaWxsaW5ndGVsZXBob25lIjpudWxsLCJjdXN0b21lcmZpcnN0bmFtZSI6bnVsbCwiY3VzdG9tZXJsYXN0bmFtZSI6bnVsbCwiY3VzdG9tZXJwcmVtaXNlIjpudWxsLCJjdXN0b21lcnN0cmVldCI6bnVsbCwiY3VzdG9tZXJ0b3duIjpudWxsLCJjdXN0b21lcnBvc3Rjb2RlIjpudWxsLCJjdXN0b21lcmNvdW50eSI6bnVsbCwiY3VzdG9tZXJjb3VudHJ5aXNvMmEiOm51bGwsImN1c3RvbWVydGVsZXBob25lIjpudWxsLCJvcmRlcnJlZmVyZW5jZSI6IjdkZjNmMDliLTA3MDUtNDdhMi1iM2E1LWJmYjE1NjBhOGE4MiIsImF1dGhtZXRob2QiOiJQUkUifX0.4uNPerx-e9pq1-P7tNe7TIFm6h1pN-LhqehFyhjvxcE",
-                    livestatus: 0, // TODO backend setting
-                    submitOnSuccess: false,
-                    panIcon: true,
-                    stopSubmitFormOnEnter: true,
-                    submitCallback: function (data) {
-                        alert('submitted');
-                    },
-                });
-                window.st.Components();
-            })
-        </script>
-        <!--/ko-->
     </div>
 </div>

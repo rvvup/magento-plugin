@@ -15,7 +15,10 @@ define([
         'Rvvup_Payments/js/helper/is-express-payment',
         'Rvvup_Payments/js/model/checkout/payment/order-payment-action',
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
-        'Rvvup_Payments/js/method/paypal/cancel'
+        'Rvvup_Payments/js/method/paypal/cancel',
+        'trustPayment',
+        'mage/url',
+        'Magento_Ui/js/model/messageList'
     ], function (
         Component,
         $,
@@ -33,7 +36,10 @@ define([
         isExpressPayment,
         orderPaymentAction,
         rvvupMethodProperties,
-        cancel
+        cancel,
+        trustPayment,
+        url,
+        messageList
     ) {
         'use strict';
 
@@ -42,6 +48,7 @@ define([
                 template: 'Rvvup_Payments/payment/rvvup',
                 redirectAfterPlaceOrder: false
             },
+
             initialize: function () {
                 this._super();
                 /* Set express payment Checkout flag on component initialization */
@@ -82,13 +89,15 @@ define([
                             items.push(document.querySelector('.modal-inner-wrap.rvvup'));
                             items.push(document.getElementById(this.getIframeId()));
                             items.forEach(function (item) {
-                                item.animate([{
-                                    width: finalWidth + 'px',
-                                    height: finalHeight + 'px'
-                                }], {
-                                    duration: 400,
-                                    fill: 'forwards'
-                                });
+                                if (item) {
+                                    item.animate([{
+                                        width: finalWidth + 'px',
+                                        height: finalHeight + 'px'
+                                    }], {
+                                        duration: 400,
+                                        fill: 'forwards'
+                                    });
+                                }
                             })
                             break;
                         case "rvvup-info-widget|resize":
@@ -160,6 +169,71 @@ define([
 
             getPaypalBlockStyling: function () {
                 return window.checkoutConfig.payment[this.index].style;
+            },
+
+            renderTrustPayments: function () {
+                if (rvvup_parameters.settings.card.flow === "INLINE") {
+                    $('body').trigger("processStart");
+                    var context = this;
+                    window.SecureTrading = SecureTrading({
+                        jwt: rvvup_parameters.settings.card.initializationToken,
+                        animatedCard: true,
+                        livestatus: rvvup_parameters.settings.card.liveStatus,
+                        buttonId: "tp_place_order",
+                        deferInit: true,
+                        submitOnSuccess: false,
+                        panIcon: true,
+                        stopSubmitFormOnEnter: true,
+                        formId: "st-form",
+                        submitCallback: function (data) {
+                            var submitData = {
+                                order_id: rvvupMethodProperties.getPlacedOrderId(),
+                                auth: data.jwt,
+                            };
+                            if (data.threedresponse) {
+                                submitData["three_d"] = data.threedresponse;
+                            }
+
+                            context.confirmCardAuthorization(submitData, context);
+                        },
+                    });
+                    window.SecureTrading.Components();
+                    $('body').trigger("processStop");
+                }
+            },
+
+            confirmCardAuthorization: function(submitData, context, remainingRetries = 5) {
+                $.ajax({
+                    type: "POST",
+                    url: url.build('rvvup/trustpayments/confirm'),
+                    data: submitData,
+                    dataType: "json",
+                    success: function (e) {
+                        if (e.success) {
+                            context.showModal(orderPaymentAction.getCaptureUrl());
+                        } else {
+                            if (remainingRetries > 0) {
+                                setTimeout(function () {
+                                    context.confirmCardAuthorization(submitData, context, remainingRetries - 1);
+                                }, 2000);
+                                return;
+                            }
+
+                            if (e.message == null) {
+                                messageList.addErrorMessage({
+                                    message: $t('Something went wrong')
+                                });
+                                $('body').trigger("processStop");
+                                return;
+                            }
+
+                            messageList.addErrorMessage({
+                                message: $t(e.message)
+                            });
+                            $('body').trigger("processStop");
+                        }
+                    },
+                });
             },
 
             getPaypalBlockBorderStyling: function () {
@@ -502,8 +576,15 @@ define([
                     return;
                 }
 
+                let code = this.getCode();
+
                 $.when(getOrderPaymentActions(self.messageContainer))
                     .done(function () {
+                        if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
+                            window.SecureTrading.updateJWT(orderPaymentAction.getPaymentToken());
+                            $("#tp_place_order").trigger("click");
+                        }
+
                         if (orderPaymentAction.getRedirectUrl() !== null) {
                             self.showRvvupModal(orderPaymentAction.getRedirectUrl());
                         }
