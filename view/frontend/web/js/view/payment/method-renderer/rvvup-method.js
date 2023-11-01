@@ -196,6 +196,32 @@ define([
 
                             context.confirmCardAuthorization(submitData, context);
                         },
+                        translations: {
+                            "Card number": rvvup_parameters.settings.card?.form?.translation?.label?.cardNumber || "Card Number",
+                            "Expiration date": rvvup_parameters.settings.card?.form?.translation?.label?.expiryDate || "Expiration Date",
+                            "Security code": rvvup_parameters.settings.card?.form?.translation?.label?.securityCode || "Security Code",
+                            Pay: rvvup_parameters.settings.card?.form?.translation?.button?.pay || "Pay",
+                            Processing: rvvup_parameters.settings.card?.form?.translation?.button?.processing || "Processing",
+                            "Field is required":
+                                rvvup_parameters.settings.card?.form?.translation?.error?.fieldRequired || "Field is required",
+                            "Value is too short":
+                                rvvup_parameters.settings.card?.form?.translation?.error?.valueTooShort || "Value is too short",
+                            "Value mismatch pattern":
+                                rvvup_parameters.settings.card?.form?.translation?.error?.valueMismatch || "Value is invalid",
+                        },
+                        styles: {
+                            "background-color-input": "#FFFFFF",
+                            "border-color-input": "#EBEBF2",
+                            "border-radius-input": "8px",
+                            "border-size-input": "1px",
+                            "color-input": "#050505",
+                            "border-color-input-error": "#ff4545",
+                            "color-label": "#050505",
+                            "position-left-label": "0.5rem",
+                            "font-size-label": "1.2rem",
+                            "font-size-message": "1rem",
+                            "space-outset-message": "0rem 0px 0px 0.5rem",
+                        },
                     });
                     window.SecureTrading.Components();
                     $('body').trigger("processStop");
