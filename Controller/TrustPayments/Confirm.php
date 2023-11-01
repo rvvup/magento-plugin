@@ -77,16 +77,26 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
             } else {
                 $response->setData([
                     'success' => false,
-                    'error_message' => 'Order not found during card authorization'
+                    'error_message' => 'Order not found during card authorization',
+                    'retryable' => false,
                 ]);
             }
             $response->setHttpResponseCode(200);
             return $response;
         } catch (\Exception $exception) {
-            $response->setData([
+
+            $data = [
                 'success' => false,
                 'error_message' => 'Error confirming card authorization'
-            ]);
+            ];
+
+            if ($exception->getCode() == 101) {
+                $data['retryable'] = true;
+            } else {
+                $data['retryable'] = false;
+            }
+
+            $response->setData($data);
             $response->setHttpResponseCode(200);
             return $response;
         }

@@ -238,14 +238,14 @@ define([
                         if (e.success) {
                             context.showModal(orderPaymentAction.getCaptureUrl());
                         } else {
-                            if (remainingRetries > 0) {
+                            if (remainingRetries > 0 && e.retryable) {
                                 setTimeout(function () {
                                     context.confirmCardAuthorization(submitData, context, remainingRetries - 1);
                                 }, 2000);
                                 return;
                             }
 
-                            if (e.message == null) {
+                            if (e.error_message == null) {
                                 messageList.addErrorMessage({
                                     message: $t('Something went wrong')
                                 });
@@ -254,7 +254,7 @@ define([
                             }
 
                             messageList.addErrorMessage({
-                                message: $t(e.message)
+                                message: $t(e.error_message)
                             });
                             $('body').trigger("processStop");
                         }
