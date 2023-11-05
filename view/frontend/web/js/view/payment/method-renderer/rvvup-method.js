@@ -51,6 +51,15 @@ define([
 
             initialize: function () {
                 this._super();
+
+                /** Show rvvup errors, if any */
+                if (localStorage.getItem('rvvup-error')) {
+                    messageList.addErrorMessage({
+                        message: localStorage.getItem('rvvup-error')
+                    });
+                    localStorage.removeItem('rvvup-error');
+                }
+
                 /* Set express payment Checkout flag on component initialization */
                 rvvupMethodProperties.setIsExpressPaymentCheckout(isExpressPayment());
 
@@ -246,16 +255,10 @@ define([
                             }
 
                             if (e.error_message == null) {
-                                messageList.addErrorMessage({
-                                    message: $t('Something went wrong')
-                                });
-                                $('body').trigger("processStop");
+                                localStorage.setItem('rvvup-error', $t('Something went wrong'));
                                 window.location.reload();
                             } else {
-                                messageList.addErrorMessage({
-                                    message: $t(e.error_message)
-                                });
-                                $('body').trigger("processStop");
+                                localStorage.setItem('rvvup-error', $t(e.error_message));
                                 window.location.reload();
                             }
                         }
