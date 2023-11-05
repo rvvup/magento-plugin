@@ -250,13 +250,14 @@ define([
                                     message: $t('Something went wrong')
                                 });
                                 $('body').trigger("processStop");
-                                return;
+                                window.location.reload();
+                            } else {
+                                messageList.addErrorMessage({
+                                    message: $t(e.error_message)
+                                });
+                                $('body').trigger("processStop");
+                                window.location.reload();
                             }
-
-                            messageList.addErrorMessage({
-                                message: $t(e.error_message)
-                            });
-                            $('body').trigger("processStop");
                         }
                     },
                 });
