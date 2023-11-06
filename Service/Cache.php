@@ -24,30 +24,32 @@ class Cache
     /**
      * @param string $orderId
      * @param string $type
+     * @param string $orderStatus
      * @return mixed
      */
-    public function get(string $orderId, string $type)
+    public function get(string $orderId, string $type, string $orderStatus)
     {
-        $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type;
+        $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type . '_' . $orderStatus;
         return $this->cache->load($identifier);
     }
 
     /**
      * @param string $orderId
      * @param string $type
-     * @param bool $value
+     * @param string $value
+     * @param string $orderStatus
      * @return void
      */
-    public function set(string $orderId, string $type, string $value): void
+    public function set(string $orderId, string $type, string $value, string $orderStatus): void
     {
-        $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type;
+        $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type . '_' . $orderStatus;
         $this->cache->save($value, $identifier, [], strtotime('15 mins'));
     }
 
-    public function clear(string $orderId): void
+    public function clear(string $orderId, string $orderState): void
     {
-        $refundIdentifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_refund';
-        $voidIdentifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_void';
+        $refundIdentifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_refund_' . $orderState;
+        $voidIdentifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_void_'. $orderState;
         $this->cache->remove($refundIdentifier);
         $this->cache->remove($voidIdentifier);
     }

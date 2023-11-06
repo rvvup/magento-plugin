@@ -47,13 +47,13 @@ class CanRefund implements ValueHandlerInterface
         try {
             $payment = $subject['payment']->getPayment();
             $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
-            $value = $this->cache->get($orderId, 'refund');
+            $value = $this->cache->get($orderId, 'refund', $payment->getOrder()->getState());
             if ($value) {
                 return $this->serializer->unserialize($value)['available'];
             }
             $value = $this->sdkProxy->isOrderRefundable($orderId);
             $data = $this->serializer->serialize(['available' => $value]);
-            $this->cache->set($orderId, 'refund', $data);
+            $this->cache->set($orderId, 'refund', $data, $payment->getOrder()->getState());
 
             return $value;
         } catch (Exception $e) {
