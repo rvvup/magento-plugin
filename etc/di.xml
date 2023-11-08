@@ -398,7 +398,7 @@
                 type="Rvvup\Payments\Plugin\Refund\Invoice"
                 sortOrder="1"/>
     </type>
-    <type name="Magento\Sales\Model\Order">
+    <type name="Magento\Sales\Model\Order\Payment">
         <plugin name="canCreditMemoDisable"
                 type="Rvvup\Payments\Plugin\Cancel\Payment"
                 sortOrder="1"/>

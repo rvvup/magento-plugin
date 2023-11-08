@@ -28,7 +28,7 @@ class Payment
      * @param Order\Payment $subject
      * @param $result
      * @param DataObject $document
-     * @return mixed
+     * @return Payment
      */
     public function afterVoid(Order\Payment $subject, $result, DataObject $document)
     {
