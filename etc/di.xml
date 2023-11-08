@@ -400,7 +400,7 @@
     </type>
     <type name="Magento\Sales\Model\Order">
         <plugin name="canCreditMemoDisable"
-                type="Rvvup\Payments\Plugin\Refund\Order"
+                type="Rvvup\Payments\Plugin\Cancel\Payment"
                 sortOrder="1"/>
     </type>
 

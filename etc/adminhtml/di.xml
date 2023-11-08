@@ -35,7 +35,7 @@
                 type="Rvvup\Payments\Plugin\IsVoidable"
                 sortOrder="1"/>
         <plugin name="afterVoidCancelOrder"
-                type="Rvvup\Payments\Plugin\Void\Payment"
+                type="Rvvup\Payments\Plugin\Void\Order"
                 sortOrder="1"/>
     </type>
 </config>

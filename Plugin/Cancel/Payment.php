@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rvvup\Payments\Plugin\Void;
+namespace Rvvup\Payments\Plugin\Cancel;
 
 use Magento\Framework\DataObject;
 use Magento\Sales\Api\OrderRepositoryInterface;
