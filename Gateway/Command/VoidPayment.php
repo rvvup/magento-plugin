@@ -7,7 +7,6 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Payment;
 use Psr\Log\LoggerInterface;
@@ -31,28 +30,22 @@ class VoidPayment implements CommandInterface
     /** @var Cache */
     private $cache;
 
-    /** @var OrderManagementInterface  */
-    private $orderManagement;
-
     /**
      * @param SdkProxy $sdkProxy
      * @param InvoiceRepository $invoiceRepository
      * @param Cache $cache
      * @param LoggerInterface $logger
-     * @param OrderManagementInterface $orderManagement
      */
     public function __construct(
         SdkProxy $sdkProxy,
         InvoiceRepository $invoiceRepository,
         Cache $cache,
-        LoggerInterface $logger,
-        OrderManagementInterface $orderManagement
+        LoggerInterface $logger
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->invoiceRepository = $invoiceRepository;
         $this->cache = $cache;
         $this->logger = $logger;
-        $this->orderManagement = $orderManagement;
     }
 
     /**
@@ -73,7 +66,6 @@ class VoidPayment implements CommandInterface
 
             $order = $payment->getOrder();
             $this->disableOnlineRefunds($order);
-            $this->orderManagement->cancel($order->getEntityId());
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
             throw new LocalizedException(__('Something went wrong when trying to void a Rvvup payment'));
