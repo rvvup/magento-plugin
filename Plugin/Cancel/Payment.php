@@ -25,12 +25,12 @@ class Payment
     }
 
     /**
-     * @param \Magento\Sales\Model\Order\Payment $subject
+     * @param Order\Payment $subject
      * @param $result
      * @param DataObject $document
      * @return mixed
      */
-    public function afterVoid(\Magento\Sales\Model\Order\Payment $subject, $result, DataObject $document)
+    public function afterVoid(Order\Payment $subject, $result, DataObject $document)
     {
         $order = $subject->getOrder();
         if (strpos($subject->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0) {
