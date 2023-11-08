@@ -26,7 +26,7 @@ class Payment
 
     /**
      * @param Order\Payment $subject
-     * @param $result
+     * @param Payment $result
      * @param DataObject $document
      * @return Payment
      */
