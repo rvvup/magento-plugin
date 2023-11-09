@@ -84,6 +84,7 @@
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">RvvupConfigValueHandler</item>
                 <item name="can_refund" xsi:type="string">Rvvup\Payments\Gateway\Command\CanRefund</item>
+                <item name="can_void" xsi:type="string">Rvvup\Payments\Gateway\Command\CanVoid</item>
             </argument>
         </arguments>
     </virtualType>
@@ -107,6 +108,7 @@
                 <item name="initialize" xsi:type="string">Rvvup\Payments\Gateway\Command\InitializeCommand</item>
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
                 <item name="createPayment" xsi:type="string">Rvvup\Payments\Gateway\Command\CreatePayment</item>
             </argument>
         </arguments>
@@ -317,6 +319,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Gateway\Command\VoidPayment">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Model\ProcessOrder\Cancel">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
@@ -390,9 +398,9 @@
                 type="Rvvup\Payments\Plugin\Refund\Invoice"
                 sortOrder="1"/>
     </type>
-    <type name="Magento\Sales\Model\Order">
+    <type name="Magento\Sales\Model\Order\Payment">
         <plugin name="canCreditMemoDisable"
-                type="Rvvup\Payments\Plugin\Refund\Order"
+                type="Rvvup\Payments\Plugin\Cancel\Payment"
                 sortOrder="1"/>
     </type>
 
