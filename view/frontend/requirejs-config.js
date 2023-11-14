@@ -20,10 +20,10 @@ var config = {
     },
     map: {
         '*': {
-            'trustPayment': 'Rvvup_Payments/js/method/pay-by-card/trustPayment'
+            'cardPayment': 'Rvvup_Payments/js/method/pay-by-card/card'
         }
     },
     paths: {
-        trustPayment: 'Rvvup_Payments/js/method/pay-by-card/trustPayment',
+        cardPayment: 'Rvvup_Payments/js/method/pay-by-card/card',
     },
 };

@@ -16,9 +16,10 @@ define([
         'Rvvup_Payments/js/model/checkout/payment/order-payment-action',
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
         'Rvvup_Payments/js/method/paypal/cancel',
-        'trustPayment',
+        'cardPayment',
         'mage/url',
-        'Magento_Ui/js/model/messageList'
+        'Magento_Ui/js/model/messageList',
+        'domReady!'
     ], function (
         Component,
         $,
@@ -37,7 +38,7 @@ define([
         orderPaymentAction,
         rvvupMethodProperties,
         cancel,
-        trustPayment,
+        cardPayment,
         url,
         messageList
     ) {
@@ -180,10 +181,23 @@ define([
                 return window.checkoutConfig.payment[this.index].style;
             },
 
-            renderTrustPayments: function () {
+            renderCardForm: function () {
+
                 if (rvvup_parameters.settings.card.flow === "INLINE") {
                     $('body').trigger("processStart");
-                    var context = this;
+                    window.rendered = false;
+                    this.render(this);
+                }
+            },
+
+            render: function (context) {
+                if (window.rendered === false) {
+                    this.renderCardFields(context);
+                }
+            },
+
+            renderCardFields: function (context) {
+                if (typeof SecureTrading === "function" && window.rendered === false) {
                     window.SecureTrading = SecureTrading({
                         jwt: rvvup_parameters.settings.card.initializationToken,
                         animatedCard: true,
@@ -233,14 +247,19 @@ define([
                         },
                     });
                     window.SecureTrading.Components();
+                    window.rendered = true;
                     $('body').trigger("processStop");
+                } else {
+                    setTimeout(function() {
+                        context.render(context);
+                    }, 1000);
                 }
             },
 
             confirmCardAuthorization: function(submitData, context, remainingRetries = 5) {
                 $.ajax({
                     type: "POST",
-                    url: url.build('rvvup/trustpayments/confirm'),
+                    url: url.build('rvvup/cardpayments/confirm'),
                     data: submitData,
                     dataType: "json",
                     success: function (e) {

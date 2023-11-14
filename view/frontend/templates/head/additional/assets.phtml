@@ -24,6 +24,10 @@ if ($assetsViewModel === null) {
             <?php continue; ?>
         <?php endif; ?>
         <?php // phpcs:enable ?>
+
+    <?php if ($method == 'rvvup_card'): ?>
+            <script>window.rvvup_card_script ="<?= $assetsViewModel->getScriptElementSrc($script) ?>";</script>
+        <?php else: ?>
         <script id="<?= $escaper->escapeHtmlAttr($assetsViewModel->getScriptElementId($method, (string) $index)) ?>"
             <?php foreach ($assetsViewModel->getScriptDataAttributes($script) as $dataAttribute => $value): ?>
                 <?php if ($value === null): ?>
@@ -33,6 +37,7 @@ if ($assetsViewModel === null) {
                 <?php endif; ?>
             <?php endforeach; ?>
                 src="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>"></script>
+        <?php endif; ?>
     <?php endforeach; ?>
 <?php endforeach; ?>
 

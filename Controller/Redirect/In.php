@@ -3,11 +3,14 @@
 namespace Rvvup\Payments\Controller\Redirect;
 
 use Exception;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
@@ -52,6 +55,16 @@ class In implements HttpGetActionInterface
     private $logger;
 
     /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+
+    /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -59,6 +72,8 @@ class In implements HttpGetActionInterface
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
+     * @param OrderRepositoryInterface $orderRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      */
     public function __construct(
         RequestInterface $request,
@@ -67,7 +82,9 @@ class In implements HttpGetActionInterface
         ManagerInterface $messageManager,
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderRepositoryInterface $orderRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -76,6 +93,8 @@ class In implements HttpGetActionInterface
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
         $this->logger = $logger;
+        $this->orderRepository = $orderRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -95,6 +114,17 @@ class In implements HttpGetActionInterface
 
         // Get Last success order of the checkout session and validate it exists and that it has a payment.
         $order = $this->checkoutSession->getLastRealOrder();
+
+        /** Fix for card payments, as they don't have order in session */
+        if (empty($order->getData())) {
+            $quote = $this->checkoutSession->getQuote();
+            if (!empty($quote->getEntityId())) {
+                $searchCriteria = $this->searchCriteriaBuilder
+                    ->addFilter(OrderInterface::QUOTE_ID, $quote->getEntityId())->create();
+                $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
+                $order = end($orderList);
+            }
+        }
 
         if (!$order->getEntityId() || $order->getPayment() === null) {
             $this->logger->error(

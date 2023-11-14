@@ -22,6 +22,7 @@
         <policy id="img-src">
             <values>
                 <value id="rvvup-afterpay-img" type="host">*.afterpay.com</value>
+                <value id="rvvup-payment-img" type="host">assets.dev.rvvuptech.com</value>
                 <value id="rvvup-paypal-img" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-img" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-stats-paypal" type="host">*.stats.paypal.com</value>

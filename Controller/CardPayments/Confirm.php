@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rvvup\Payments\Controller\TrustPayments;
+namespace Rvvup\Payments\Controller\CardPayments;
 
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
