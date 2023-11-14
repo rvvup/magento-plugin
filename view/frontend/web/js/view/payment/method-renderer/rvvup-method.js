@@ -252,7 +252,7 @@ define([
                 } else {
                     setTimeout(function() {
                         context.render(context);
-                    }, 1000);
+                    }, 250);
                 }
             },
 
