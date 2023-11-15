@@ -219,6 +219,16 @@ define([
 
                             context.confirmCardAuthorization(submitData, context);
                         },
+                        errorCallback: function () {
+                            localStorage.setItem('rvvup-error', $t('Something went wrong'));
+                            // This ajax call will reload quote for possibility of re-placing order
+                            $.ajax({
+                                type: "GET",
+                                url: url.build(window.location.href),
+                                success: function (e) {},
+                            });
+                            $('body').trigger("processStop");
+                        },
                         translations: {
                             "Card number": rvvup_parameters.settings.card?.form?.translation?.label?.cardNumber || "Card Number",
                             "Expiration date": rvvup_parameters.settings.card?.form?.translation?.label?.expiryDate || "Expiration Date",
