@@ -9,6 +9,7 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Model\SdkProxy;
 
@@ -30,22 +31,28 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     private $orderRepository;
 
+    /** @var Validator  */
+    private $formKeyValidator;
+
     /**
      * @param ResultFactory $resultFactory
      * @param SdkProxy $sdkProxy
      * @param RequestInterface $request
      * @param OrderRepositoryInterface $orderRepository
+     * @param Validator $formKeyValidator
      */
     public function __construct(
         ResultFactory $resultFactory,
         SdkProxy $sdkProxy,
         RequestInterface $request,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        Validator $formKeyValidator
     ) {
         $this->resultFactory = $resultFactory;
         $this->sdkProxy = $sdkProxy;
         $this->request = $request;
         $this->orderRepository = $orderRepository;
+        $this->formKeyValidator = $formKeyValidator;
     }
 
     public function execute()
@@ -87,7 +94,7 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
 
             $data = [
                 'success' => false,
-                'error_message' => 'Error confirming card authorization'
+                'error_message' => $exception->getMessage()
             ];
 
             if ($exception->getCode() == 101) {
@@ -108,7 +115,11 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     public function validateForCsrf(RequestInterface $request): ?bool
     {
-        return true;
+        try {
+            return $this->formKeyValidator->validate($request);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**

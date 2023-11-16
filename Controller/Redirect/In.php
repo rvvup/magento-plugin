@@ -16,6 +16,7 @@ use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Service\Order;
 
 class In implements HttpGetActionInterface
 {
@@ -54,15 +55,8 @@ class In implements HttpGetActionInterface
      */
     private $logger;
 
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
+    /** @var Order  */
+    private $orderService;
 
     /**
      * @param RequestInterface $request
@@ -72,8 +66,7 @@ class In implements HttpGetActionInterface
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
-     * @param OrderRepositoryInterface $orderRepository
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param Order $orderService
      */
     public function __construct(
         RequestInterface $request,
@@ -83,8 +76,7 @@ class In implements HttpGetActionInterface
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
         LoggerInterface $logger,
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        Order $orderService
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -93,8 +85,7 @@ class In implements HttpGetActionInterface
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
         $this->logger = $logger;
-        $this->orderRepository = $orderRepository;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->orderService = $orderService;
     }
 
     /**
@@ -119,10 +110,9 @@ class In implements HttpGetActionInterface
         if (empty($order->getData())) {
             $quote = $this->checkoutSession->getQuote();
             if (!empty($quote->getEntityId())) {
-                $searchCriteria = $this->searchCriteriaBuilder
-                    ->addFilter(OrderInterface::QUOTE_ID, $quote->getEntityId())->create();
-                $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
-                $order = end($orderList);
+                $orders = $this->orderService->getAllOrdersByQuote($quote);
+                $order = end($orders);
+                $this->checkoutSession->setData('last_real_order_id', $order->getIncrementId());
             }
         }
 

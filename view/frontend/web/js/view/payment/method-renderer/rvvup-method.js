@@ -185,19 +185,19 @@ define([
 
                 if (rvvup_parameters.settings.card.flow === "INLINE") {
                     $('body').trigger("processStart");
-                    window.rendered = false;
+                    window.rvvup_card_rendered = false;
                     this.render(this);
                 }
             },
 
             render: function (context) {
-                if (window.rendered === false) {
+                if (window.rvvup_card_rendered === false) {
                     this.renderCardFields(context);
                 }
             },
 
             renderCardFields: function (context) {
-                if (typeof SecureTrading === "function" && window.rendered === false) {
+                if (typeof SecureTrading === "function" && window.rvvup_card_rendered === false) {
                     window.SecureTrading = SecureTrading({
                         jwt: rvvup_parameters.settings.card.initializationToken,
                         animatedCard: true,
@@ -212,6 +212,7 @@ define([
                             var submitData = {
                                 order_id: rvvupMethodProperties.getPlacedOrderId(),
                                 auth: data.jwt,
+                                form_key: $.mage.cookies.get('form_key')
                             };
                             if (data.threedresponse) {
                                 submitData["three_d"] = data.threedresponse;
@@ -220,11 +221,15 @@ define([
                             context.confirmCardAuthorization(submitData, context);
                         },
                         errorCallback: function () {
-                            localStorage.setItem('rvvup-error', $t('Something went wrong'));
-                            // This ajax call will reload quote for possibility of re-placing order
+                            messageList.addErrorMessage({
+                                message: $t('Something went wrong')
+                            });
+                            // This ajax call will reload quote and cancel orders with payment
+                            let data = {form_key: $.mage.cookies.get('form_key')};
                             $.ajax({
-                                type: "GET",
-                                url: url.build(window.location.href),
+                                type: "POST",
+                                data: data,
+                                url: url.build('rvvup/cardpayments/cancel'),
                                 success: function (e) {},
                             });
                             $('body').trigger("processStop");
@@ -257,7 +262,7 @@ define([
                         },
                     });
                     window.SecureTrading.Components();
-                    window.rendered = true;
+                    window.rvvup_card_rendered = true;
                     $('body').trigger("processStop");
                 } else {
                     setTimeout(function() {
@@ -284,12 +289,23 @@ define([
                             }
 
                             if (e.error_message == null) {
-                                localStorage.setItem('rvvup-error', $t('Something went wrong'));
-                                window.location.reload();
+                                messageList.addErrorMessage({
+                                    message: $t('Something went wrong')
+                                });
                             } else {
-                                localStorage.setItem('rvvup-error', $t(e.error_message));
-                                window.location.reload();
+                                messageList.addErrorMessage({
+                                    message: $t(e.error_message)
+                                });
                             }
+                            let data = {form_key: $.mage.cookies.get('form_key')};
+
+                            $.ajax({
+                                type: "POST",
+                                data: data,
+                                url: url.build('rvvup/cardpayments/cancel'),
+                                success: function (e) {},
+                            });
+                            $('body').trigger("processStop");
                         }
                     },
                 });
