@@ -75,15 +75,7 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
                 $orders = $this->orderService->getAllOrdersByQuote($quote);
                 /** @var OrderInterface $order */
                 foreach ($orders as $order) {
-                    $payment = $order->getPayment();
-                    if ($payment->getMethod()) {
-                        if (strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0) {
-                            if ($order->canCancel()) {
-                                $order->cancel();
-                            }
-                            $this->cancelRvvupPayment($payment);
-                        }
-                    }
+                 $this->cancelRvvupOrder($order);
                 }
             }
         } catch (\Exception $e) {
@@ -93,6 +85,23 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
         $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(200);
         return $response;
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @return void
+     */
+    private function cancelRvvupOrder(OrderInterface $order): void
+    {
+        $payment = $order->getPayment();
+        if ($payment->getMethod()) {
+            if (strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0) {
+                if ($order->canCancel()) {
+                    $order->cancel();
+                }
+                $this->cancelRvvupPayment($payment);
+            }
+        }
     }
 
     /**
