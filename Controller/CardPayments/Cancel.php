@@ -10,6 +10,7 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Sales\Api\Data\OrderInterface;
 use Rvvup\Payments\Gateway\Method;
@@ -33,6 +34,9 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /** @var Order */
     private $orderService;
+
+    /** @var LoggerInterface  */
+    private $logger;
 
     /**
      * @param ResultFactory $resultFactory
@@ -58,7 +62,10 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->logger = $logger;
     }
 
-    public function execute()
+    /**
+     * @inheritDoc
+     */
+    public function execute(): ResultInterface
     {
         $quote = $this->session->getQuote();
 
