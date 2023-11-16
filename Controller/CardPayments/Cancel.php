@@ -75,7 +75,7 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
                 $orders = $this->orderService->getAllOrdersByQuote($quote);
                 /** @var OrderInterface $order */
                 foreach ($orders as $order) {
-                 $this->cancelRvvupOrder($order);
+                    $this->cancelRvvupOrder($order);
                 }
             }
         } catch (\Exception $e) {
