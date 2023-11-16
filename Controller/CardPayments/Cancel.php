@@ -13,6 +13,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Order;
@@ -35,7 +36,7 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var Order */
     private $orderService;
 
-    /** @var LoggerInterface  */
+    /** @var LoggerInterface */
     private $logger;
 
     /**
@@ -80,14 +81,8 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
                             if ($order->canCancel()) {
                                 $order->cancel();
                             }
-                            $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
-                            $order = $this->sdkProxy->getOrder($rvvupOrderId);
-                            if ($order && isset($order['payments'])) {
-                                $paymentId = $order['payments'][0]['id'];
-                                $this->sdkProxy->cancelPayment($paymentId, (string) $rvvupOrderId);
-                            }
+                            $this->cancelRvvupPayment($payment);
                         }
-
                     }
                 }
             }
@@ -98,6 +93,20 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
         $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(200);
         return $response;
+    }
+
+    /**
+     * @param OrderPaymentInterface $payment
+     * @return void
+     */
+    private function cancelRvvupPayment(OrderPaymentInterface $payment): void
+    {
+        $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
+        $order = $this->sdkProxy->getOrder($rvvupOrderId);
+        if ($order && isset($order['payments'])) {
+            $paymentId = $order['payments'][0]['id'];
+            $this->sdkProxy->cancelPayment($paymentId, (string)$rvvupOrderId);
+        }
     }
 
     /**
