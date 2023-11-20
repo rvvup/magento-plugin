@@ -91,16 +91,22 @@
         }
     }
 
-    .st-expiration-date-iframe, .st-security-code-iframe {
-        max-width: 100%;
+    #st-card-number iframe, #st-expiration-date iframe, #st-security-code iframe {
+        width: 100%;
     }
-    #st-expiration-date, #st-security-code {
-        display: inline-block;
-        width: 45%;
-    }
-    #st-card-number, #st-expiration-date, #st-security-code {
+    #st-card-number {
+        width: 100%;
         height:90px;
-        margin-left: 20px;
+    }
+    #st-expiration-date {
+        float: left;
+        width: 47.5%;
+        height:90px;
+    }
+    #st-security-code {
+        float: right;
+        width: 47.5%;
+        height:90px;
     }
 }
 
