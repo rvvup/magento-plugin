@@ -53,14 +53,6 @@ define([
             initialize: function () {
                 this._super();
 
-                /** Show rvvup errors, if any */
-                if (localStorage.getItem('rvvup-error')) {
-                    messageList.addErrorMessage({
-                        message: localStorage.getItem('rvvup-error')
-                    });
-                    localStorage.removeItem('rvvup-error');
-                }
-
                 /* Set express payment Checkout flag on component initialization */
                 rvvupMethodProperties.setIsExpressPaymentCheckout(isExpressPayment());
 
