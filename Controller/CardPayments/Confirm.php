@@ -12,7 +12,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Model\SdkProxy;
-use Rvvup\Sdk\Exceptions\ApiException;
+use Rvvup\Sdk\Exceptions\ApiError;
 
 class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
 {
@@ -97,7 +97,7 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
                 'success' => false,
                 'error_message' => $exception->getMessage()
             ];
-            if ($exception instanceof ApiException) {
+            if ($exception instanceof ApiError) {
                 if ($exception->getErrorCode() == 'card_authorization_not_found') {
                     $data['retryable'] = true;
                 }
