@@ -222,7 +222,9 @@ define([
                                 type: "POST",
                                 data: data,
                                 url: url.build('rvvup/cardpayments/cancel'),
-                                success: function (e) {},
+                                complete: function (e) {
+                                    $('body').trigger("processStop");
+                                },
                             });
                             $('body').trigger("processStop");
                         },
@@ -295,9 +297,10 @@ define([
                                 type: "POST",
                                 data: data,
                                 url: url.build('rvvup/cardpayments/cancel'),
-                                success: function (e) {},
+                                complete: function (e) {
+                                    $('body').trigger("processStop");
+                                },
                             });
-                            $('body').trigger("processStop");
                         }
                     },
                 });
