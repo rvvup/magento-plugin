@@ -13,6 +13,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Order;
 use Psr\Log\LoggerInterface;
@@ -34,11 +35,15 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var LoggerInterface */
     private $logger;
 
+    /** @var OrderRepositoryInterface  */
+    private $orderRepository;
+
     /**
      * @param ResultFactory $resultFactory
      * @param Validator $formKeyValidator
      * @param Session $session
      * @param Order $orderService
+     * @param OrderRepositoryInterface $orderRepository
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -46,12 +51,14 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
         Validator $formKeyValidator,
         Session $session,
         Order $orderService,
+        OrderRepositoryInterface $orderRepository,
         LoggerInterface $logger
     ) {
         $this->resultFactory = $resultFactory;
         $this->formKeyValidator = $formKeyValidator;
         $this->session = $session;
         $this->orderService = $orderService;
+        $this->orderRepository = $orderRepository;
         $this->logger = $logger;
     }
 
@@ -90,6 +97,7 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
             if (strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0) {
                 if ($order->canCancel()) {
                     $order->cancel();
+                    $this->orderRepository->save($order);
                 }
             }
         }
