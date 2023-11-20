@@ -17,13 +17,19 @@ if ($assetsViewModel === null) {
     return;
 }
 ?>
-<?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets([]) as $method => $scripts): ?>
+<?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets() as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
         <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable ?>
         <?php if (!is_array($script)): ?>
             <?php continue; ?>
         <?php endif; ?>
         <?php // phpcs:enable ?>
+
+        <?php if ($method == 'rvvup_card'): ?>
+            <script>
+                window.rvvup_card_script ="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>";
+            </script>
+        <?php else: ?>
         <script id="<?= $escaper->escapeHtmlAttr($assetsViewModel->getScriptElementId($method, (string) $index)) ?>"
             <?php foreach ($assetsViewModel->getScriptDataAttributes($script) as $dataAttribute => $value): ?>
                 <?php if ($value === null): ?>
@@ -33,6 +39,7 @@ if ($assetsViewModel === null) {
                 <?php endif; ?>
             <?php endforeach; ?>
                 src="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>"></script>
+        <?php endif; ?>
     <?php endforeach; ?>
 <?php endforeach; ?>
 

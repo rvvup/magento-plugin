@@ -17,5 +17,13 @@ var config = {
                 'Rvvup_Payments/js/view/billing-address-mixin': true
             }
         }
-    }
+    },
+    map: {
+        '*': {
+            'cardPayment': 'Rvvup_Payments/js/method/pay-by-card/card'
+        }
+    },
+    paths: {
+        cardPayment: 'Rvvup_Payments/js/method/pay-by-card/card',
+    },
 };

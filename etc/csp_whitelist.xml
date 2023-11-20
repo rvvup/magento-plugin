@@ -7,6 +7,7 @@
                 <value id="rvvup-clearpay-frame" type="host">*.clearpay.co.uk</value>
                 <value id="rvvup-paypal-frame" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-frame" type="host">*.sandbox.paypal.com</value>
+                <value id="rvvup-card-frame" type="host">cdn.eu.trustpayments.com</value>
             </values>
         </policy>
         <policy id="script-src">
@@ -15,11 +16,13 @@
                 <value id="rvvup-paypal-script" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-script" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-paypal-objects-script" type="host">www.paypalobjects.com</value>
+                <value id="rvvup-card-objects-script" type="host">cdn.eu.trustpayments.com</value>
             </values>
         </policy>
         <policy id="img-src">
             <values>
                 <value id="rvvup-afterpay-img" type="host">*.afterpay.com</value>
+                <value id="rvvup-payment-img" type="host">assets.dev.rvvuptech.com</value>
                 <value id="rvvup-paypal-img" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-img" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-stats-paypal" type="host">*.stats.paypal.com</value>

@@ -26,10 +26,12 @@
             <!--/ko-->
         </div>
 
+        <!-- ko if: (getCode() == 'rvvup_CARD' && rvvup_parameters.settings.card.flow === 'MODAL') -->
         <div>
             <iframe class="rvvup-summary"
                     data-bind="attr: {'id': 'placeholder-payment-iframe-' + getCode(), 'src': getIframe()}"></iframe>
         </div>
+        <!--/ko-->
 
         <div style="display: none;" data-bind="attr: {'id': getModalId()}">
             <iframe data-bind="attr: {'id': getIframeId()}" style="border-width:0;width:100%;height:500px;"
@@ -61,6 +63,18 @@
                  data-bind="attr: {'id': getPayPalId()}, css: {disabled: !isPlaceOrderActionAllowed()}"></div>
         </div>
         <!-- Place Order button, hide if PayPal option is selected -->
+        <!--Pay By Card Form-->
+        <!-- ko if: (getCode() == 'rvvup_CARD' && rvvup_parameters.settings.card.flow === 'INLINE') -->
+        <div id="st-notification-frame"></div>
+        <form id="st-form" method="POST">
+            <div id="st-card-number" class="rvvup-card-field rvvup-card-number"></div>
+            <div id="st-expiration-date" class="rvvup-card-field rvvup-card-expiry"></div>
+            <div id="st-security-code" class="rvvup-card-field  rvvup-card-security-code"></div>
+            <input type="hidden" id="tp_place_order">
+        </form>
+        <div data-bind="afterRender: renderCardForm"></div>
+        <!--/ko-->
+
         <div class="actions-toolbar" data-bind="style: {display: !shouldDisplayPayPalButton() ? '' : 'none'}">
             <div class="primary">
                 <button class="action primary checkout"
