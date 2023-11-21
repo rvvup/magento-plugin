@@ -70,7 +70,7 @@ class Restore implements ObserverInterface
     {
         if ($order->getData() && $order->getStatus() == self::PENDING) {
             $paymentMethod = $order->getPayment()->getMethod();
-            return strpos(Method::PAYMENT_TITLE_PREFIX, $paymentMethod) === 0;
+            return strpos($paymentMethod, Method::PAYMENT_TITLE_PREFIX) === 0;
         }
         return  false;
     }

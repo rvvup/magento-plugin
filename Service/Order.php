@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Service;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
@@ -77,5 +78,23 @@ class Order
         /** @var \Magento\Sales\Api\Data\OrderPaymentInterface $payment */
         $payment = reset($payments);
         return $this->orderRepository->get($payment->getParentId());
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @return array
+     */
+    public function getAllOrdersByQuote(CartInterface $quote): array
+    {
+        if (!empty($quote->getEntityId())) {
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter(OrderInterface::QUOTE_ID, $quote->getEntityId())->create();
+            try {
+                return $this->orderRepository->getList($searchCriteria)->getItems();
+            } catch (\Exception $e) {
+                return [];
+            }
+        }
+        return [];
     }
 }
