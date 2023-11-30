@@ -78,6 +78,7 @@ class Method extends Adapter
      * @param PaymentDataObjectFactory $paymentDataObjectFactory
      * @param string $code
      * @param string $title
+     * @param string $captureType
      * @param string $formBlockType
      * @param string $infoBlockType
      * @param StoreManagerInterface $storeManager
