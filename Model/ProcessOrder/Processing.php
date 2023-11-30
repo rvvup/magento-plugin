@@ -81,11 +81,15 @@ class Processing implements ProcessorInterface
 
             $payment = $rvvupData['payments'][0];
             if ($this->inAuthorizedManualPayment($payment)) {
-                $formattedExpirationDate = $this->dateTime->date("jS M Y H:i:s T", strtotime($payment["authorizationExpiresAt"]));
+                $formattedExpirationDate = $this->dateTime->date(
+                    "jS M Y H:i:s T",
+                    strtotime($payment["authorizationExpiresAt"])
+                );
+
                 $eventMessage = "Payment authorization expires at " .
                     $formattedExpirationDate .
-                    ". Please navigate to the Rvvup dashboard to manually capture the payment. When the authorization expires, " .
-                    "the order will be cancelled and the funds will be returned to the customer.";
+                    ". Please navigate to the Rvvup dashboard to manually capture the payment. When the" .
+                    " authorization expires, the order will be cancelled and the funds will be returned to the customer.";
             }
 
             $this->eventManager->dispatch('rvvup_payments_process_order_processing_after', [
