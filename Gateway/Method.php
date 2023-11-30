@@ -45,6 +45,8 @@ class Method extends Adapter
     public const STATUS_EXPIRED = 'EXPIRED';
     public const STATUS_PENDING = 'PENDING';
     public const STATUS_REQUIRES_ACTION = 'REQUIRES_ACTION';
+    public const STATUS_AUTHORIZED = "AUTHORIZED";
+    public const STATUS_AUTHORIZATION_EXPIRED = "AUTHORIZATION_EXPIRED";
     public const STATUS_SUCCEEDED = 'SUCCEEDED';
 
     /**
@@ -57,6 +59,9 @@ class Method extends Adapter
 
     /** @var string */
     private $title;
+
+    /** @var string  */
+    private $captureType;
     /** @var array */
     private $limits;
     /** @var StoreManagerInterface */
@@ -88,6 +93,7 @@ class Method extends Adapter
         PaymentDataObjectFactory $paymentDataObjectFactory,
         string $code,
         string $title,
+        string $captureType,
         string $formBlockType,
         string $infoBlockType,
         StoreManagerInterface $storeManager,
@@ -112,6 +118,7 @@ class Method extends Adapter
 
         $this->title = $title;
         $this->limits = $limits;
+        $this->captureType = $captureType;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
     }
@@ -170,5 +177,13 @@ class Method extends Adapter
     public function getMaxOrderTotal(string $currencyCode): ?string
     {
         return $this->limits[$currencyCode]['max'] ?? null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCaptureType(): ?string
+    {
+        return $this->captureType;
     }
 }

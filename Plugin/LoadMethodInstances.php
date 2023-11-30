@@ -82,6 +82,7 @@ class LoadMethodInstances
                     'summary_url' => $method['summaryUrl'] ?? '',
                     'logo_url' => $method['logoUrl'] ?? '',
                     'limits' => $method['limits'] ?? null,
+                    'captureType' => $method['captureType'] ?? null,
                 ]
             );
             return $instance;

@@ -23,6 +23,7 @@ trait LoadMethods
                 $processed[$code]['summaryUrl'] = $method['summaryUrl'];
                 $processed[$code]['logoUrl'] = $method['logoUrl'] ?? '';
                 $processed[$code]['limits'] = $this->processLimits($method['limits']['total'] ?? []);
+                $processed[$code]['captureType'] = $method['captureType'] ?? '';
             }
             $this->processed = $processed;
         }
