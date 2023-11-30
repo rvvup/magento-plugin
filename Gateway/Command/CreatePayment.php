@@ -49,10 +49,13 @@ class CreatePayment implements CommandInterface
             'method' => $method,
             'type' => $type,
             'idempotencyKey' => $idempotencyKey,
-            "captureType" => $payment->getMethodInstance()->getCaptureType(),
             'merchantId' => $this->config->getMerchantId()
             ]
         ];
+
+        if ($type = $payment->getMethodInstance()->getCaptureType()) {
+            $data['input']['captureType'] = $type;
+        }
 
         return $this->sdkProxy->createPayment(
             $data
