@@ -67,25 +67,20 @@ class LoadMethodInstances
 
             if (isset($this->processed[$code])) {
                 $method = $this->processed[$code];
-            } else {
-                $method = [
-                    'code' => $code
-                ];
+                /** @var Method $instance */
+                $instance = $this->methodFactory->create(
+                    'RvvupFacade',
+                    [
+                        'code' => $code,
+                        'title' => $method['title'] ?? 'Rvvup',
+                        'summary_url' => $method['summaryUrl'] ?? '',
+                        'logo_url' => $method['logoUrl'] ?? '',
+                        'limits' => $method['limits'] ?? null,
+                        'captureType' => $method['captureType'] ?? '',
+                    ]
+                );
+                return $instance;
             }
-
-            /** @var Method $instance */
-            $instance = $this->methodFactory->create(
-                'RvvupFacade',
-                [
-                    'code' => $code,
-                    'title' => $method['title'] ?? 'Rvvup',
-                    'summary_url' => $method['summaryUrl'] ?? '',
-                    'logo_url' => $method['logoUrl'] ?? '',
-                    'limits' => $method['limits'] ?? null,
-                    'captureType' => $method['captureType'] ?? '',
-                ]
-            );
-            return $instance;
         }
         return $proceed($code);
     }
