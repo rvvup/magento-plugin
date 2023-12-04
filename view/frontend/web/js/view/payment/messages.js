@@ -5,7 +5,8 @@ define([
     'mage/storage',
     'mage/translate',
     'Magento_Checkout/js/model/url-builder',
-    'Magento_Ui/js/model/messageList'
+    'Magento_Ui/js/model/messageList',
+    'domReady!',
 ], function (Component, $, _, storage, $t, urlBuilder, globalMessages) {
     return Component.extend({
         /**
