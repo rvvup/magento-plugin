@@ -88,8 +88,9 @@ class Processing implements ProcessorInterface
 
                 $eventMessage = "Payment authorization expires at " .
                     $formattedExpirationDate .
-                    ". Please navigate to the Rvvup dashboard to manually capture the payment. When the" .
-                    " authorization expires, the order will be cancelled and the funds will be returned to the customer.";
+                    ". Please navigate to the Rvvup dashboard to manually capture the payment. " .
+                    "When the authorization expires, the order will be cancelled" .
+                    "and the funds will be returned to the customer.";
             }
 
             $this->eventManager->dispatch('rvvup_payments_process_order_processing_after', [

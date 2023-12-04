@@ -80,9 +80,9 @@ class Method extends Adapter
      * @param string $title
      * @param string $formBlockType
      * @param string $infoBlockType
+     * @param string $captureType
      * @param StoreManagerInterface $storeManager
      * @param LoggerInterface|RvvupLog $logger // Set via di.xml
-     * @param string $captureType
      * @param CommandPoolInterface|null $commandPool
      * @param ValidatorPoolInterface|null $validatorPool
      * @param CommandManagerInterface|null $commandExecutor
