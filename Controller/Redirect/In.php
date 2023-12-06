@@ -14,6 +14,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Service\Order;
@@ -166,7 +167,9 @@ class In implements HttpGetActionInterface
             }
 
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
-                $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+                if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {
+                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+                }
             }
 
             $result = $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])
