@@ -25,64 +25,57 @@ interface ConfigInterface
      * Validate whether Rvvup module & payment methods are active.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
      * @return bool
      */
-    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool;
+    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE): bool;
 
     /**
      * Get the active value from the config.
      *
-     * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
+     * @param string $scopeType     
      * @return bool
      */
-    public function getActiveConfig(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool;
+    public function getActiveConfig(string $scopeType = ScopeInterface::SCOPE_STORE): bool;
 
     /**
      * Get the JWT value from the config.
      *
-     * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
+     * @param string $scopeType     
      * @return string|null
      */
-    public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?string;
+    public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE): ?string;
 
     /**
      * Get the endpoint URL.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
      * @return string
      */
-    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
+    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE): string;
 
     /**
      * Get the Merchant ID.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
      * @return string
      */
-    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
+    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE): string;
 
     /**
      * Get the Authorization Token.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
      * @return string
      */
-    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
+    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE): string;
 
     /**
      * Check whether debug mode is enabled.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
      * @return bool
      */
-    public function isDebugEnabled(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool;
+    public function isDebugEnabled(string $scopeType = ScopeInterface::SCOPE_STORE): bool;
 
     /**
      * Get style for paypal button
@@ -94,11 +87,9 @@ interface ConfigInterface
     /**
      * Get valid product types
      * @param string $scopeType
-     * @param string|null $scopeCode
      * @return array
      */
     public function getValidProductTypes(
-        string $scopeType = ScopeInterface::SCOPE_STORE,
-        string $scopeCode = null
+        string $scopeType = ScopeInterface::SCOPE_STORE
     ): array;
 }
