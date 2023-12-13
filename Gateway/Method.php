@@ -45,6 +45,8 @@ class Method extends Adapter
     public const STATUS_EXPIRED = 'EXPIRED';
     public const STATUS_PENDING = 'PENDING';
     public const STATUS_REQUIRES_ACTION = 'REQUIRES_ACTION';
+    public const STATUS_AUTHORIZED = "AUTHORIZED";
+    public const STATUS_AUTHORIZATION_EXPIRED = "AUTHORIZATION_EXPIRED";
     public const STATUS_SUCCEEDED = 'SUCCEEDED';
 
     /**
@@ -57,6 +59,9 @@ class Method extends Adapter
 
     /** @var string */
     private $title;
+
+    /** @var string  */
+    private $captureType;
     /** @var array */
     private $limits;
     /** @var StoreManagerInterface */
@@ -77,6 +82,7 @@ class Method extends Adapter
      * @param string $infoBlockType
      * @param StoreManagerInterface $storeManager
      * @param LoggerInterface|RvvupLog $logger // Set via di.xml
+     * @param string $captureType
      * @param CommandPoolInterface|null $commandPool
      * @param ValidatorPoolInterface|null $validatorPool
      * @param CommandManagerInterface|null $commandExecutor
@@ -92,6 +98,7 @@ class Method extends Adapter
         string $infoBlockType,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
+        string $captureType = '',
         CommandPoolInterface $commandPool = null,
         ValidatorPoolInterface $validatorPool = null,
         CommandManagerInterface $commandExecutor = null,
@@ -112,6 +119,7 @@ class Method extends Adapter
 
         $this->title = $title;
         $this->limits = $limits;
+        $this->captureType = $captureType;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
     }
@@ -170,5 +178,13 @@ class Method extends Adapter
     public function getMaxOrderTotal(string $currencyCode): ?string
     {
         return $this->limits[$currencyCode]['max'] ?? null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCaptureType(): string
+    {
+        return $this->captureType;
     }
 }

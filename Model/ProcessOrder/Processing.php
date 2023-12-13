@@ -13,6 +13,7 @@ use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
+use Magento\Framework\Stdlib\DateTime\DateTime;
 
 class Processing implements ProcessorInterface
 {
@@ -27,23 +28,28 @@ class Processing implements ProcessorInterface
     /** @var LoggerInterface|RvvupLog */
     private $logger;
 
+    /** @var DateTime  */
+    private $dateTime;
+
     /**
      * @param EventManager $eventManager
      * @param OrderRepositoryInterface $orderRepository
      * @param ProcessOrderResultInterfaceFactory $processOrderResultFactory
      * @param LoggerInterface $logger
-     * @return void
+     * @param DateTime $dateTime
      */
     public function __construct(
         EventManager $eventManager,
         OrderRepositoryInterface $orderRepository,
         ProcessOrderResultInterfaceFactory $processOrderResultFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        DateTime $dateTime
     ) {
         $this->eventManager = $eventManager;
         $this->orderRepository = $orderRepository;
         $this->processOrderResultFactory = $processOrderResultFactory;
         $this->logger = $logger;
+        $this->dateTime = $dateTime;
     }
 
     /**
@@ -71,10 +77,26 @@ class Processing implements ProcessorInterface
 
             $order = $this->changeNewOrderStatus($order);
 
+            $eventMessage = 'Rvvup Payment is being processed.';
+
+            $payment = $rvvupData['payments'][0];
+            if ($this->inAuthorizedManualPayment($payment)) {
+                $formattedExpirationDate = $this->dateTime->date(
+                    "jS M Y H:i:s T",
+                    strtotime($payment["authorizationExpiresAt"])
+                );
+
+                $eventMessage = "Payment authorization expires at " .
+                    $formattedExpirationDate .
+                    ". Please navigate to the Rvvup dashboard to manually capture the payment. " .
+                    "When the authorization expires, the order will be cancelled " .
+                    "and the funds will be returned to the customer.";
+            }
+
             $this->eventManager->dispatch('rvvup_payments_process_order_processing_after', [
                 'payment_process_type' => self::TYPE,
                 'payment_process_result' => true,
-                'event_message' => 'Rvvup Payment is being processed.',
+                'event_message' => $eventMessage,
                 'order_id' => $order->getEntityId(),
                 'rvvup_id' => $rvvupData['id'] ?? null,
                 'original_order_state' => $originalOrderState,
@@ -123,5 +145,12 @@ class Processing implements ProcessorInterface
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
 
         return $this->orderRepository->save($order);
+    }
+
+    private function inAuthorizedManualPayment(array $payment): bool
+    {
+        return isset($payment["authorizationExpiresAt"]) &&
+            $payment["captureType"] === "MANUAL" &&
+            $payment['status'] == Method::STATUS_AUTHORIZED;
     }
 }

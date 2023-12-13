@@ -98,7 +98,7 @@ class AddOrderHistoryCommentObserver implements ObserverInterface
 
         // Prepare comment.
         $comment = is_string($eventMessage) ? trim($eventMessage) : 'Rvvup Order Process was performed.';
-        $comment .= $rvvupId !== null ? ' Rvvup Payment ID: ' . $rvvupId : ' Rvvup Payment ID: N/A';
+        $comment .= $rvvupId !== null ? ' Rvvup Order ID: ' . $rvvupId : ' Rvvup Payment ID: N/A';
 
         $orderStatusHistory = $this->createNewOrderStatusHistoryObject($order);
         $orderStatusHistory->setComment($comment);
