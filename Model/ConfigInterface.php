@@ -32,7 +32,7 @@ interface ConfigInterface
     /**
      * Get the active value from the config.
      *
-     * @param string $scopeType     
+     * @param string $scopeType
      * @return bool
      */
     public function getActiveConfig(string $scopeType = ScopeInterface::SCOPE_STORE): bool;
@@ -40,7 +40,7 @@ interface ConfigInterface
     /**
      * Get the JWT value from the config.
      *
-     * @param string $scopeType     
+     * @param string $scopeType
      * @return string|null
      */
     public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE): ?string;

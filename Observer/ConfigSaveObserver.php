@@ -108,7 +108,7 @@ class ConfigSaveObserver implements ObserverInterface
         )) {
             return;
         }
-        $scope = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : 'default';
+        $scope = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
 
         // No action if it was activated.
         if ($this->config->getActiveConfig() === true) {

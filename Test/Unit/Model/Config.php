@@ -6,6 +6,7 @@ namespace Unit\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Rvvup\Payments\Model\ConfigInterface;
 
@@ -13,6 +14,9 @@ class Config extends TestCase
 {
     /** @var ScopeConfigInterface */
     private $scopeConfigMock;
+
+    /** @var StoreManagerInterface */
+    private $storeManagerMock;
 
     /** @var \Rvvup\Payments\Model\Config */
     private $config;
@@ -22,7 +26,11 @@ class Config extends TestCase
         $this->scopeConfigMock = $this->getMockBuilder(ScopeConfigInterface::class)
             ->disableOriginalConstructor()->getMock();
 
-        $this->config = new \Rvvup\Payments\Model\Config($this->scopeConfigMock);
+        $this->storeManagerMock = $this->getMockBuilder(StoreManagerInterface::class)
+            ->disableOriginalConstructor()->getMock();
+        $this->storeManagerMock->method('getStore')->willReturn(null);
+
+        $this->config = new \Rvvup\Payments\Model\Config($this->scopeConfigMock, $this->storeManagerMock);
     }
 
     public function testPaypalBlockDefaultStyling()

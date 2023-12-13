@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use stdClass;
@@ -60,7 +61,7 @@ class Config implements ConfigInterface
      */
     public function getActiveConfig(string $scopeType = ScopeInterface::SCOPE_STORE): bool
     {
-        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : 'default';
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
         return (bool) $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_ACTIVE, $scopeType, $scopeCode);
     }
 
@@ -72,7 +73,7 @@ class Config implements ConfigInterface
      */
     public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE): ?string
     {
-        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : 'default';
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
 
         $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT, $scopeType, $scopeCode);
 
@@ -145,7 +146,7 @@ class Config implements ConfigInterface
      */
     public function isDebugEnabled(string $scopeType = ScopeInterface::SCOPE_STORE): bool
     {
-        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : 'default';
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
         return (bool) $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_DEBUG, $scopeType, $scopeCode);
     }
 
@@ -197,7 +198,7 @@ class Config implements ConfigInterface
         string $scopeType = ScopeInterface::SCOPE_STORE
     ): string {
         $config = self::RVVUP_CONFIG . self::XML_PATH_PAYPAL_BLOCK . $config;
-        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : 'default';
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
 
         return $this->scopeConfig->getValue($config, $scopeType, $scopeCode);
     }
@@ -205,11 +206,12 @@ class Config implements ConfigInterface
     /**
      * @param string $scopeType
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function getValidProductTypes(
         string $scopeType = ScopeInterface::SCOPE_STORE
     ): array {
-        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : 'default';
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
         $path = self::RVVUP_CONFIG . self::PRODUCT_RESTRICTIONS . self::XML_PATH_PRODUCT_TYPES_ENABLED;
         $types = $this->scopeConfig->getValue($path, $scopeType, $scopeCode);
         return explode(',', $types);
