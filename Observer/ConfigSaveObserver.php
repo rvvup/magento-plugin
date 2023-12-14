@@ -3,14 +3,13 @@
 namespace Rvvup\Payments\Observer;
 
 use Exception;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\State;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\UrlInterface;
-use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\SdkProxy;
@@ -20,6 +19,7 @@ class ConfigSaveObserver implements ObserverInterface
     /** @var State */
     private $appState;
     /** @var UrlInterface */
+
     private $urlBuilder;
 
     /**
@@ -29,6 +29,7 @@ class ConfigSaveObserver implements ObserverInterface
 
     /** @var SdkProxy */
     private $sdkProxy;
+
     /** @var ManagerInterface */
     private $messageManager;
 
@@ -40,13 +41,18 @@ class ConfigSaveObserver implements ObserverInterface
     private $logger;
 
     /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
      * @param State $appState
      * @param UrlInterface $urlBuilder
-     * @param \Rvvup\Payments\Model\ConfigInterface $config
+     * @param ConfigInterface $config
      * @param SdkProxy $sdkProxy
      * @param ManagerInterface $messageManager
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
+     * @param StoreManagerInterface $storeManager
+     * @param LoggerInterface $logger
      */
     public function __construct(
         State $appState,
@@ -54,6 +60,7 @@ class ConfigSaveObserver implements ObserverInterface
         ConfigInterface $config,
         SdkProxy $sdkProxy,
         ManagerInterface $messageManager,
+        StoreManagerInterface $storeManager,
         LoggerInterface $logger
     ) {
         $this->appState = $appState;
@@ -61,6 +68,7 @@ class ConfigSaveObserver implements ObserverInterface
         $this->config = $config;
         $this->sdkProxy = $sdkProxy;
         $this->messageManager = $messageManager;
+        $this->storeManager = $storeManager;
         $this->logger = $logger;
     }
 
@@ -100,11 +108,10 @@ class ConfigSaveObserver implements ObserverInterface
         )) {
             return;
         }
-
-        $scope = $this->mapScope($event);
+        $scope = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
 
         // No action if it was activated.
-        if ($this->config->getActiveConfig($scope['scopeType'], $scope['scopeCode']) === true) {
+        if ($this->config->getActiveConfig() === true) {
             return;
         }
 
@@ -113,44 +120,10 @@ class ConfigSaveObserver implements ObserverInterface
             $this->sdkProxy->createEvent(
                 'MERCHANT_PLUGIN_DEACTIVATED',
                 'Magento Payment method deactivated',
-                $scope
+                [$scope]
             );
         } catch (Exception $ex) {
             $this->logger->error('Failed to send create event API request to Rvvup with message: ' . $ex->getMessage());
         }
-    }
-
-    /**
-     * Get the relevant scope from the event data
-     *
-     * @param \Magento\Framework\Event $event
-     * @return array
-     */
-    private function mapScope(Event $event): array
-    {
-        $website = is_string($event->getData('website')) ? $event->getData('website') : '';
-        $store = is_string($event->getData('store')) ? $event->getData('store') : '';
-
-        // If no value for either website or store, return default scope config.
-        if (empty($website) && empty($store)) {
-            return [
-                'scopeType' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-                'scopeCode' => null
-            ];
-        }
-
-        // Otherwise, it's either website (if store is empty)
-        if (empty($store)) {
-            return [
-                'scopeType' => ScopeInterface::SCOPE_WEBSITE,
-                'scopeCode' => $website
-            ];
-        }
-
-        // Or store if not empty.
-        return [
-            'scopeType' => ScopeInterface::SCOPE_STORE,
-            'scopeCode' => $store
-        ];
     }
 }

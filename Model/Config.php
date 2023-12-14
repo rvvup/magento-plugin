@@ -2,15 +2,16 @@
 
 namespace Rvvup\Payments\Model;
 
-use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use stdClass;
 
 class Config implements ConfigInterface
 {
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     private $scopeConfig;
 
@@ -20,54 +21,47 @@ class Config implements ConfigInterface
     private $jwt;
 
     /**
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @return void
+     * @var StoreManagerInterface
      */
-    public function __construct(ScopeConfigInterface $scopeConfig)
-    {
+    private $storeManager;
+
+    /**
+     * @param ScopeConfigInterface $scopeConfig
+     * @param StoreManagerInterface $storeManager
+     */
+    public function __construct(
+        ScopeConfigInterface $scopeConfig,
+        StoreManagerInterface $storeManager
+    ) {
         $this->scopeConfig = $scopeConfig;
+        $this->storeManager = $storeManager;
     }
 
     /**
      * Validate whether Rvvup module & payment methods are active.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
      * @return bool
      */
-    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool
+    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE): bool
     {
-        if (!$this->getActiveConfig($scopeType, $scopeCode)) {
+        if (!$this->getActiveConfig($scopeType)) {
             return false;
         }
 
-        $jwt = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT);
-        if (!is_string($jwt)) {
-            return false;
-        }
-        $parts = explode('.', $jwt);
-        if (count($parts) !== 3) {
-            return false;
-        }
-        list($head, $body, $crypto) = $parts;
-        try {
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-            $this->jwt = json_decode(base64_decode($body), false, 2, JSON_THROW_ON_ERROR);
-            return true;
-        } catch (Exception $e) {
-            return false;
-        }
+        $jwt = $this->getJwt($scopeType);
+        return (bool)$jwt;
     }
 
     /**
      * Get the active value from the config.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or ID as a string
      * @return bool
      */
-    public function getActiveConfig(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool
+    public function getActiveConfig(string $scopeType = ScopeInterface::SCOPE_STORE): bool
     {
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
         return (bool) $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_ACTIVE, $scopeType, $scopeCode);
     }
 
@@ -75,11 +69,12 @@ class Config implements ConfigInterface
      * Get the JWT value from the config.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or storeId as a string
      * @return string|null
      */
-    public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?string
+    public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE): ?string
     {
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
+
         $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT, $scopeType, $scopeCode);
 
         if ($value === null) {
@@ -104,12 +99,11 @@ class Config implements ConfigInterface
      * Get the endpoint URL.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or ID as a string
      * @return string
      */
-    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
+    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE): string
     {
-        $jwt = $this->getJwt($scopeType, $scopeCode);
+        $jwt = $this->getJwt($scopeType);
 
         return $jwt === null ? '' : (string) $jwt->aud;
     }
@@ -118,12 +112,11 @@ class Config implements ConfigInterface
      * Get the Merchant ID.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or ID as a string
      * @return string
      */
-    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
+    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE): string
     {
-        $jwt = $this->getJwt($scopeType, $scopeCode);
+        $jwt = $this->getJwt($scopeType);
 
         return $jwt === null ? '' : (string) $jwt->merchantId;
     }
@@ -132,12 +125,11 @@ class Config implements ConfigInterface
      * Get the Authorization Token.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or ID as a string
      * @return string
      */
-    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
+    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE): string
     {
-        $jwt = $this->getJwt($scopeType, $scopeCode);
+        $jwt = $this->getJwt($scopeType);
 
         if ($jwt === null) {
             return '';
@@ -150,11 +142,11 @@ class Config implements ConfigInterface
      * Check whether debug mode is enabled.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or ID as a string
      * @return bool
      */
-    public function isDebugEnabled(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool
+    public function isDebugEnabled(string $scopeType = ScopeInterface::SCOPE_STORE): bool
     {
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
         return (bool) $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_DEBUG, $scopeType, $scopeCode);
     }
 
@@ -162,14 +154,13 @@ class Config implements ConfigInterface
      * Get a standard class by decoding the config JWT.
      *
      * @param string $scopeType
-     * @param string|null $scopeCode The store's code or ID as a string
      *
      * @return \stdClass|null
      */
-    private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?stdClass
+    private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE): ?stdClass
     {
-        if (!$this->jwt || $scopeType !== ScopeInterface::SCOPE_STORE || $scopeCode !== null) {
-            $jwt = $this->getJwtConfig($scopeType, $scopeCode);
+        if (!$this->jwt) {
+            $jwt = $this->getJwtConfig($scopeType);
 
             if ($jwt === null) {
                 $this->jwt = null;
@@ -204,24 +195,23 @@ class Config implements ConfigInterface
 
     public function getPayPalBlockConfig(
         string $config,
-        string $scopeType = ScopeInterface::SCOPE_STORE,
-        string $scopeCode = null
+        string $scopeType = ScopeInterface::SCOPE_STORE
     ): string {
-
         $config = self::RVVUP_CONFIG . self::XML_PATH_PAYPAL_BLOCK . $config;
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
 
         return $this->scopeConfig->getValue($config, $scopeType, $scopeCode);
     }
 
     /**
      * @param string $scopeType
-     * @param string|null $scopeCode
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function getValidProductTypes(
-        string $scopeType = ScopeInterface::SCOPE_STORE,
-        string $scopeCode = null
+        string $scopeType = ScopeInterface::SCOPE_STORE
     ): array {
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
         $path = self::RVVUP_CONFIG . self::PRODUCT_RESTRICTIONS . self::XML_PATH_PRODUCT_TYPES_ENABLED;
         $types = $this->scopeConfig->getValue($path, $scopeType, $scopeCode);
         return explode(',', $types);
