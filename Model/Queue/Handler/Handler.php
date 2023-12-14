@@ -69,17 +69,6 @@ class Handler
         try {
             $webhook = $this->webhookRepository->getById($id);
             $payload = $this->serializer->unserialize($webhook->getPayload());
-            // Ensure required params are present
-
-            // Ensure configured merchant_id matches request
-            if ($payload['merchant_id'] !== $this->config->getMerchantId()) {
-                /**
-                 * The configuration in Magento is different from the webhook. We don't want Rvvup's backend to
-                 * continually make repeated calls so return a 200 and log the issue.
-                 */
-                $this->logger->warning("`merchant_id` from webhook does not match configuration");
-                return;
-            }
 
             $rvvupOrderId = $payload['order_id'];
 
