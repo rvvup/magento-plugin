@@ -79,7 +79,8 @@ class Config implements ConfigInterface
         string $scopeType = ScopeInterface::SCOPE_STORE,
         string $scopeCode = null
     ): ?string {
-        $scopeCode = $scopeCode ?: ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
+        $scopeCode = $scopeCode ?:
+            ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
 
         $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT, $scopeType, $scopeCode);
 
