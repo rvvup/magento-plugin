@@ -71,11 +71,14 @@ class Config implements ConfigInterface
      * Get the JWT value from the config.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string|null
      * @throws NoSuchEntityException
      */
-    public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?string
-    {
+    public function getJwtConfig(
+        string $scopeType = ScopeInterface::SCOPE_STORE,
+        string $scopeCode = null
+    ): ?string {
         $scopeCode = $scopeCode ?: ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
 
         $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT, $scopeType, $scopeCode);
@@ -117,6 +120,7 @@ class Config implements ConfigInterface
      * Get the Merchant ID.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string
      * @throws NoSuchEntityException
      */

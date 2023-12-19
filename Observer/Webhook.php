@@ -20,22 +20,22 @@ use Rvvup\Sdk\GraphQlSdkFactory;
 
 class Webhook implements ObserverInterface
 {
-    /** @var string  */
+    /** @var string */
     private const WEB = 'web';
 
-    /** @var StoreManagerInterface  */
+    /** @var StoreManagerInterface */
     private $storeManager;
 
-    /** @var ScopeConfigInterface  */
+    /** @var ScopeConfigInterface */
     private $scopeConfig;
 
-    /** @var Config  */
+    /** @var Config */
     private $config;
 
-    /** @var GraphQlSdkFactory  */
+    /** @var GraphQlSdkFactory */
     private $sdkFactory;
 
-    /** @var UserAgentBuilder  */
+    /** @var UserAgentBuilder */
     private $userAgentBuilder;
 
     /** @var string */
@@ -66,8 +66,10 @@ class Webhook implements ObserverInterface
     }
 
     /**
-     * @throws NoSuchEntityException
+     * @param Observer $observer
+     * @return void
      * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function execute(Observer $observer)
     {
@@ -104,20 +106,27 @@ class Webhook implements ObserverInterface
         }
     }
 
-    /** Register rvvup webhook url */
+    /**
+     * Register rvvup webhook url
+     * @param string $url
+     * @param string $scope
+     * @param string $scopeId
+     * @return void
+     * @throws NoSuchEntityException
+     */
     private function registerWebhookUrl(string $url, string $scope, string $scopeId): void
     {
         $merchantId = $this->config->getMerchantId($scope, $scopeId);
         $endpoint = $this->config->getEndpoint($scope, $scopeId);
         if ($this->merchantId !== $merchantId && $this->endpoint !== $endpoint) {
             $connection = $this->sdkFactory->create([
-            'endpoint' => $endpoint,
-            'merchantId' => $merchantId,
-            'authToken' => $this->config->getAuthToken($scope, $scopeId),
-            'userAgent' => $this->userAgentBuilder->get(),
-            'debug' => false,
-            'adapter' => (new Client()),
-        ]);
+                'endpoint' => $endpoint,
+                'merchantId' => $merchantId,
+                'authToken' => $this->config->getAuthToken($scope, $scopeId),
+                'userAgent' => $this->userAgentBuilder->get(),
+                'debug' => false,
+                'adapter' => (new Client()),
+            ]);
             $connection->registerWebhook($url);
             $this->merchantId = $merchantId;
             $this->endpoint = $endpoint;
