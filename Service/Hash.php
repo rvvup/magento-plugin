@@ -12,6 +12,8 @@ class Hash
     {
         $payment = $quote->getPayment();
         $payment->setAdditionalInformation('quote_hash', $this->getHashForData($quote));
+        // @TODO rework
+        $payment->save();
     }
 
     public function getHashForData(Quote $quote): string

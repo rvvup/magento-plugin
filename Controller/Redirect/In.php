@@ -20,8 +20,10 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Hash;
 use Rvvup\Payments\Service\Order;
 
@@ -79,6 +81,9 @@ class In implements HttpGetActionInterface
      */
     private $hash;
 
+    /** @var SdkProxy  */
+    private $sdkProxy;
+
     /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
@@ -91,6 +96,7 @@ class In implements HttpGetActionInterface
      * @param Data $checkoutHelper
      * @param Order $orderService
      * @param OrderRepositoryInterface $orderRepository
+     * @param SdkProxy $sdkProxy
      * @param Hash $hash
      */
     public function __construct(
@@ -105,6 +111,7 @@ class In implements HttpGetActionInterface
         Data $checkoutHelper,
         Order $orderService,
         OrderRepositoryInterface $orderRepository,
+        SdkProxy $sdkProxy,
         Hash $hash
     ) {
         $this->request = $request;
@@ -118,6 +125,7 @@ class In implements HttpGetActionInterface
         $this->orderService = $orderService;
         $this->checkoutHelper = $checkoutHelper;
         $this->orderRepository = $orderRepository;
+        $this->sdkProxy = $sdkProxy;
         $this->hash = $hash;
     }
 
@@ -189,6 +197,9 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
+        $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+
+        $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
 
         try {
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);

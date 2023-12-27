@@ -17,6 +17,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Hash;
 use Throwable;
 
@@ -198,9 +199,13 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         return [];
     }
 
-    private function createRvvupPayment($order): array
+    private function createRvvupPayment(CartInterface $quote): array
     {
-        $result = $this->commandPool->get('createPayment')->execute(['payment' => $order->getPayment()]);
+        $payment = $quote->getPayment();
+        $result = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
+        $id = $result['data']['paymentCreate']['id'];
+        $payment->setAdditionalInformation(Method::PAYMENT_ID, $id);
+        $payment->save();
         return $result['data']['paymentCreate']['summary']['paymentActions'];
     }
 

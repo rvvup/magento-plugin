@@ -28,8 +28,12 @@ class Method extends Adapter
      * Constant to be used as a key identifier for Rvvup payments.
      */
     public const ORDER_ID = 'rvvup_order_id';
+
     public const DASHBOARD_URL = 'dashboard_url';
+
     public const TRANSACTION_ID = 'transaction_id';
+
+    public const PAYMENT_ID = 'rvvup_payment_id';
 
     public const EXPRESS_PAYMENT_KEY = 'is_rvvup_express_payment';
     public const EXPRESS_PAYMENT_DATA_KEY = 'rvvup_express_payment_data';
