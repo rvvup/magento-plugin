@@ -3,19 +3,26 @@
 namespace Rvvup\Payments\Controller\Redirect;
 
 use Exception;
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Checkout\Helper\Data;
+use Magento\Checkout\Model\Session\Proxy;
+use Magento\Checkout\Model\Type\Onepage;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Service\Hash;
 use Rvvup\Payments\Service\Order;
 
 class In implements HttpGetActionInterface
@@ -35,7 +42,7 @@ class In implements HttpGetActionInterface
 
     /**
      * Set via di.xml
-     * @var \Magento\Framework\Session\SessionManagerInterface|\Magento\Checkout\Model\Session\Proxy
+     * @var SessionManagerInterface|Proxy
      */
     private $checkoutSession;
 
@@ -51,12 +58,26 @@ class In implements HttpGetActionInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var LoggerInterface|RvvupLog
      */
     private $logger;
 
     /** @var Order  */
     private $orderService;
+
+    /** @var QuoteManagement  */
+    private $quoteManagement;
+
+    /** @var Data */
+    private $checkoutHelper;
+
+    /** @var OrderRepositoryInterface  */
+    private $orderRepository;
+
+    /**
+     * @var Hash
+     */
+    private $hash;
 
     /**
      * @param RequestInterface $request
@@ -66,7 +87,11 @@ class In implements HttpGetActionInterface
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
+     * @param QuoteManagement $quoteManagement
+     * @param Data $checkoutHelper
      * @param Order $orderService
+     * @param OrderRepositoryInterface $orderRepository
+     * @param Hash $hash
      */
     public function __construct(
         RequestInterface $request,
@@ -76,7 +101,11 @@ class In implements HttpGetActionInterface
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
         LoggerInterface $logger,
-        Order $orderService
+        QuoteManagement $quoteManagement,
+        Data $checkoutHelper,
+        Order $orderService,
+        OrderRepositoryInterface $orderRepository,
+        Hash $hash
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -85,11 +114,16 @@ class In implements HttpGetActionInterface
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
         $this->logger = $logger;
+        $this->quoteManagement = $quoteManagement;
         $this->orderService = $orderService;
+        $this->checkoutHelper = $checkoutHelper;
+        $this->orderRepository = $orderRepository;
+        $this->hash = $hash;
     }
 
     /**
-     * @return \Magento\Framework\Controller\ResultInterface|\Magento\Framework\Controller\Result\Redirect
+     * @return ResultInterface|Redirect
+     * @throws LocalizedException
      */
     public function execute()
     {
@@ -103,24 +137,20 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        // Get Last success order of the checkout session and validate it exists and that it has a payment.
-        $order = $this->checkoutSession->getLastRealOrder();
+        //capture payment & create order;
+        $quote = $this->checkoutSession->getQuote();
 
-        /** Fix for card payments, as they don't have order in session */
-        if (empty($order->getData())) {
-            $quote = $this->checkoutSession->getQuote();
-            if (!empty($quote->getEntityId())) {
-                $orders = $this->orderService->getAllOrdersByQuote($quote);
-                $order = end($orders);
-                $this->checkoutSession->setData('last_real_order_id', $order->getIncrementId());
-            }
-        }
+        $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
+        $quote->collectTotals();
+        $savedHash = $this->hash->getHashForData($quote);
 
-        if (!$order->getEntityId() || $order->getPayment() === null) {
+        if ($hash !== $savedHash) {
             $this->logger->error(
-                'Could not find ' . (!$order->getEntityId() ? 'order' : 'payment') . ' for the checkout session',
+                'Payment hash when redirecting from Rvvup checkout does not match order in checkout session',
                 [
-                    'order_id' => $order->getEntityId()
+                    'payment_id' => $quote->getPayment()->getEntityId(),
+                    'quote_id' => $quote->getId(),
+                    'rvvup_order_id' => $rvvupId
                 ]
             );
             $this->messageManager->addErrorMessage(
@@ -133,15 +163,18 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
+        $payment = $quote->getPayment();
+
+        $this->setCheckoutMethod($quote);
+
         // Now validate that last payment transaction ID matches the Rvvup ID.
-        $lastTransactionId = $order->getPayment()->getLastTransId();
+        $lastTransactionId = $payment->getAdditionalInformation('transaction_id');
 
         if ($rvvupId !== $lastTransactionId) {
             $this->logger->error(
                 'Payment ID when redirecting from Rvvup checkout does not match order in checkout session',
                 [
-                    'order_id' => $order->getEntityId(),
-                    'payment_id' => $order->getPayment()->getEntityId(),
+                    'payment_id' => $quote->getPayment()->getEntityId(),
                     'last_transaction_id' => $lastTransactionId,
                     'rvvup_order_id' => $rvvupId
                 ]
@@ -155,6 +188,33 @@ class In implements HttpGetActionInterface
 
             return $this->redirectToCart();
         }
+
+
+        try {
+            $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
+        } catch (\Exception $e) {
+            // revert transaction;
+            $this->logger->error(
+                'Order placement within rvvup payment failed',
+                [
+                    'payment_id' => $quote->getPayment()->getEntityId(),
+                    'last_transaction_id' => $lastTransactionId,
+                    'rvvup_order_id' => $rvvupId,
+                    'message' => $e->getMessage()
+                ]
+            );
+            $this->messageManager->addErrorMessage(
+                __(
+                    'An error occurred while creating your order (ID %1). Please contact us.',
+                    $rvvupId
+                )
+            );
+            return $this->redirectToCart();
+        }
+
+        $order = $this->orderRepository->get($orderId);
+
+
 
         try {
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
@@ -172,7 +232,7 @@ class In implements HttpGetActionInterface
             $result = $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])
                 ->execute($order, $rvvupData);
 
-            /** @var \Magento\Framework\Controller\Result\Redirect $redirect */
+            /** @var Redirect $redirect */
             $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
 
             $params = ['_secure' => true];
@@ -191,6 +251,8 @@ class In implements HttpGetActionInterface
                 $messageGroup = SessionMessageInterface::MESSAGE_GROUP;
             }
 
+            $this->checkoutSession->setData('last_real_order_id', $order->getIncrementId());
+
             $this->setSessionMessage($result, $messageGroup ?? null);
 
             $redirect->setPath($result->getRedirectPath(), $params);
@@ -205,7 +267,6 @@ class In implements HttpGetActionInterface
             );
 
             $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
-                'order_id' => $order->getEntityId(),
                 'rvvup_order_id' => $rvvupId,
                 'rvvup_order_status' => $rvvupData['payments'][0]['status'] ?? ''
             ]);
@@ -215,7 +276,28 @@ class In implements HttpGetActionInterface
     }
 
     /**
-     * @return \Magento\Framework\Controller\ResultInterface|\Magento\Framework\Controller\Result\Redirect
+     * Set checkout method
+     *
+     * @param Quote $quote
+     * @return void
+     */
+    private function setCheckoutMethod(Quote $quote): void
+    {
+        if ($quote->getCustomer() && $quote->getCustomer()->getId()) {
+            $quote->setCheckoutMethod(Onepage::METHOD_CUSTOMER);
+            return;
+        }
+        if (!$quote->getCheckoutMethod()) {
+            if ($this->checkoutHelper->isAllowedGuestCheckout($quote)) {
+                $quote->setCheckoutMethod(Onepage::METHOD_GUEST);
+            } else {
+                $quote->setCheckoutMethod(Onepage::METHOD_REGISTER);
+            }
+        }
+    }
+
+    /**
+     * @return ResultInterface|Redirect
      */
     private function redirectToCart()
     {
@@ -232,7 +314,7 @@ class In implements HttpGetActionInterface
      * Default to Warning container if none of the above
      * Allow custom message group for the checkout page specifically.
      *
-     * @param \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult
+     * @param ProcessOrderResultInterface $processOrderResult
      * @param string|null $messageGroup
      * @return void
      */

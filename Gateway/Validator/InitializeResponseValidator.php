@@ -29,7 +29,12 @@ class InitializeResponseValidator extends AbstractValidator
         if (!isset($response['data']['orderCreate']['id']) &&
             !isset($response['data']['orderUpdate']['id'])
         ) {
-            $fails[] = 'Rvvup order ID is not set';
+            if (empty($response)) {
+             //@TODO add quote validation
+
+            } else {
+                $fails[] = 'Rvvup order ID is not set';
+            }
         }
 
         return $this->createResult(empty($fails), $fails);

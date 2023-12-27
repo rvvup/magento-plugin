@@ -66,6 +66,11 @@ class TransactionInitialize implements ClientInterface
      */
     public function placeRequest(TransferInterface $transferObject): array
     {
+
+        if (empty($transferObject->getBody())) {
+            return [];
+        }
+
         try {
             if (isset($transferObject->getBody()['id']) && isset($transferObject->getBody()['express'])) {
                 $order = $this->sdkProxy->getOrder($transferObject->getBody()['id']);

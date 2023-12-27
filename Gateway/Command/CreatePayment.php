@@ -48,6 +48,7 @@ class CreatePayment implements CommandInterface
             'orderId' => $orderId,
             'method' => $method,
             'type' => $type,
+            'captureType' => 'AUTOMATIC_PLUGIN',
             'idempotencyKey' => $idempotencyKey,
             'merchantId' => $this->config->getMerchantId()
             ]

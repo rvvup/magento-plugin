@@ -41,22 +41,8 @@ class Config implements ConfigInterface
             return false;
         }
 
-        $jwt = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT);
-        if (!is_string($jwt)) {
-            return false;
-        }
-        $parts = explode('.', $jwt);
-        if (count($parts) !== 3) {
-            return false;
-        }
-        list($head, $body, $crypto) = $parts;
-        try {
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-            $this->jwt = json_decode(base64_decode($body), false, 2, JSON_THROW_ON_ERROR);
-            return true;
-        } catch (Exception $e) {
-            return false;
-        }
+        $jwt = $this->getJwt($scopeType, $scopeCode);
+        return (bool)$jwt;
     }
 
     /**

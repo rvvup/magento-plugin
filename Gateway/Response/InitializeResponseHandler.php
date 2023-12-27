@@ -9,6 +9,7 @@ use Magento\Framework\DataObjectFactory;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Rvvup\Payments\Gateway\Method;
 
 class InitializeResponseHandler implements HandlerInterface
@@ -18,13 +19,19 @@ class InitializeResponseHandler implements HandlerInterface
      */
     private $dataObjectFactory;
 
+    /** @var Payment */
+    private $paymentResource;
+
     /**
-     * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
-     * @return void
+     * @param DataObjectFactory $dataObjectFactory
+     * @param Payment $paymentResource
      */
-    public function __construct(DataObjectFactory $dataObjectFactory)
-    {
+    public function __construct(
+        DataObjectFactory $dataObjectFactory,
+        Payment $paymentResource
+    ) {
         $this->dataObjectFactory = $dataObjectFactory;
+        $this->paymentResource = $paymentResource;
     }
 
     /**
@@ -34,31 +41,15 @@ class InitializeResponseHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response): void
     {
-        $payment = SubjectReader::readPayment($handlingSubject)->getPayment();
-
-        $responseDataObject = $this->getResponseDataObject($response);
-
-        $payment = $this->setPaymentAdditionalInformation($payment, $responseDataObject);
-
-        // If the payment method instance is not an Order Payment, no further actions.
-        // In that scenario, it is a Quote Payment instance for an Express Create.
-        if (!method_exists($payment, 'getOrder')) {
+        if (!isset($handlingSubject['quote'])) {
             return;
         }
 
-        // Do not let magento set status to processing, this will be handled once back from the redirect.
-        $payment->setIsTransactionPending(true);
-        // do not close transaction, so you can do a cancel() and void
-        $payment->setIsTransactionClosed(false);
-        $payment->setShouldCloseParentTransaction(false);
+        $payment = $handlingSubject['quote']->getPayment();
 
-        // Set the Rvvup Order ID as the transaction ID
-        $payment->setTransactionId($responseDataObject->getData('id'));
-        $payment->setCcTransId($responseDataObject->getData('id'));
-        $payment->setLastTransId($responseDataObject->getData('id'));
+        $responseDataObject = $this->getResponseDataObject($response);
 
-        // Don't send customer email.
-        $payment->getOrder()->setCanSendNewEmailFlag(false);
+        $this->setPaymentAdditionalInformation($payment, $responseDataObject);
     }
 
     /**
@@ -73,7 +64,7 @@ class InitializeResponseHandler implements HandlerInterface
      * @return \Magento\Payment\Model\InfoInterface
      */
     private function setPaymentAdditionalInformation(
-        InfoInterface $payment,
+         $payment,
         DataObject $responseDataObject
     ): InfoInterface {
         $payment->setAdditionalInformation(Method::ORDER_ID, $responseDataObject->getData('id'));
@@ -105,8 +96,10 @@ class InitializeResponseHandler implements HandlerInterface
 
         // Otherwise, set normally.
         $payment->setAdditionalInformation('status', $responseDataObject->getData('status'));
-        $payment->setAdditionalInformation('dashboardUrl', $responseDataObject->getData('dashboardUrl'));
+        $payment->setAdditionalInformation(Method::DASHBOARD_URL, $responseDataObject->getData('dashboardUrl'));
         $payment->setAdditionalInformation('paymentActions', $paymentActions);
+        $payment->setAdditionalInformation(Method::TRANSACTION_ID, $responseDataObject->getData('id'));
+        $this->paymentResource->save($payment);
 
         return $payment;
     }

@@ -9,11 +9,15 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
+use Rvvup\Payments\Service\Hash;
 use Throwable;
 
 class PaymentActionsGet implements PaymentActionsGetInterface
@@ -55,6 +59,15 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      */
     private $commandPool;
 
+    /** @var QuoteRepository  */
+    private $quoteRepository;
+
+    /** @var OrderDataBuilder  */
+    private $orderDataBuilder;
+
+    /** @var Hash  */
+    private $hashService;
+
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param SortOrderBuilder $sortOrderBuilder
@@ -62,6 +75,9 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      * @param PaymentActionInterfaceFactory $paymentActionInterfaceFactory
      * @param SdkProxy $sdkProxy
      * @param CommandPoolInterface $commandPool
+     * @param QuoteRepository $quoteRepository
+     * @param OrderDataBuilder $orderDataBuilder
+     * @param Hash $hashService
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -71,6 +87,9 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         PaymentActionInterfaceFactory $paymentActionInterfaceFactory,
         SdkProxy $sdkProxy,
         CommandPoolInterface $commandPool,
+        QuoteRepository $quoteRepository,
+        OrderDataBuilder $orderDataBuilder,
+        Hash $hashService,
         LoggerInterface $logger
     ) {
         $this->sortOrderBuilder = $sortOrderBuilder;
@@ -79,6 +98,9 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         $this->paymentActionInterfaceFactory = $paymentActionInterfaceFactory;
         $this->sdkProxy = $sdkProxy;
         $this->commandPool = $commandPool;
+        $this->quoteRepository = $quoteRepository;
+        $this->orderDataBuilder = $orderDataBuilder;
+        $this->hashService = $hashService;
         $this->logger = $logger;
     }
 
@@ -92,15 +114,18 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      */
     public function execute(string $cartId, ?string $customerId = null): array
     {
-        $order = $this->getOrderByCartIdAndCustomerId($cartId, $customerId);
+        $quote = $this->quoteRepository->get($cartId);
+        $quote->reserveOrderId();
+        $this->quoteRepository->save($quote);
 
-        $this->validate($order, $cartId, $customerId);
+        // create rvvup order
+        $this->commandPool->get('initialize')->execute(['quote'=> $quote]);
 
-        if ($order->getPayment()->getAdditionalInformation('is_rvvup_express_payment')) {
-            $paymentActions = $this->getExpressOrderPaymentActions($order);
-        } else {
-            $paymentActions = $this->createRvvupPayment($order);
-        }
+        $this->hashService->saveQuoteHash($quote);
+
+        // create rvvup payment
+        $paymentActions = $this->createRvvupPayment($quote);
+
 
         $paymentActionsDataArray = [];
 
@@ -125,7 +150,6 @@ class PaymentActionsGet implements PaymentActionsGetInterface
                 'Error loading Payment Actions for user. Failed return result with message: ' . $t->getMessage(),
                 [
                     'quote_id' => $cartId,
-                    'order_id' => $order->getEntityId(),
                     'customer_id' => $customerId
                 ]
             );
@@ -136,7 +160,6 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         if (empty($paymentActionsDataArray)) {
             $this->logger->error('Error loading Payment Actions for user. No payment actions found.', [
                 'quote_id' => $cartId,
-                'order_id' => $order->getEntityId(),
                 'customer_id' => $customerId
             ]);
 
@@ -144,55 +167,6 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         }
 
         return $paymentActionsDataArray;
-    }
-
-    /**
-     * @param string $cartId
-     * @param string|null $customerId
-     * @return OrderInterface
-     * @throws LocalizedException
-     */
-    private function getOrderByCartIdAndCustomerId(string $cartId, ?string $customerId = null): OrderInterface
-    {
-        try {
-            $sortOrder = $this->sortOrderBuilder->setDescendingDirection()
-                ->setField('created_at')
-                ->create();
-
-            $this->searchCriteriaBuilder->setPageSize(1)
-                ->addSortOrder($sortOrder)
-                ->addFilter('quote_id', $cartId);
-
-            // If customer ID is provided, pass it.
-            if ($customerId !== null) {
-                $this->searchCriteriaBuilder->addFilter('customer_id', $customerId);
-            }
-
-            $searchCriteria = $this->searchCriteriaBuilder->create();
-
-            $result = $this->orderRepository->getList($searchCriteria);
-        } catch (Exception $e) {
-            $this->logger->error('Error loading Payment Actions for order with message: ' . $e->getMessage(), [
-                'quote_id' => $cartId,
-                'customer_id' => $customerId
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
-
-        $orders = $result->getItems();
-        $order = reset($orders);
-
-        if (!$order) {
-            $this->logger->error('Error loading Payment Actions. No order found.', [
-                'quote_id' => $cartId,
-                'customer_id' => $customerId
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
-
-        return $order;
     }
 
     /**
