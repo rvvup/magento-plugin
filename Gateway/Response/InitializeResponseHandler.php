@@ -42,9 +42,6 @@ class InitializeResponseHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response): void
     {
-        if (!isset($handlingSubject['quote'])) {
-            return;
-        }
 
         $payment = $handlingSubject['quote']->getPayment();
 

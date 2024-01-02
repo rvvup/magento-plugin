@@ -60,10 +60,6 @@ class InitializeDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject): array
     {
-        if (!isset($buildSubject['quote'])){
-            return [];
-        }
-
         $quote = $buildSubject['quote'];
 
         // Otherwise, we should have a Quote Payment model instance and return result if set.

@@ -172,6 +172,7 @@ class In implements HttpGetActionInterface
 
             $result = $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])
                 ->execute($order, $rvvupData);
+
             return $this->processResult($result, $order);
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(
@@ -259,6 +260,7 @@ class In implements HttpGetActionInterface
 
             return $this->redirectToCart();
         }
+        return null;
     }
 
     /**
@@ -280,8 +282,6 @@ class In implements HttpGetActionInterface
             $params['_fragment'] = 'payment';
             $messageGroup = SessionMessageInterface::MESSAGE_GROUP;
         }
-
-        $this->checkoutSession->setData('last_real_order_id', $order->getIncrementId());
 
         $result->setSessionMessage($messageGroup ?? null);
 
