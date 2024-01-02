@@ -64,4 +64,12 @@ interface ProcessOrderResultInterface
      * @return void
      */
     public function setCustomerMessage(string $customerMessage): void;
+
+    /**
+     * @param string|null $messageGroup
+     * @return void
+     */
+    public function setSessionMessage(
+        ?string $messageGroup = null
+    ): void;
 }

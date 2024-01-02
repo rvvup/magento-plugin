@@ -3,7 +3,6 @@
 namespace Rvvup\Payments\Gateway;
 
 use Magento\Framework\Event\ManagerInterface;
-use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Gateway\Command\CommandManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
@@ -13,8 +12,6 @@ use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
 use Magento\Payment\Model\Method\Adapter;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Gateway\Validator\InitializeResponseValidator;
-use Rvvup\Payments\Service\Hash;
 use Throwable;
 
 class Method extends Adapter
@@ -77,18 +74,6 @@ class Method extends Adapter
      */
     private $logger;
 
-    /** @var InitializeResponseValidator  */
-    private $validator;
-
-    /** @var ResultInterfaceFactory  */
-    private $resultInterfaceFactory;
-
-    /** @var SessionManagerInterface  */
-    private $checkoutSession;
-
-    /** @var Hash  */
-    private $hashService;
-
     /**
      * @param ManagerInterface $eventManager
      * @param ValueHandlerPoolInterface $valueHandlerPool
@@ -99,10 +84,6 @@ class Method extends Adapter
      * @param string $infoBlockType
      * @param StoreManagerInterface $storeManager
      * @param LoggerInterface|RvvupLog $logger // Set via di.xml
-     * @param InitializeResponseValidator $validator
-     * @param ResultInterfaceFactory $resultInterfaceFactory
-     * @param SessionManagerInterface $checkoutSession
-     * @param Hash $hashService
      * @param CommandPoolInterface|null $commandPool
      * @param ValidatorPoolInterface|null $validatorPool
      * @param CommandManagerInterface|null $commandExecutor
@@ -118,10 +99,6 @@ class Method extends Adapter
         string $infoBlockType,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
-        InitializeResponseValidator $validator,
-        ResultInterfaceFactory $resultInterfaceFactory,
-        SessionManagerInterface $checkoutSession,
-        Hash $hashService,
         CommandPoolInterface $commandPool = null,
         ValidatorPoolInterface $validatorPool = null,
         CommandManagerInterface $commandExecutor = null,
@@ -144,10 +121,6 @@ class Method extends Adapter
         $this->limits = $limits;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
-        $this->validator = $validator;
-        $this->resultInterfaceFactory = $resultInterfaceFactory;
-        $this->hashService = $hashService;
-        $this->checkoutSession = $checkoutSession;
     }
 
     /**

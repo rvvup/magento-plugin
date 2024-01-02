@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Gateway\Response;
 
 use Magento\Framework\DataObject;
 use Magento\Framework\DataObjectFactory;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Payment\Model\InfoInterface;
@@ -62,9 +63,10 @@ class InitializeResponseHandler implements HandlerInterface
      * @param \Magento\Payment\Model\InfoInterface $payment
      * @param \Magento\Framework\DataObject $responseDataObject
      * @return \Magento\Payment\Model\InfoInterface
+     * @throws AlreadyExistsException
      */
     private function setPaymentAdditionalInformation(
-         $payment,
+        $payment,
         DataObject $responseDataObject
     ): InfoInterface {
         $payment->setAdditionalInformation(Method::ORDER_ID, $responseDataObject->getData('id'));

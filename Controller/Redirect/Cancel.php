@@ -104,8 +104,7 @@ class Cancel implements HttpGetActionInterface
                 $messageGroup = SessionMessageInterface::MESSAGE_GROUP;
             }
 
-            $this->setSessionMessage($result, $messageGroup ?? null);
-
+            $result->setSessionMessage($messageGroup ?? null);
             $redirect->setPath($result->getRedirectPath(), $params);
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__('An error occurred while processing your payment.'));
@@ -113,37 +112,5 @@ class Cancel implements HttpGetActionInterface
             $redirect->setPath(In::ERROR, ['_secure' => true]);
         }
         return $redirect;
-    }
-
-    /**
-     * Set the session message in the message container.
-     *
-     * Only handle success & error messages.
-     * Default to Warning container if none of the above
-     * Allow custom message group for the checkout page specifically.
-     *
-     * @param \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult
-     * @param string|null $messageGroup
-     * @return void
-     */
-    private function setSessionMessage(
-        ProcessOrderResultInterface $processOrderResult,
-        ?string $messageGroup = null
-    ): void {
-        // If no message to display, no action.
-        if ($processOrderResult->getCustomerMessage() === null) {
-            return;
-        }
-
-        switch ($processOrderResult->getResultType()) {
-            case ProcessOrderResultInterface::RESULT_TYPE_SUCCESS:
-                $this->messageManager->addSuccessMessage(__($processOrderResult->getCustomerMessage()), $messageGroup);
-                break;
-            case ProcessOrderResultInterface::RESULT_TYPE_ERROR:
-                $this->messageManager->addErrorMessage(__($processOrderResult->getCustomerMessage()), $messageGroup);
-                break;
-            default:
-                $this->messageManager->addWarningMessage(__($processOrderResult->getCustomerMessage()), $messageGroup);
-        }
     }
 }
