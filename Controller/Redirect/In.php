@@ -163,7 +163,7 @@ class In implements HttpGetActionInterface
             );
             $this->messageManager->addErrorMessage(
                 __(
-                    'An error occurred while processing your payment (ID %1). Please contact us.',
+                    'Your cart was modified after making payment request, please place order again',
                     $rvvupId
                 )
             );
