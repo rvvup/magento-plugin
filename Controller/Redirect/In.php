@@ -204,7 +204,7 @@ class In implements HttpGetActionInterface
         try {
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
         } catch (\Exception $e) {
-            // revert transaction;
+            $this->sdkProxy->voidPayment($lastTransactionId, $rvvupPaymentId);
             $this->logger->error(
                 'Order placement within rvvup payment failed',
                 [
@@ -225,16 +225,9 @@ class In implements HttpGetActionInterface
 
         $order = $this->orderRepository->get($orderId);
 
-
-
         try {
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId);
-
-            if (empty($rvvupData)) {
-                $this->checkoutSession->restoreQuote();
-                return $this->redirectToCart();
-            }
 
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
                 $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
