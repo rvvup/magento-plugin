@@ -167,7 +167,9 @@ class In implements HttpGetActionInterface
             $rvvupData = $this->paymentDataGet->execute($rvvupId);
 
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
-                $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+                if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {
+                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+                }
             }
 
             $result = $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])

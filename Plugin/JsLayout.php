@@ -57,10 +57,7 @@ class JsLayout
      */
     public function beforeProcess(LayoutProcessor $subject, $jsLayout): array
     {
-        if ($this->config->isActive(
-            ScopeInterface::SCOPE_STORE,
-            $this->getStore() === null ? null : $this->getStore()->getCode()
-        )) {
+        if ($this->config->isActive()) {
             // Add payment methods.
             $renders = &$jsLayout["components"]["checkout"]["children"]["steps"]["children"]["billing-step"]["children"]
             ["payment"]["children"]["renders"]["children"];

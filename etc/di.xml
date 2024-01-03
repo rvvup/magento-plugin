@@ -174,9 +174,6 @@
     <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
         <plugin name="Rvvup_Payments::quote.api.payment_method_management.remove_express_payment_info_on_method_change.plugin"
                 type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\RemoveExpressPaymentInfoOnMethodChange" />
-    </type>
-
-    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
         <plugin name="Rvvup_Payments::quote.api.payment_method_management.limit_cart_express_payment.plugin"
                 type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\LimitCartExpressPayment" />
     </type>
@@ -283,8 +280,10 @@
                 <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
                 <item name="EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
                 <item name="FAILED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
+                <item name="AUTHORIZATION_EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Cancel</item>
                 <item name="PENDING" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
                 <item name="REQUIRES_ACTION" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
+                <item name="AUTHORIZED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
                 <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
                 <item name="REQUIRES_PAYMENT" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\UpdateOrder</item>
             </argument>

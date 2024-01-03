@@ -54,6 +54,10 @@ class CreatePayment implements CommandInterface
             ]
         ];
 
+        if ($captureType = $payment->getMethodInstance()->getCaptureType()) {
+            $data['input']['captureType'] = $captureType;
+        }
+
         return $this->sdkProxy->createPayment(
             $data
         );
