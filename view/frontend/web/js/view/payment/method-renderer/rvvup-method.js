@@ -58,7 +58,7 @@ define([
 
                 quote.paymentMethod.subscribe(function (data) {
                     // If we move away from Paypal method and we already have an order ID then trigger cancel.
-                    if (data.method !== 'rvvup_PAYPAL' && rvvupMethodProperties.getPlacedOrderId() !== null) {
+                    if (data.method !== 'rvvup_PAYPAL') {
                         this.cancelPayPalPayment();
                     }
 
@@ -111,28 +111,6 @@ define([
                     }
                 }, false);
 
-                /**
-                 * Add event listener on AJAX success event of order placement which returns the order ID.
-                 * Set placedOrderId attribute to use if required from the component. We expect an integer.
-                 * Set the value only if the payment was done via a Rvvup payment component.
-                 */
-                $(document).ajaxSuccess(function (event, xhr, settings) {
-                    if (settings.type !== 'POST' ||
-                        xhr.status !== 200 ||
-                        !settings.url.includes('/payment-information') ||
-                        !xhr.hasOwnProperty('responseJSON')
-                    ) {
-                        return;
-                    }
-
-                    /* Check we are in current component, by our model is defined */
-                    if (typeof rvvupMethodProperties === 'undefined') {
-                        return;
-                    }
-
-                    /* if response is a positive integer, set it as the order ID. */
-                    rvvupMethodProperties.setPlacedOrderId(/^\d+$/.test(xhr.responseJSON) ? xhr.responseJSON : null);
-                });
                 /* Cancel Express Payment on click event. */
                 $(document).on('click', 'a#' + this.getCancelExpressPaymentLinkId(), (e) => {
                     e.preventDefault();
@@ -152,14 +130,6 @@ define([
             checkDomElement: function(event) {
                 // Setup elements we want to make sure we cancel on.
                 const elements = document.querySelectorAll('button.action, span[id="block-discount-heading"], span[id="block-giftcard-heading"], .opc-progress-bar-item, input[id="billing-address-same-as-shipping-rvvup_PAYPAL"]');
-                // Only check if we have a placeOrderID this shows if we have clicked on the cards
-                if (rvvupMethodProperties.getPlacedOrderId() !== null) {
-                    // If we are not in the boundary and have clicked on the elements above cancel payment.
-                    if(Array.from(elements).some(element => element.contains(event.target))) {
-                        this.cancelPayPalPayment();
-                        document.removeEventListener("click", this.checkDomElement);
-                    }
-                }
             },
 
             cancelPayPalPayment: function () {
@@ -202,7 +172,6 @@ define([
                         formId: "st-form",
                         submitCallback: function (data) {
                             var submitData = {
-                                order_id: rvvupMethodProperties.getPlacedOrderId(),
                                 auth: data.jwt,
                                 form_key: $.mage.cookies.get('form_key')
                             };
@@ -360,11 +329,7 @@ define([
                             self.isPlaceOrderActionAllowed(false);
                             return self.getPlaceOrderDeferredObject()
                                 .done(function () {
-                                    if (rvvupMethodProperties.getPlacedOrderId() !== null) {
-                                        return actions.resolve();
-                                    }
-
-                                    return actions.reject();
+                                    return actions.resolve();
                                 }).fail(function () {
                                     return actions.reject();
                                 }).always(function () {
