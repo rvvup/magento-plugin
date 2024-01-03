@@ -194,4 +194,10 @@ class Method extends Adapter
     {
         return $this->captureType;
     }
+
+    /** @inheritDoc */
+    public function validate()
+    {
+        return $this;
+    }
 }

@@ -31,10 +31,10 @@ runs:
         COMPOSER_MEMORY_LIMIT=-1 composer create-project --repository-url=https://repo.magento.com/ ${{ inputs.magento-version }} build
         cd build
         composer require rvvup/sdk
-        cp ../CI/config.php app/etc/config.php
         mkdir -p app/code/Rvvup/Payments
         rsync -a --exclude=.gitignore --exclude=*.md --exclude=phpcs.xml --exclude=phpunit.xml --exclude=phpstan.neon --exclude=renovate.json --exclude=composer.json --exclude=.github/ --exclude=build/ --exclude=.git/ ../ app/code/Rvvup/Payments
         ls -la app/code/Rvvup/Payments
+        php -d memory_limit=-1 bin/magento setup:upgrade
         php -d memory_limit=-1 bin/magento setup:di:compile
         php -d memory_limit=-1 bin/magento setup:static-content:deploy en_GB en_US --jobs=10 -f
       shell: bash

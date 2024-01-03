@@ -86,7 +86,7 @@ class Refund implements CommandInterface
         );
 
         $result = $this->sdkProxy->refundCreate($input);
-        $this->cache->clear($rvvupOrderId);
+        $this->cache->clear($rvvupOrderId, $order->getState());
         $refundId = $result['id'];
         $refundStatus = $result['status'];
 

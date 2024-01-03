@@ -36,7 +36,8 @@ class Hash
         foreach ($quote->getTotals() as $total) {
             $hashedValues[$total->getCode()] = $total->getValue();
         }
-        foreach ($quote->getItems() as $item) {
+        $items = $quote->getItems() ?: $quote->getItemsCollection()->getItems();
+        foreach ($items as $item) {
             $hashedValues[$item->getSku()] = $item->getQty() . '_' . $item->getPrice();
         }
 

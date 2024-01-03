@@ -5,43 +5,43 @@
     <!-- Create Express Payment for logged-in & guest users -->
     <!-- Payment Action model di -->
     <preference for="Rvvup\Payments\Api\Data\PaymentActionInterface"
-                type="Rvvup\Payments\Model\PaymentAction" />
+                type="Rvvup\Payments\Model\PaymentAction"/>
     <preference for="Rvvup\Payments\Api\ExpressPaymentCreateInterface"
-                type="Rvvup\Payments\Model\ExpressPaymentCreate" />
+                type="Rvvup\Payments\Model\ExpressPaymentCreate"/>
     <preference for="Rvvup\Payments\Api\GuestExpressPaymentCreateInterface"
-                type="Rvvup\Payments\Model\GuestExpressPaymentCreate" />
+                type="Rvvup\Payments\Model\GuestExpressPaymentCreate"/>
     <!-- Remove Express Payment Data from payment method for logged-in & guest users -->
     <preference for="Rvvup\Payments\Api\GuestCartExpressPaymentRemoveInterface"
-                type="Rvvup\Payments\Model\GuestCartExpressPaymentRemove" />
+                type="Rvvup\Payments\Model\GuestCartExpressPaymentRemove"/>
     <preference for="Rvvup\Payments\Api\CartExpressPaymentRemoveInterface"
-                type="Rvvup\Payments\Model\CartExpressPaymentRemove" />
+                type="Rvvup\Payments\Model\CartExpressPaymentRemove"/>
     <!-- Get Cart Payment Actions for logged-in & guest users -->
     <preference for="Rvvup\Payments\Api\CartPaymentActionsGetInterface"
-                type="Rvvup\Payments\Model\CartPaymentActionsGet" />
+                type="Rvvup\Payments\Model\CartPaymentActionsGet"/>
     <preference for="Rvvup\Payments\Api\GuestCartPaymentActionsGetInterface"
-                type="Rvvup\Payments\Model\GuestCartPaymentActionsGet" />
-    <preference for="Rvvup\Payments\Model\ConfigInterface" type="Rvvup\Payments\Model\Config" />
+                type="Rvvup\Payments\Model\GuestCartPaymentActionsGet"/>
+    <preference for="Rvvup\Payments\Model\ConfigInterface" type="Rvvup\Payments\Model\Config"/>
     <preference for="Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface"
-                type="Rvvup\Payments\Model\PaymentMethodsAssetsGet" />
+                type="Rvvup\Payments\Model\PaymentMethodsAssetsGet"/>
     <preference for="Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface"
-                type="Rvvup\Payments\Model\PaymentMethodsSettingsGet" />
+                type="Rvvup\Payments\Model\PaymentMethodsSettingsGet"/>
     <preference for="Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface"
-                type="Rvvup\Payments\Model\Environment\GetEnvironmentVersions" />
+                type="Rvvup\Payments\Model\Environment\GetEnvironmentVersions"/>
     <preference for="Rvvup\Payments\Model\IsPaymentMethodAvailableInterface"
-                type="Rvvup\Payments\Model\IsPaymentMethodAvailable" />
+                type="Rvvup\Payments\Model\IsPaymentMethodAvailable"/>
     <preference for="Rvvup\Payments\Model\PaymentActionsGetInterface"
-                type="Rvvup\Payments\Model\PaymentActionsGet" />
+                type="Rvvup\Payments\Model\PaymentActionsGet"/>
     <preference for="Rvvup\Payments\Model\PaymentMethodsAvailableGetInterface"
-                type="Rvvup\Payments\Model\PaymentMethodsAvailableGet" />
+                type="Rvvup\Payments\Model\PaymentMethodsAvailableGet"/>
     <preference for="Rvvup\Payments\Api\Data\ProcessOrderResultInterface"
-                type="Rvvup\Payments\Model\ProcessOrderResult" />
+                type="Rvvup\Payments\Model\ProcessOrderResult"/>
     <preference for="Rvvup\Payments\Model\Payment\PaymentCreateExpressInterface"
-                type="Rvvup\Payments\Model\Payment\PaymentCreateExpress" />
+                type="Rvvup\Payments\Model\Payment\PaymentCreateExpress"/>
     <preference for="Rvvup\Payments\Model\Payment\PaymentDataGetInterface"
-                type="Rvvup\Payments\Model\Payment\PaymentDataGet" />
+                type="Rvvup\Payments\Model\Payment\PaymentDataGet"/>
     <!-- Checks -->
     <preference for="Rvvup\Payments\Model\Checks\HasCartExpressPaymentInterface"
-                type="Rvvup\Payments\Model\Checks\HasCartExpressPayment" />
+                type="Rvvup\Payments\Model\Checks\HasCartExpressPayment"/>
 
     <!-- Custom Rvvup Logger -->
     <virtualType name="RvvupLogHandler" type="\Magento\Framework\Logger\Handler\Base">
@@ -53,7 +53,7 @@
     <virtualType name="RvvupLog" type="Monolog\Logger">
         <arguments>
             <argument name="name" xsi:type="string">Rvvup</argument>
-            <argument name="handlers"  xsi:type="array">
+            <argument name="handlers" xsi:type="array">
                 <item name="system" xsi:type="object">RvvupLogHandler</item>
             </argument>
         </arguments>
@@ -67,7 +67,7 @@
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form\Cc</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupValueHandlerPool</argument>
-            <argument name="commandPool" xsi:type="object">Rvvup\Payments\Model\Mock\CommandPool</argument>
+            <argument name="commandPool" xsi:type="object">\Rvvup\Payments\Gateway\CommandPool</argument>
         </arguments>
     </virtualType>
 
@@ -107,24 +107,35 @@
             <argument name="commands" xsi:type="array">
                 <item name="initialize" xsi:type="string">Rvvup\Payments\Gateway\Command\InitializeCommand</item>
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
-                <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
-                <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
                 <item name="createPayment" xsi:type="string">Rvvup\Payments\Gateway\Command\CreatePayment</item>
             </argument>
         </arguments>
     </virtualType>
 
+    <type name="\Rvvup\Payments\Gateway\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
+            </argument>
+        </arguments>
+    </type>
+
     <!-- Initialize Command -->
-    <virtualType name="Rvvup\Payments\Gateway\Command\InitializeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+    <virtualType name="Rvvup\Payments\Gateway\Command\InitializeCommand"
+                 type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
             <argument name="requestBuilder" xsi:type="object">RvvupInitializeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Rvvup\Payments\Gateway\Http\TransferFactory</argument>
             <argument name="client"
-                      xsi:type="object">Rvvup\Payments\Gateway\Http\Client\TransactionInitialize</argument>
+                      xsi:type="object">Rvvup\Payments\Gateway\Http\Client\TransactionInitialize
+            </argument>
             <argument name="handler"
-                      xsi:type="object">\Rvvup\Payments\Gateway\Response\InitializeResponseHandler</argument>
+                      xsi:type="object">\Rvvup\Payments\Gateway\Response\InitializeResponseHandler
+            </argument>
             <argument name="validator"
-                      xsi:type="object">Rvvup\Payments\Gateway\Validator\InitializeResponseValidator</argument>
+                      xsi:type="object">Rvvup\Payments\Gateway\Validator\InitializeResponseValidator
+            </argument>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </virtualType>
@@ -172,10 +183,11 @@
     <!-- Plugins -->
     <!-- Remove express paymment additional information from payment object if changing payment method -->
     <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
-        <plugin name="Rvvup_Payments::quote.api.payment_method_management.remove_express_payment_info_on_method_change.plugin"
-                type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\RemoveExpressPaymentInfoOnMethodChange" />
+        <plugin
+            name="Rvvup_Payments::quote.api.payment_method_management.remove_express_payment_info_on_method_change.plugin"
+            type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\RemoveExpressPaymentInfoOnMethodChange"/>
         <plugin name="Rvvup_Payments::quote.api.payment_method_management.limit_cart_express_payment.plugin"
-                type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\LimitCartExpressPayment" />
+                type="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\LimitCartExpressPayment"/>
     </type>
 
     <type name="Magento\Payment\Helper\Data">
@@ -241,7 +253,8 @@
         <arguments>
             <argument name="additionalChecks" xsi:type="array">
                 <item name="rvvup_payment_methods_restricted_product_specification"
-                      xsi:type="string">rvvup_payment_methods_restricted_product_specification</item>
+                      xsi:type="string">rvvup_payment_methods_restricted_product_specification
+                </item>
             </argument>
         </arguments>
     </type>
@@ -251,7 +264,8 @@
         <arguments>
             <argument name="mapping" xsi:type="array">
                 <item name="rvvup_payment_methods_restricted_product_specification"
-                      xsi:type="object">Rvvup\Payments\Model\Checks\HasCartRestrictedProduct</item>
+                      xsi:type="object">Rvvup\Payments\Model\Checks\HasCartRestrictedProduct
+                </item>
             </argument>
         </arguments>
     </type>
