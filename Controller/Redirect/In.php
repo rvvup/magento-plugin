@@ -197,7 +197,6 @@ class In implements HttpGetActionInterface
             $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
         } catch (\Exception $e) {
             $this->orderManagement->cancel($orderId);
-            $this->sdkProxy->voidPayment($lastTransactionId, $rvvupPaymentId);
 
             $this->logger->error(
                 'Order placement failed during payment capture',
