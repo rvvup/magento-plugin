@@ -32,6 +32,8 @@ class Method extends Adapter
 
     public const PAYMENT_ID = 'rvvup_payment_id';
 
+    public const CREATE_NEW = 'should_create_new_rvvup_order';
+
     public const EXPRESS_PAYMENT_KEY = 'is_rvvup_express_payment';
     public const EXPRESS_PAYMENT_DATA_KEY = 'rvvup_express_payment_data';
 

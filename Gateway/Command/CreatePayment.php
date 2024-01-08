@@ -4,6 +4,7 @@ namespace Rvvup\Payments\Gateway\Command;
 
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\SdkProxy;
@@ -19,15 +20,23 @@ class CreatePayment implements CommandInterface
     private $config;
 
     /**
+     * @var Payment
+     */
+    private $paymentResource;
+
+    /**
      * @param SdkProxy $sdkProxy
      * @param ConfigInterface $config
+     * @param Payment $paymentResource
      */
     public function __construct(
         SdkProxy $sdkProxy,
-        ConfigInterface $config
+        ConfigInterface $config,
+        Payment $paymentResource
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->config = $config;
+        $this->paymentResource = $paymentResource;
     }
 
     public function execute(array $commandSubject)
@@ -38,7 +47,7 @@ class CreatePayment implements CommandInterface
         $orderId = $payment->getAdditionalInformation()['rvvup_order_id'];
         $type = 'STANDARD';
 
-        if ($payment->getAdditionalInformation('is_rvvup_express_payment')) {
+        if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {
             $type = 'EXPRESS';
         }
         $idempotencyKey = (string) time();
@@ -55,11 +64,14 @@ class CreatePayment implements CommandInterface
         ];
 
         if ($captureType = $payment->getMethodInstance()->getCaptureType()) {
-            $data['input']['captureType'] = $captureType;
+            if($captureType != 'AUTOMATIC_PLUGIN' && $captureType != 'AUTOMATIC_CHECKOUT') {
+                $data['input']['captureType'] = $captureType;
+            }
         }
 
-        return $this->sdkProxy->createPayment(
-            $data
-        );
+        $result = $this->sdkProxy->createPayment($data);
+        $payment->setAdditionalInformation(Method::PAYMENT_ID, $result['data']['paymentCreate']['id']);
+        $this->paymentResource->save($payment);
+        return $result;
     }
 }

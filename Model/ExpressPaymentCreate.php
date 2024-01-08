@@ -79,11 +79,7 @@ class ExpressPaymentCreate implements ExpressPaymentCreateInterface
             throw new PaymentValidationException(__('Invalid payment method'));
         }
 
-        $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
-
-        if (!is_string($rvvupOrderId)) {
-            throw new PaymentValidationException(__('Invalid payment method'));
-        }
+        $payment->setAdditionalInformation(Method::CREATE_NEW, true);
 
         return $this->cartPaymentActionsGet->execute($cartId, true);
     }

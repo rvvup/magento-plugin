@@ -10,6 +10,7 @@ use Magento\Framework\Exception\NotFoundException;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Api\Data\PaymentInterface as PaymentInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -99,9 +100,15 @@ class PaymentActionsGet implements PaymentActionsGetInterface
 
         $this->hashService->saveQuoteHash($quote);
 
+        $payment = $quote->getPayment();
+        if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {
+            if (!$payment->getAdditionalInformation(Method::CREATE_NEW)) {
+                return $this->getExpressOrderPaymentActions($payment);
+            }
+        }
+
         // create rvvup payment
         $paymentData = $this->createRvvupPayment($quote);
-
 
         $paymentActionsDataArray = [];
 
@@ -148,12 +155,12 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     /**
      * Get the order payment's paymentActions from its additional information
      *
-     * @param OrderInterface $order
+     * @param PaymentInterface $payment
      * @return array
      */
-    private function getExpressOrderPaymentActions(OrderInterface $order): array
+    private function getExpressOrderPaymentActions(PaymentInterface $payment): array
     {
-        $id = $order->getPayment()->getAdditionalInformation('rvvup_order_id');
+        $id = $payment->getAdditionalInformation('rvvup_order_id');
         $rvvupOrder = $this->sdkProxy->getOrder($id);
 
         if (!empty($rvvupOrder)) {

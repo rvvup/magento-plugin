@@ -79,20 +79,6 @@ class InitializeResponseHandler implements HandlerInterface
             $paymentActions = $paymentSummary['paymentActions'];
         }
 
-        // If this is a createOrder call for an express payment,
-        // then set the data to separate key.
-        if ($this->isExpressPayment($payment)) {
-            $data = [
-                'status' => $responseDataObject->getData('status'),
-                'dashboardUrl' => $responseDataObject->getData('dashboardUrl'),
-                'paymentActions' => $paymentActions
-            ];
-
-            $payment->setAdditionalInformation(Method::EXPRESS_PAYMENT_DATA_KEY, $data);
-
-            return $payment;
-        }
-
         // Otherwise, set normally.
         $payment->setAdditionalInformation('status', $responseDataObject->getData('status'));
         $payment->setAdditionalInformation(Method::DASHBOARD_URL, $responseDataObject->getData('dashboardUrl'));

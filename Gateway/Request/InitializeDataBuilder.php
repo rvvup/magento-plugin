@@ -87,11 +87,7 @@ class InitializeDataBuilder implements BuilderInterface
      */
     private function handleQuotePayment(CartInterface $cart): ?array
     {
-//        if (!$this->isExpressPayment($payment) || !method_exists($payment, 'getQuote')) {
-//            return null;
-//        }
-//
-        return $this->orderDataBuilder->build($cart, false);
+        return $this->orderDataBuilder->build($cart, $this->isExpressPayment($cart->getPayment()));
     }
 
     /**

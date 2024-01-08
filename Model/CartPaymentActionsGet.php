@@ -6,8 +6,10 @@ namespace Rvvup\Payments\Model;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Quote\Api\PaymentMethodManagementInterface;
+use Magento\Quote\Model\Quote;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\CartPaymentActionsGetInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
@@ -40,20 +42,28 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
     private $commandPool;
 
     /**
+     * @var CartRepositoryInterface
+     */
+    private $cartRepository;
+
+    /**
      * @param PaymentMethodManagementInterface $paymentMethodManagement
      * @param PaymentActionInterfaceFactory $paymentActionInterfaceFactory
      * @param LoggerInterface $logger
+     * @param CartRepositoryInterface $cartRepository
      * @param CommandPoolInterface $commandPool
      */
     public function __construct(
         PaymentMethodManagementInterface $paymentMethodManagement,
         PaymentActionInterfaceFactory $paymentActionInterfaceFactory,
         LoggerInterface $logger,
+        CartRepositoryInterface $cartRepository,
         CommandPoolInterface $commandPool
     ) {
         $this->paymentMethodManagement = $paymentMethodManagement;
         $this->paymentActionInterfaceFactory = $paymentActionInterfaceFactory;
         $this->logger = $logger;
+        $this->cartRepository = $cartRepository;
         $this->commandPool = $commandPool;
     }
 
@@ -63,7 +73,7 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
      * @param string $cartId
      * @param bool $expressActions
      * @return PaymentActionInterface[]
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function execute(string $cartId, bool $expressActions = false): array
     {
@@ -72,8 +82,9 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
         if ($payment === null) {
             return [];
         }
+        $cart = $this->cartRepository->get($cartId);
 
-        $paymentActions = $this->getAdditionalInformationPaymentActions($payment, $expressActions);
+        $paymentActions = $this->getPaymentActions($payment, $expressActions, $cart);
 
         // Check if payment actions are set as array & not empty
         if (empty($paymentActions) || !is_array($paymentActions)) {
@@ -121,11 +132,12 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
      * @param bool $expressActions
      * @return array|mixed|null
      */
-    private function getAdditionalInformationPaymentActions(PaymentInterface $payment, bool $expressActions = false)
+    private function getPaymentActions(PaymentInterface $payment, bool $expressActions = false, Quote $cart)
     {
         if (!$expressActions) {
             return $payment->getAdditionalInformation('paymentActions');
         }
+        $this->commandPool->get('initialize')->execute(['quote' => $cart]);
         $data = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
         return $data['data']['paymentCreate']['summary']['paymentActions'];
     }

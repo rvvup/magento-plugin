@@ -58,13 +58,8 @@ define([
 
                 quote.paymentMethod.subscribe(function (data) {
                     // If we move away from Paypal method and we already have an order ID then trigger cancel.
-                    if (data.method !== 'rvvup_PAYPAL') {
+                    if (isExpressPayment() && data.method !== 'rvvup_PAYPAL') {
                         this.cancelPayPalPayment();
-                    }
-
-                    // Make sure Data Method is paypal before we setup the event listener.
-                    if (data.method === 'rvvup_PAYPAL') {
-                        document.addEventListener('click', this.checkDomElement.bind(this));
                     }
                 }.bind(this));
 
@@ -127,16 +122,13 @@ define([
                 })
             },
 
-            checkDomElement: function(event) {
-                // Setup elements we want to make sure we cancel on.
-                const elements = document.querySelectorAll('button.action, span[id="block-discount-heading"], span[id="block-giftcard-heading"], .opc-progress-bar-item, input[id="billing-address-same-as-shipping-rvvup_PAYPAL"]');
-            },
-
             cancelPayPalPayment: function () {
                 var url = orderPaymentAction.getCancelUrl();
                 this.resetDefaultData();
                 loader.stopLoader();
-                this.showModal(url);
+                if (url) {
+                    this.showModal(url);
+                }
             },
 
             getPaypalBlockStyling: function () {
