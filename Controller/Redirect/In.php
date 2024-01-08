@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Rvvup\Payments\Controller\Redirect;
@@ -23,6 +24,7 @@ use Magento\Quote\Model\QuoteManagement;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
@@ -96,6 +98,11 @@ class In implements HttpGetActionInterface
     private $cartRepository;
 
     /**
+     * @var OrderManagementInterface
+     */
+    private $orderManagement;
+
+    /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -108,6 +115,7 @@ class In implements HttpGetActionInterface
      * @param OrderRepositoryInterface $orderRepository
      * @param CollectionFactory $collectionFactory
      * @param SdkProxy $sdkProxy
+     * @param OrderManagementInterface $orderManagement
      * @param CartRepositoryInterface $cartRepository
      * @param Hash $hashService
      */
@@ -124,6 +132,7 @@ class In implements HttpGetActionInterface
         OrderRepositoryInterface $orderRepository,
         CollectionFactory $collectionFactory,
         SdkProxy $sdkProxy,
+        OrderManagementInterface $orderManagement,
         CartRepositoryInterface $cartRepository,
         Hash $hashService
     ) {
@@ -141,6 +150,7 @@ class In implements HttpGetActionInterface
         $this->collectionFactory = $collectionFactory;
         $this->cartRepository = $cartRepository;
         $this->hashService = $hashService;
+        $this->orderManagement = $orderManagement;
     }
 
     /**
@@ -164,10 +174,8 @@ class In implements HttpGetActionInterface
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
 
         try {
-            $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
         } catch (\Exception $e) {
-            $this->sdkProxy->voidPayment($lastTransactionId, $rvvupPaymentId);
             $this->logger->error(
                 'Order placement within rvvup payment failed',
                 [
@@ -179,11 +187,36 @@ class In implements HttpGetActionInterface
             );
             $this->messageManager->addErrorMessage(
                 __(
-                    'An error occurred while creating your order (ID %1). Please contact us.' . $rvvupId
+                    'An error occurred while creating your order (ID %1). Please contact us.',
+                    $rvvupId
                 )
             );
             return $this->redirectToCart();
         }
+        try {
+            $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
+        } catch (\Exception $e) {
+            $this->orderManagement->cancel($orderId);
+            $this->sdkProxy->voidPayment($lastTransactionId, $rvvupPaymentId);
+
+            $this->logger->error(
+                'Order placement failed during payment capture',
+                [
+                    'payment_id' => $payment->getEntityId(),
+                    'last_transaction_id' => $lastTransactionId,
+                    'rvvup_order_id' => $rvvupId,
+                    'message' => $e->getMessage()
+                ]
+            );
+            $this->messageManager->addErrorMessage(
+                __(
+                    'An error occurred while capturing your order (ID %1). Please contact us.',
+                    $rvvupId
+                )
+            );
+            return $this->redirectToCart();
+        }
+
 
         try {
             $order = $this->orderRepository->get($orderId);
@@ -203,7 +236,8 @@ class In implements HttpGetActionInterface
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(
                 __(
-                    'An error occurred while processing your payment (ID %1). Please contact us. ' . $rvvupId
+                    'An error occurred while processing your payment (ID %1). Please contact us. ',
+                    $rvvupId
                 )
             );
 
@@ -272,7 +306,8 @@ class In implements HttpGetActionInterface
             $this->logger->error('Missing quote for Rvvup payment', [$rvvupId, $lastTransactionId]);
             $this->messageManager->addErrorMessage(
                 __(
-                    'An error occurred while processing your payment (ID %1). Please contact us. ' . $rvvupId
+                    'An error occurred while processing your payment (ID %1). Please contact us. ',
+                    $rvvupId
                 )
             );
             return $this->redirectToCart();
@@ -310,10 +345,12 @@ class In implements HttpGetActionInterface
     {
         /** @var \Magento\Quote\Model\ResourceModel\Quote\Payment\Collection $collection */
         $collection = $this->collectionFactory->create();
-        $collection->addFieldToFilter('additional_information',
+        $collection->addFieldToFilter(
+            'additional_information',
             [
                 'like' => "%\"rvvup_order_id\":\"$rvvupId\"%"
-            ]);
+            ]
+        );
         $items = $collection->getItems();
         if (sizeof($items) > 1) {
             return null;

@@ -6,5 +6,5 @@ use Magento\Framework\Exception\LocalizedException;
 
 class QuoteValidationException extends LocalizedException
 {
-    //
+
 }

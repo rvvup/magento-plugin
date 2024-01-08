@@ -218,6 +218,14 @@ class OrderDataBuilder
         }
 
         if ($id = $payment->getAdditionalInformation(Method::ORDER_ID)) {
+            if (!$payment->getAdditionalInformation(Method::CREATE_NEW) &&
+            !$payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)
+            ) {
+                $payment->setAdditionalInformation(Method::CREATE_NEW, null);
+                $payment->setAdditionalInformation(Method::ORDER_ID, null);
+                $this->paymentResource->save($payment);
+                throw new LocalizedException(__('Your payment started in previously opened tab, retry in order to create new payment'));
+            }
             $orderDataArray['id'] = $id;
         };
 
