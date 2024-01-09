@@ -60,8 +60,9 @@ class Order
     {
         // Saerch for the payment record by the Rvvup order ID which is stored in the credit card field.
         $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-            OrderPaymentInterface::CC_TRANS_ID,
-            $rvvupOrderId
+            'additional_information',
+            '%' . $rvvupOrderId . '%',
+            'like'
         )->create();
 
         $resultSet = $this->orderPaymentRepository->getList($searchCriteria);
