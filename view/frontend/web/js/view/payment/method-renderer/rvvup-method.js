@@ -229,7 +229,7 @@ define([
             confirmCardAuthorization: function(submitData, context, remainingRetries = 5) {
                 $.ajax({
                     type: "POST",
-                    url: url.build('rvvup/payment/confirm'),
+                    url: url.build('rvvup/cardpayments/confirm'),
                     data: submitData,
                     dataType: "json",
                     success: function (e) {

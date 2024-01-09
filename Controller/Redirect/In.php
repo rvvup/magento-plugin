@@ -28,6 +28,7 @@ use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
+use Rvvup\Payments\Model\ProcessOrder\Cancel;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Hash;
@@ -183,7 +184,9 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
         try {
-            $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
+            if ($payment->getMethodInstance()->getCaptureType() !== 'MANUAL') {
+                $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
+            }
         } catch (\Exception $e) {
             $this->logger->error(
                 'Order placement failed during payment capture',
@@ -216,6 +219,10 @@ class In implements HttpGetActionInterface
 
             $result = $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])
                 ->execute($order, $rvvupData);
+
+            if (get_class($this->processorPool->getProcessor($rvvupData['payments'][0]['status'])) == Cancel::class) {
+                $this->checkoutSession->restoreQuote();
+            }
 
             return $this->processResult($result, $order);
         } catch (Exception $e) {
