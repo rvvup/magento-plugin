@@ -224,7 +224,6 @@ class OrderDataBuilder
                 $payment->setAdditionalInformation(Method::CREATE_NEW, null);
                 $payment->setAdditionalInformation(Method::ORDER_ID, null);
                 $this->paymentResource->save($payment);
-                throw new LocalizedException(__('Your payment started in previously opened tab, retry in order to create new payment'));
             }
             $orderDataArray['id'] = $id;
         };

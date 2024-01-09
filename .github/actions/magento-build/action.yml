@@ -34,6 +34,7 @@ runs:
         mkdir -p app/code/Rvvup/Payments
         rsync -a --exclude=.gitignore --exclude=*.md --exclude=phpcs.xml --exclude=phpunit.xml --exclude=phpstan.neon --exclude=renovate.json --exclude=composer.json --exclude=.github/ --exclude=build/ --exclude=.git/ ../ app/code/Rvvup/Payments
         ls -la app/code/Rvvup/Payments
+        php -d memory_limit=-1 bin/magento module:enable --all
         php -d memory_limit=-1 bin/magento setup:upgrade
         php -d memory_limit=-1 bin/magento setup:di:compile
         php -d memory_limit=-1 bin/magento setup:static-content:deploy en_GB en_US --jobs=10 -f

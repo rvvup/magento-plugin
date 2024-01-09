@@ -8,7 +8,6 @@ use Exception;
 use Magento\Checkout\Helper\Data;
 use Magento\Checkout\Model\Session\Proxy;
 use Magento\Checkout\Model\Type\Onepage;
-use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Redirect;
@@ -23,8 +22,6 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteManagement;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
@@ -98,11 +95,6 @@ class In implements HttpGetActionInterface
     private $cartRepository;
 
     /**
-     * @var OrderManagementInterface
-     */
-    private $orderManagement;
-
-    /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -115,7 +107,6 @@ class In implements HttpGetActionInterface
      * @param OrderRepositoryInterface $orderRepository
      * @param CollectionFactory $collectionFactory
      * @param SdkProxy $sdkProxy
-     * @param OrderManagementInterface $orderManagement
      * @param CartRepositoryInterface $cartRepository
      * @param Hash $hashService
      */
@@ -132,7 +123,6 @@ class In implements HttpGetActionInterface
         OrderRepositoryInterface $orderRepository,
         CollectionFactory $collectionFactory,
         SdkProxy $sdkProxy,
-        OrderManagementInterface $orderManagement,
         CartRepositoryInterface $cartRepository,
         Hash $hashService
     ) {
@@ -150,7 +140,6 @@ class In implements HttpGetActionInterface
         $this->collectionFactory = $collectionFactory;
         $this->cartRepository = $cartRepository;
         $this->hashService = $hashService;
-        $this->orderManagement = $orderManagement;
     }
 
     /**
@@ -196,8 +185,6 @@ class In implements HttpGetActionInterface
         try {
             $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
         } catch (\Exception $e) {
-            $this->orderManagement->cancel($orderId);
-
             $this->logger->error(
                 'Order placement failed during payment capture',
                 [
@@ -215,7 +202,6 @@ class In implements HttpGetActionInterface
             );
             return $this->redirectToCart();
         }
-
 
         try {
             $order = $this->orderRepository->get($orderId);
@@ -315,9 +301,9 @@ class In implements HttpGetActionInterface
         $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
         $quote->collectTotals();
         $savedHash = $this->hashService->getHashForData($quote);
-        if ($hash !== $savedHash || $rvvupId !== $lastTransactionId) {
+        if ($hash !== $savedHash) {
             $this->logger->error(
-                'Payment hash or transaction id are invalid during Rvvup Checkout',
+                'Payment hash is invalid during Rvvup Checkout',
                 [
                     'payment_id' => $quote->getPayment()->getEntityId(),
                     'quote_id' => $quote->getId(),
@@ -328,6 +314,23 @@ class In implements HttpGetActionInterface
             $this->messageManager->addErrorMessage(
                 __(
                     'Your cart was modified after making payment request, please place order again. ' . $rvvupId
+                )
+            );
+            return $this->redirectToCart();
+        }
+        if ($rvvupId !== $lastTransactionId) {
+            $this->logger->error(
+                'Payment transaction id is invalid during Rvvup Checkout',
+                [
+                    'payment_id' => $quote->getPayment()->getEntityId(),
+                    'quote_id' => $quote->getId(),
+                    'last_transaction_id' => $lastTransactionId,
+                    'rvvup_order_id' => $rvvupId
+                ]
+            );
+            $this->messageManager->addErrorMessage(
+                __(
+                    'Your payment was placed before making this payment request, please place order again. ' . $rvvupId
                 )
             );
             return $this->redirectToCart();
