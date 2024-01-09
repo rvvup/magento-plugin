@@ -72,29 +72,12 @@ class Order
                 'rvvup_order_id' => $rvvupOrderId,
                 'payments_count' => $resultSet->getTotalCount()
             ]);
+            throw new \Exception('Error finding order with rvvup_id ' . $rvvupOrderId);
         }
 
         $payments = $resultSet->getItems();
         /** @var \Magento\Sales\Api\Data\OrderPaymentInterface $payment */
         $payment = reset($payments);
         return $this->orderRepository->get($payment->getParentId());
-    }
-
-    /**
-     * @param CartInterface $quote
-     * @return array
-     */
-    public function getAllOrdersByQuote(CartInterface $quote): array
-    {
-        if (!empty($quote->getEntityId())) {
-            $searchCriteria = $this->searchCriteriaBuilder
-                ->addFilter(OrderInterface::QUOTE_ID, $quote->getEntityId())->create();
-            try {
-                return $this->orderRepository->getList($searchCriteria)->getItems();
-            } catch (\Exception $e) {
-                return [];
-            }
-        }
-        return [];
     }
 }

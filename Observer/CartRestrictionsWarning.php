@@ -64,9 +64,11 @@ class CartRestrictionsWarning implements ObserverInterface
                 }
             }
             if ($hasRestrictedItems) {
-                $this->messageManager->addWarningMessage(
-                    $this->messages->getCheckoutMessage()
-                );
+                if (!$this->messageManager->getMessages()->getItems()) {
+                    $this->messageManager->addWarningMessage(
+                        $this->messages->getCheckoutMessage()
+                    );
+                }
             }
         } catch (\Exception $e) {
             // Fail gracefully

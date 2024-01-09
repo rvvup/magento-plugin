@@ -182,7 +182,7 @@ define([
                             $.ajax({
                                 type: "POST",
                                 data: data,
-                                url: url.build('rvvup/cardpayments/cancel'),
+                                url: url.build('rvvup/payment/cancel'),
                                 complete: function (e) {
                                     $('body').trigger("processStop");
                                 },
@@ -229,7 +229,7 @@ define([
             confirmCardAuthorization: function(submitData, context, remainingRetries = 5) {
                 $.ajax({
                     type: "POST",
-                    url: url.build('rvvup/cardpayments/confirm'),
+                    url: url.build('rvvup/payment/confirm'),
                     data: submitData,
                     dataType: "json",
                     success: function (e) {
@@ -257,7 +257,7 @@ define([
                             $.ajax({
                                 type: "POST",
                                 data: data,
-                                url: url.build('rvvup/cardpayments/cancel'),
+                                url: url.build('rvvup/payment/cancel'),
                                 complete: function (e) {
                                     $('body').trigger("processStop");
                                 },
@@ -511,7 +511,13 @@ define([
              * Handle setting cancel URL in the modal, prevents multiple clicks.
              */
             triggerModalCancelUrl: function () {
-                window.location.reload();
+                let data = {form_key: $.mage.cookies.get('form_key')};
+                $.ajax({
+                    type: "POST",
+                    data: data,
+                    url: url.build('rvvup/payment/cancel'),
+                });
+                this.modal.closeModal();
             },
 
             /**

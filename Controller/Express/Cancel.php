@@ -41,15 +41,13 @@ class Cancel implements HttpGetActionInterface
     {
         $payment = $this->checkoutSession->getQuote()->getPayment();
         if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {
-            $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
-            $order = $this->sdkProxy->getOrder($rvvupOrderId);
-            if ($order && isset($order['payments'])) {
-                $paymentId = $order['payments'][0]['id'];
-                $this->sdkProxy->cancelPayment($paymentId, $rvvupOrderId);
-                $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-                $result->setData(['success' => true]);
-                return $result;
-            }
+            $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
+            $paymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+
+            $this->sdkProxy->cancelPayment($paymentId, $rvvupOrderId);
+            $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+            $result->setData(['success' => true]);
+            return $result;
         }
 
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);

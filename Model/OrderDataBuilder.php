@@ -221,9 +221,9 @@ class OrderDataBuilder
             if (!$payment->getAdditionalInformation(Method::CREATE_NEW) &&
             !$payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)
             ) {
-                $payment->setAdditionalInformation(Method::CREATE_NEW, null);
-                $payment->setAdditionalInformation(Method::ORDER_ID, null);
+                $payment->setAdditionalInformation(Method::CREATE_NEW, true);
                 $this->paymentResource->save($payment);
+                return $orderDataArray;
             }
             $orderDataArray['id'] = $id;
         };
