@@ -128,6 +128,7 @@ class LoadPaymentMethods
             $country = $this->getCountryUsed($quote);
             if ($country && $country !== 'GB') {
                 $this->removePaymentMethodByCode('YAPILY', $methods);
+                $this->removePaymentMethodByCode('PAY_BY_BANK', $methods);
             }
 
             $this->methods = $methods;
