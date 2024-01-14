@@ -41,6 +41,7 @@ class CommandPool implements CommandPoolInterface, CommandInterface
         return $this->commands[$commandCode];
     }
 
+    // phpcs:ignore
     /**
      * Mock execute command
      * @param array $commandSubject

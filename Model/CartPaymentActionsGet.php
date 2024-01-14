@@ -70,6 +70,27 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
     }
 
     /**
+     * Get the additional information data that hold the payment actions.
+     *
+     * Get either standard or the ones saved in the express payment data field.
+     * @param PaymentInterface $payment
+     * @param Quote $cart
+     * @param bool $expressActions
+     * @return array|mixed|null
+     * @throws NotFoundException
+     * @throws CommandException
+     */
+    private function getPaymentActions(PaymentInterface $payment, Quote $cart, bool $expressActions = false)
+    {
+        if (!$expressActions) {
+            return $payment->getAdditionalInformation('paymentActions');
+        }
+        $this->commandPool->get('initialize')->execute(['quote' => $cart]);
+        $data = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
+        return $data['data']['paymentCreate']['summary']['paymentActions'];
+    }
+
+    /**
      * Get the payment actions for the specified cart ID.
      *
      * @param string $cartId
@@ -123,27 +144,6 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
         }
 
         return $paymentActionsDataArray;
-    }
-
-    /**
-     * Get the additional information data that hold the payment actions.
-     *
-     * Get either standard or the ones saved in the express payment data field.
-     * @param PaymentInterface $payment
-     * @param bool $expressActions
-     * @param Quote $cart
-     * @return array|mixed|null
-     * @throws NotFoundException
-     * @throws CommandException
-     */
-    private function getPaymentActions(PaymentInterface $payment, Quote $cart, bool $expressActions = false)
-    {
-        if (!$expressActions) {
-            return $payment->getAdditionalInformation('paymentActions');
-        }
-        $this->commandPool->get('initialize')->execute(['quote' => $cart]);
-        $data = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
-        return $data['data']['paymentCreate']['summary']['paymentActions'];
     }
 
     /**
