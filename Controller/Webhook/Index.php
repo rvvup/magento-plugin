@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Rvvup\Payments\Controller\Webhook;
 
@@ -12,10 +13,12 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\MessageQueue\PublisherInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\Complete;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\WebhookRepository;
+use Rvvup\Payments\Service\Order;
 
 /**
  * The purpose of this controller is to accept incoming webhooks from Rvvup to update the status of payments
@@ -27,14 +30,19 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /** @var RequestInterface */
     private $request;
+
     /** @var ConfigInterface */
     private $config;
+
     /** @var SerializerInterface */
     private $serializer;
+
     /** @var ResultFactory */
     private $resultFactory;
+
     /** @var PublisherInterface */
     private $publisher;
+
     /** @var WebhookRepository */
     private $webhookRepository;
 
@@ -45,10 +53,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     private $logger;
 
-    /**
-     * @var RefundPool
-     */
+    /** @var RefundPool */
     private $refundPool;
+
+    /** @var Order */
+    private $orderService;
 
     /**
      * @param RequestInterface $request
@@ -58,6 +67,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param LoggerInterface $logger
      * @param PublisherInterface $publisher
      * @param WebhookRepository $webhookRepository
+     * @param Order $orderService
      * @param RefundPool $refundPool
      */
     public function __construct(
@@ -68,6 +78,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         LoggerInterface $logger,
         PublisherInterface $publisher,
         WebhookRepository $webhookRepository,
+        Order $orderService,
         RefundPool $refundPool
     ) {
         $this->request = $request;
@@ -77,6 +88,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->logger = $logger;
         $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
+        $this->orderService = $orderService;
         $this->refundPool = $refundPool;
     }
 
@@ -121,8 +133,44 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED) {
                 $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
                 $this->webhookRepository->save($webhook);
-                $this->publisher->publish('rvvup.webhook', (int) $webhook->getId());
+                $this->publisher->publish('rvvup.webhook', (int)$webhook->getId());
                 return $this->returnSuccessfulResponse();
+            } elseif ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                $quote = $this->orderService->getQuoteByRvvupId($rvvupOrderId);
+                if (!$quote) {
+                    $this->logger->debug(
+                        'Webhook exception: Can not find quote by rvvupId for authorize payment status',
+                        [
+                            'order_id' => $rvvupOrderId,
+                        ]
+                    );
+                    return $this->returnExceptionResponse();
+                }
+                $payment = $quote->getPayment();
+                $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+                $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
+                $validate = $this->orderService->validate($rvvupOrderId, $quote, $lastTransactionId);
+                if (!$validate['is_valid']) {
+                    if ($validate['redirect_to_cart']) {
+                        return $this->returnExceptionResponse();
+                    }
+                }
+                $this->orderService->setCheckoutMethod($quote);
+                $orderId = $this->orderService->createOrder($rvvupOrderId, $quote);
+                if (!$orderId) {
+                    return $this->returnExceptionResponse();
+                }
+
+                if (!$this->orderService->paymentCapture(
+                    $payment,
+                    $lastTransactionId,
+                    $rvvupPaymentId,
+                    $rvvupOrderId
+                )) {
+                    return $this->returnExceptionResponse();
+                }
+
+                $this->orderService->processOrderResult($quote->getReservedOrderId(), $rvvupOrderId, true);
             }
 
             return $this->returnSuccessfulResponse();
