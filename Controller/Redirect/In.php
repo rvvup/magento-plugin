@@ -15,7 +15,7 @@ use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Service\Order;
+use Rvvup\Payments\Service\Capture;
 
 class In implements HttpGetActionInterface
 {
@@ -51,8 +51,8 @@ class In implements HttpGetActionInterface
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
-    /** @var Order */
-    private $orderService;
+    /** @var Capture */
+    private $captureService;
 
     /**
      * @param RequestInterface $request
@@ -61,7 +61,7 @@ class In implements HttpGetActionInterface
      * @param ManagerInterface $messageManager
      * @param LoggerInterface $logger
      * @param OrderRepositoryInterface $orderRepository
-     * @param Order $orderService
+     * @param Capture $captureService
      */
     public function __construct(
         RequestInterface $request,
@@ -70,7 +70,7 @@ class In implements HttpGetActionInterface
         ManagerInterface $messageManager,
         LoggerInterface $logger,
         OrderRepositoryInterface $orderRepository,
-        Order $orderService
+        Capture $captureService
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -78,7 +78,7 @@ class In implements HttpGetActionInterface
         $this->messageManager = $messageManager;
         $this->logger = $logger;
         $this->orderRepository = $orderRepository;
-        $this->orderService = $orderService;
+        $this->captureService = $captureService;
     }
 
     /**
@@ -93,7 +93,7 @@ class In implements HttpGetActionInterface
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
         $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
 
-        $validate = $this->orderService->validate($rvvupId, $quote, $lastTransactionId);
+        $validate = $this->captureService->validate($rvvupId, $quote, $lastTransactionId);
 
         if (!$validate['is_valid']) {
             if ($validate['restore_quote']) {
@@ -107,8 +107,8 @@ class In implements HttpGetActionInterface
             }
         }
 
-        $this->orderService->setCheckoutMethod($quote);
-        $orderId = $this->orderService->createOrder($rvvupId, $quote);
+        $this->captureService->setCheckoutMethod($quote);
+        $orderId = $this->captureService->createOrder($rvvupId, $quote);
         if (!$orderId) {
             $this->messageManager->addErrorMessage(
                 __(
@@ -121,10 +121,10 @@ class In implements HttpGetActionInterface
         }
         // This happens when order was already processed by a webhook
         if (!$rvvupPaymentId) {
-            return $this->orderService->processOrderResult($orderId, $rvvupId, true);
+            return $this->captureService->processOrderResult($orderId, $rvvupId, true);
         }
 
-        if (!$this->orderService->paymentCapture($payment, $lastTransactionId, $rvvupPaymentId, $rvvupId)) {
+        if (!$this->captureService->paymentCapture($payment, $lastTransactionId, $rvvupPaymentId, $rvvupId)) {
             $this->messageManager->addErrorMessage(
                 __(
                     'An error occurred while capturing your order (ID %1). Please contact us.',
@@ -134,7 +134,7 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        return $this->orderService->processOrderResult($orderId, $rvvupId);
+        return $this->captureService->processOrderResult($orderId, $rvvupId);
     }
 
     /**

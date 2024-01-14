@@ -11,7 +11,7 @@ use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
-use Rvvup\Payments\Service\Order;
+use Rvvup\Payments\Service\Capture;
 
 class Complete implements ProcessorInterface
 {
@@ -33,26 +33,26 @@ class Complete implements ProcessorInterface
     private $orderItemRepository;
 
     /**
-     * @var Order
+     * @var Capture
      */
-    private $orderService;
+    private $captureService;
 
     /**
      * @param LoggerInterface $logger
      * @param Json $serializer
      * @param OrderItemRepositoryInterface $orderItemRepository
-     * @param Order $orderService
+     * @param Capture $captureService
      */
     public function __construct(
         LoggerInterface $logger,
         Json $serializer,
         OrderItemRepositoryInterface $orderItemRepository,
-        Order $orderService
+        Capture $captureService
     ) {
         $this->logger = $logger;
         $this->serializer = $serializer;
         $this->orderItemRepository = $orderItemRepository;
-        $this->orderService = $orderService;
+        $this->captureService = $captureService;
     }
 
     /**
@@ -63,7 +63,7 @@ class Complete implements ProcessorInterface
      */
     public function execute(array $payload): void
     {
-        $order = $this->orderService->getOrderByRvvupId($payload['order_id']);
+        $order = $this->captureService->getOrderByRvvupId($payload['order_id']);
 
         if (!$order->getId()) {
             $this->writeErrorMessage($payload);

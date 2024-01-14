@@ -32,7 +32,7 @@ use Rvvup\Payments\Model\SdkProxy;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 
-class Order
+class Capture
 {
     /** Set via di.xml
      * @var LoggerInterface

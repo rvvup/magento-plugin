@@ -17,7 +17,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
-use Rvvup\Payments\Service\Order;
 
 class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
 {
@@ -29,9 +28,6 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /** @var Session */
     private $session;
-
-    /** @var Order */
-    private $orderService;
 
     /** @var LoggerInterface */
     private $logger;
@@ -46,7 +42,6 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param ResultFactory $resultFactory
      * @param Validator $formKeyValidator
      * @param Session $session
-     * @param Order $orderService
      * @param OrderRepositoryInterface $orderRepository
      * @param SdkProxy $sdkProxy
      * @param LoggerInterface $logger
@@ -55,7 +50,6 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
         ResultFactory $resultFactory,
         Validator $formKeyValidator,
         Session $session,
-        Order $orderService,
         OrderRepositoryInterface $orderRepository,
         SdkProxy $sdkProxy,
         LoggerInterface $logger
@@ -63,7 +57,6 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->resultFactory = $resultFactory;
         $this->formKeyValidator = $formKeyValidator;
         $this->session = $session;
-        $this->orderService = $orderService;
         $this->orderRepository = $orderRepository;
         $this->sdkProxy = $sdkProxy;
         $this->logger = $logger;

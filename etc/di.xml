@@ -200,8 +200,9 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Service\Order">
+    <type name="Rvvup\Payments\Service\Capture">
         <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>

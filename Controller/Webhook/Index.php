@@ -18,7 +18,7 @@ use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\Complete;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\WebhookRepository;
-use Rvvup\Payments\Service\Order;
+use Rvvup\Payments\Service\Capture;
 
 /**
  * The purpose of this controller is to accept incoming webhooks from Rvvup to update the status of payments
@@ -56,8 +56,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var RefundPool */
     private $refundPool;
 
-    /** @var Order */
-    private $orderService;
+    /** @var Capture */
+    private $captureService;
 
     /**
      * @param RequestInterface $request
@@ -67,7 +67,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param LoggerInterface $logger
      * @param PublisherInterface $publisher
      * @param WebhookRepository $webhookRepository
-     * @param Order $orderService
+     * @param Capture $captureService
      * @param RefundPool $refundPool
      */
     public function __construct(
@@ -78,7 +78,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         LoggerInterface $logger,
         PublisherInterface $publisher,
         WebhookRepository $webhookRepository,
-        Order $orderService,
+        Capture $captureService,
         RefundPool $refundPool
     ) {
         $this->request = $request;
@@ -88,7 +88,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->logger = $logger;
         $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
-        $this->orderService = $orderService;
+        $this->captureService = $captureService;
         $this->refundPool = $refundPool;
     }
 
@@ -136,7 +136,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 $this->publisher->publish('rvvup.webhook', (int)$webhook->getId());
                 return $this->returnSuccessfulResponse();
             } elseif ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                $quote = $this->orderService->getQuoteByRvvupId($rvvupOrderId);
+                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
                 if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
@@ -149,19 +149,19 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 $payment = $quote->getPayment();
                 $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
                 $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
-                $validate = $this->orderService->validate($rvvupOrderId, $quote, $lastTransactionId);
+                $validate = $this->captureService->validate($rvvupOrderId, $quote, $lastTransactionId);
                 if (!$validate['is_valid']) {
                     if ($validate['redirect_to_cart']) {
                         return $this->returnExceptionResponse();
                     }
                 }
-                $this->orderService->setCheckoutMethod($quote);
-                $orderId = $this->orderService->createOrder($rvvupOrderId, $quote);
+                $this->captureService->setCheckoutMethod($quote);
+                $orderId = $this->captureService->createOrder($rvvupOrderId, $quote);
                 if (!$orderId) {
                     return $this->returnExceptionResponse();
                 }
 
-                if (!$this->orderService->paymentCapture(
+                if (!$this->captureService->paymentCapture(
                     $payment,
                     $lastTransactionId,
                     $rvvupPaymentId,
@@ -170,7 +170,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                     return $this->returnExceptionResponse();
                 }
 
-                $this->orderService->processOrderResult($quote->getReservedOrderId(), $rvvupOrderId, true);
+                $this->captureService->processOrderResult($quote->getReservedOrderId(), $rvvupOrderId, true);
             }
 
             return $this->returnSuccessfulResponse();
