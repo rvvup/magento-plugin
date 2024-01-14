@@ -41,12 +41,12 @@ class CommandPool implements CommandPoolInterface, CommandInterface
         return $this->commands[$commandCode];
     }
 
-    // phpcs:ignore
     /**
      * Mock execute command
      * @param array $commandSubject
      * @return void
      */
+    // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock.DetectedFunction
     public function execute(array $commandSubject)
     {
     }
