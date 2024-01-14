@@ -14,6 +14,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Payment;
 use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
@@ -22,6 +23,7 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Controller\Redirect\In;
+use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\Cancel;
@@ -161,7 +163,7 @@ class Order
                 'rvvup_order_id' => $rvvupOrderId,
                 'payments_count' => $resultSet->getTotalCount()
             ]);
-            throw new \Exception('Error finding order with rvvup_id ' . $rvvupOrderId);
+            throw new PaymentValidationException(__('Error finding order with rvvup_id ' . $rvvupOrderId));
         }
 
         $payments = $resultSet->getItems();
@@ -271,9 +273,9 @@ class Order
     }
 
     /**
-     * @param Quote\Payment $payment
+     * @param Payment $payment
      * @param string $lastTransactionId
-     * @param $rvvupPaymentId
+     * @param string $rvvupPaymentId
      * @param string $rvvupId
      * @return bool
      */
@@ -369,7 +371,7 @@ class Order
             ]
         );
         $items = $collection->getItems();
-        if (sizeof($items) > 1) {
+        if (count($items) > 1) {
             return null;
         }
         $quoteId = end($items)->getQuoteId();
@@ -403,7 +405,7 @@ class Order
 
     /**
      * @param ProcessOrderResultInterface $result
-     * @param OrderInterface $order
+     * @param bool $restoreQuote
      * @return Redirect
      */
     private function processResultPage(ProcessOrderResultInterface $result, bool $restoreQuote): Redirect

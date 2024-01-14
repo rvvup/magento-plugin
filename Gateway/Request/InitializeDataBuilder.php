@@ -4,58 +4,40 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Gateway\Request;
 
-use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Payment\Model\Cart;
 use Magento\Payment\Model\InfoInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\OrderDataBuilder;
-use Rvvup\Payments\Service\Hash;
 
 class InitializeDataBuilder implements BuilderInterface
 {
-    /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
-     */
-    private $cartRepository;
 
-    /**
-     * @var \Rvvup\Payments\Model\OrderDataBuilder
-     */
+    /** @var OrderDataBuilder  */
     private $orderDataBuilder;
 
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
+    /** @var LoggerInterface  */
     private $logger;
-    private $hash;
 
     /**
-     * @param CartRepositoryInterface $cartRepository
      * @param OrderDataBuilder $orderDataBuilder
-     * @param Hash $hash
+
      * @param LoggerInterface $logger
      */
     public function __construct(
-        CartRepositoryInterface $cartRepository,
         OrderDataBuilder $orderDataBuilder,
-        Hash $hash,
         LoggerInterface $logger
     ) {
-        $this->cartRepository = $cartRepository;
         $this->orderDataBuilder = $orderDataBuilder;
-        $this->hash = $hash;
         $this->logger = $logger;
     }
 
     /**
      * @param array $buildSubject
      * @return array
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
+     * @throws QuoteValidationException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function build(array $buildSubject): array
@@ -80,10 +62,9 @@ class InitializeDataBuilder implements BuilderInterface
      *
      * Currently, this is supported only for creating express payment orders.
      *
-     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param CartInterface $cart
      * @return array|null
-     * @throws \Rvvup\Payments\Exception\QuoteValidationException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws QuoteValidationException
      */
     private function handleQuotePayment(CartInterface $cart): ?array
     {
@@ -91,7 +72,7 @@ class InitializeDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param InfoInterface $payment
      * @return bool
      */
     private function isExpressPayment(InfoInterface $payment): bool

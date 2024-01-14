@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NotFoundException;
+use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -84,7 +86,7 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
         }
         $cart = $this->cartRepository->get($cartId);
 
-        $paymentActions = $this->getPaymentActions($payment, $expressActions, $cart);
+        $paymentActions = $this->getPaymentActions($payment, $cart, $expressActions);
 
         // Check if payment actions are set as array & not empty
         if (empty($paymentActions) || !is_array($paymentActions)) {
@@ -127,12 +129,14 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
      * Get the additional information data that hold the payment actions.
      *
      * Get either standard or the ones saved in the express payment data field.
-     *
-     * @param \Magento\Quote\Api\Data\PaymentInterface $payment
+     * @param PaymentInterface $payment
      * @param bool $expressActions
+     * @param Quote $cart
      * @return array|mixed|null
+     * @throws NotFoundException
+     * @throws CommandException
      */
-    private function getPaymentActions(PaymentInterface $payment, bool $expressActions = false, Quote $cart)
+    private function getPaymentActions(PaymentInterface $payment, Quote $cart, bool $expressActions = false)
     {
         if (!$expressActions) {
             return $payment->getAdditionalInformation('paymentActions');

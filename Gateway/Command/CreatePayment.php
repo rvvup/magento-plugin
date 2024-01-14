@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Rvvup\Payments\Gateway\Command;
 
@@ -50,21 +51,21 @@ class CreatePayment implements CommandInterface
         if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {
             $type = 'EXPRESS';
         }
-        $idempotencyKey = (string) time();
+        $idempotencyKey = (string)time();
 
         $data = [
             'input' => [
-            'orderId' => $orderId,
-            'method' => $method,
-            'type' => $type,
-            'captureType' => 'AUTOMATIC_PLUGIN',
-            'idempotencyKey' => $idempotencyKey,
-            'merchantId' => $this->config->getMerchantId()
+                'orderId' => $orderId,
+                'method' => $method,
+                'type' => $type,
+                'captureType' => 'AUTOMATIC_PLUGIN',
+                'idempotencyKey' => $idempotencyKey,
+                'merchantId' => $this->config->getMerchantId()
             ]
         ];
 
         if ($captureType = $payment->getMethodInstance()->getCaptureType()) {
-            if($captureType != 'AUTOMATIC_PLUGIN' && $captureType != 'AUTOMATIC_CHECKOUT') {
+            if ($captureType != 'AUTOMATIC_PLUGIN' && $captureType != 'AUTOMATIC_CHECKOUT') {
                 $data['input']['captureType'] = $captureType;
             }
         }

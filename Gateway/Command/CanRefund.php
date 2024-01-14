@@ -60,7 +60,7 @@ class CanRefund implements ValueHandlerInterface
 
                 foreach ($invoiceCollection->getItems() as $id => $invoice) {
                     if (!$invoice->getTransactionId()) {
-                        if ( $this->items->getCreditmemo()->getInvoice()) {
+                        if ($this->items->getCreditmemo()->getInvoice()) {
                             $invoice->setTransactionId($orderId);
                             $invoiceCollection->removeItemByKey($id);
                             $invoiceCollection->addItem($invoice);

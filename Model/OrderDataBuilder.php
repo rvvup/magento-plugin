@@ -22,45 +22,28 @@ use Rvvup\Payments\Gateway\Method;
 
 class OrderDataBuilder
 {
-    /**
-     * @var \Magento\Customer\Api\AddressRepositoryInterface
-     */
+    /** @var AddressRepositoryInterface  */
     private $customerAddressRepository;
 
-    /**
-     * @var UrlInterface
-     */
+    /** @var UrlInterface  */
     private $urlBuilder;
 
-    /**
-     * @var \Rvvup\Payments\Model\ConfigInterface
-     */
+    /** @var ConfigInterface  */
     private $config;
 
-    /**
-     * @var SerializerInterface
-     */
+    /** @var SerializerInterface  */
     private $serializer;
 
-    /**
-     * @var CartRepositoryInterface
-     */
+    /** @var CartRepositoryInterface  */
     private $cartRepository;
 
-    /**
-     * @var SearchCriteriaBuilder
-     */
+    /** @var SearchCriteriaBuilder  */
     private $searchCriteriaBuilder;
 
-    /**
-     * @var OrderRepositoryInterface
-     */
+    /** @var OrderRepositoryInterface  */
     private $orderRepository;
 
-
-    /**
-     * @var Payment
-     */
+    /** @var Payment  */
     private $paymentResource;
 
     /**

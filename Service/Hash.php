@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Service;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 
@@ -21,7 +22,12 @@ class Hash
         $this->paymentResource = $paymentResource;
     }
 
-    /** Save current quote state to hash */
+    /**
+     * Save current quote state to hash
+     * @param Quote $quote
+     * @return void
+     * @throws LocalizedException
+     */
     public function saveQuoteHash(Quote $quote): void
     {
         $payment = $quote->getPayment();
@@ -29,7 +35,11 @@ class Hash
         $this->paymentResource->save($payment);
     }
 
-    /** Create hash for current quote state */
+    /**
+     * Create hash for current quote state
+     * @param Quote $quote
+     * @return string
+     */
     public function getHashForData(Quote $quote): string
     {
         $hashedValues = [];
@@ -42,7 +52,8 @@ class Hash
         }
 
         $output = implode(
-            ', ', array_map(
+            ', ',
+            array_map(
                 function ($v, $k) {
                     return sprintf("%s='%s'", $k, $v);
                 },
