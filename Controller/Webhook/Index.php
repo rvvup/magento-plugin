@@ -154,6 +154,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                     if ($validate['redirect_to_cart']) {
                         return $this->returnExceptionResponse();
                     }
+                    if ($validate['already_exists']) {
+                        return $this->returnSuccessfulResponse();
+                    }
                 }
                 $this->captureService->setCheckoutMethod($quote);
                 $orderId = $this->captureService->createOrder($rvvupOrderId, $quote);

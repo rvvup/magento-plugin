@@ -105,6 +105,9 @@ class In implements HttpGetActionInterface
             if ($validate['redirect_to_cart']) {
                 return $this->redirectToCart();
             }
+            if ($validate['already_exists']) {
+                return $this->captureService->processOrderResult($quote->getReservedOrderId(), $rvvupId, true);
+            }
         }
 
         $this->captureService->setCheckoutMethod($quote);
@@ -118,10 +121,6 @@ class In implements HttpGetActionInterface
             );
             $this->checkoutSession->restoreQuote();
             return $this->redirectToCart();
-        }
-        // This happens when order was already processed by a webhook
-        if (!$rvvupPaymentId) {
-            return $this->captureService->processOrderResult($orderId, $rvvupId, true);
         }
 
         if (!$this->captureService->paymentCapture($payment, $lastTransactionId, $rvvupPaymentId, $rvvupId)) {

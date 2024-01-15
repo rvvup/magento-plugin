@@ -19,6 +19,7 @@ use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\OrderIncrementIdChecker;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
@@ -87,6 +88,9 @@ class Capture
     /** @var OrderInterface */
     private $order;
 
+    /** @var OrderIncrementIdChecker */
+    private $orderIncrementChecker;
+
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
@@ -103,6 +107,7 @@ class Capture
      * @param SessionManagerInterface $checkoutSession
      * @param Data $checkoutHelper
      * @param OrderInterface $order
+     * @param OrderIncrementIdChecker $orderIncrementIdChecker
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -121,6 +126,7 @@ class Capture
         SessionManagerInterface $checkoutSession,
         Data $checkoutHelper,
         OrderInterface $order,
+        OrderIncrementIdChecker $orderIncrementIdChecker,
         LoggerInterface $logger
     ) {
         $this->logger = $logger;
@@ -138,6 +144,7 @@ class Capture
         $this->checkoutSession = $checkoutSession;
         $this->checkoutHelper = $checkoutHelper;
         $this->order = $order;
+        $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->hashService = $hashService;
     }
 
@@ -185,7 +192,13 @@ class Capture
         // A standard Rvvup return should always include `rvvup-order-id` param.
         if ($rvvupId === null) {
             $this->logger->error('No Rvvup Order ID provided');
-            return ['is_valid' => false, 'redirect_to_cart' => true, 'restore_quote' => true, 'message' => ''];
+            return [
+                'is_valid' => false,
+                'redirect_to_cart' => true,
+                'restore_quote' => true,
+                'message' => '',
+                'already_exists' => false
+            ];
         }
 
         if (!$quote->getItems()) {
@@ -198,7 +211,13 @@ class Capture
                 'An error occurred while processing your payment (ID %1). Please contact us. ',
                 $rvvupId
             );
-            return ['is_valid' => false, 'redirect_to_cart' => true, 'restore_quote' => false, 'message' => $message];
+            return [
+                'is_valid' => false,
+                'redirect_to_cart' => true,
+                'restore_quote' => false,
+                'message' => $message,
+                'already_exists' => false
+            ];
         }
 
         $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
@@ -218,7 +237,13 @@ class Capture
             $message = __(
                 'Your cart was modified after making payment request, please place order again. ' . $rvvupId
             );
-            return ['is_valid' => false, 'redirect_to_cart' => true, 'restore_quote' => false, 'message' => $message];
+            return [
+                'is_valid' => false,
+                'redirect_to_cart' => true,
+                'restore_quote' => false,
+                'message' => $message,
+                'already_exists' => false
+            ];
         }
         if ($rvvupId !== $lastTransactionId) {
             $this->logger->error(
@@ -233,10 +258,34 @@ class Capture
             $message = __(
                 'There is new payment attempt for this payment request, ' . $rvvupId
             );
-            return ['is_valid' => false, 'redirect_to_cart' => true, 'restore_quote' => false, 'message' => $message];
+            return [
+                'is_valid' => false,
+                'redirect_to_cart' => true,
+                'restore_quote' => false,
+                'message' => $message,
+                'already_exists' => false
+            ];
         }
 
-        return ['is_valid' => true, 'redirect_to_cart' => false, 'restore_quote' => false, 'message' => ''];
+        if ($quote->getReservedOrderId()) {
+            if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
+                return [
+                    'is_valid' => false,
+                    'redirect_to_cart' => false,
+                    'restore_quote' => false,
+                    'message' => '',
+                    'already_exists' => true
+                ];
+            }
+        }
+
+        return [
+            'is_valid' => true,
+            'redirect_to_cart' => false,
+            'restore_quote' => false,
+            'message' => '',
+            'already_exists' => false
+        ];
     }
 
     /**
