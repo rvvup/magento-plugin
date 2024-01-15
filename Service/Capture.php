@@ -256,7 +256,7 @@ class Capture
                 ]
             );
             $message = __(
-                'There is new payment attempt for this payment request, ' . $rvvupId
+                'This checkout cannot complete, a new cart was opened in another tab. ' . $rvvupId
             );
             return [
                 'is_valid' => false,
@@ -392,7 +392,7 @@ class Capture
             if (isset($order)) {
                 $order->addStatusToHistory(
                     $order->getStatus(),
-                    'Rvvup failed to update Magento order with a failure to get rvvup status',
+                    'Failed to update Magento order from Rvvup order status check',
                     false
                 );
                 $this->orderRepository->save($order);
