@@ -106,7 +106,14 @@ class In implements HttpGetActionInterface
                 return $this->redirectToCart();
             }
             if ($validate['already_exists']) {
-                return $this->captureService->processOrderResult($quote->getReservedOrderId(), $rvvupId, true);
+                if (!$quote->getReservedOrderId()) {
+                    if ($this->checkoutSession->getLastOrderId()) {
+                        $id = $this->checkoutSession->getLastOrderId();
+                        $this->checkoutSession->setLastSuccessQuoteId($id);
+                        return $this->captureService->processOrderResult(null, $rvvupId);
+                    }
+                }
+                return $this->captureService->processOrderResult((string)$quote->getReservedOrderId(), $rvvupId, true);
             }
         }
 

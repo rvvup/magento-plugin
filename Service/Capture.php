@@ -201,6 +201,16 @@ class Capture
             ];
         }
 
+        if (!$quote->getIsActive()) {
+            return [
+                'is_valid' => false,
+                'redirect_to_cart' => false,
+                'restore_quote' => false,
+                'message' => '',
+                'already_exists' => true
+            ];
+        }
+
         if (!$quote->getItems()) {
             $quote = $this->getQuoteByRvvupId($rvvupId);
             $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
@@ -355,13 +365,20 @@ class Capture
 
     /**
      * Update Magento Order based on Rvuup Order and payment statuses
-     * @param string $orderId
+     * @param string|null $orderId
      * @param string $rvvupId
      * @param bool $reservedOrderId
      * @return Redirect
      */
-    public function processOrderResult(string $orderId, string $rvvupId, bool $reservedOrderId = false): Redirect
+    public function processOrderResult(?string $orderId, string $rvvupId, bool $reservedOrderId = false): Redirect
     {
+        if (!$orderId) {
+            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
+                In::SUCCESS,
+                ['_secure' => true]
+            );
+        }
+
         try {
             if ($reservedOrderId) {
                 $order = $this->order->loadByIncrementId($orderId);
