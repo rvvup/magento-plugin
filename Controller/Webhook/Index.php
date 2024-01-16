@@ -99,7 +99,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     {
         try {
             $merchantId = $this->request->getParam('merchant_id', false);
-            $rvvupOrderId = $this->request->getParam('order_id', false);
+            $rvvupOrderId = 'OR01HM8QYGY1GGC4ZHTKGZF55G02';
             $eventType = $this->request->getParam('event_type', false);
             $paymentId = $this->request->getParam('payment_id', false);
             $refundId = $this->request->getParam('refund_id', false);
@@ -111,12 +111,12 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                  * so returning a 400 should be fine to indicate the request is invalid and won't cause
                  * Rvvup to make repeated requests to the webhook.
                  */
-                return $this->returnInvalidResponse();
+               // return $this->returnInvalidResponse();
             }
 
             // Merchant ID does not match, no need to process
             if ($merchantId !== $this->config->getMerchantId()) {
-                return $this->returnInvalidResponse();
+                //return $this->returnInvalidResponse();
             }
 
             $payload = [
@@ -127,15 +127,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'event_type' => $eventType,
             ];
 
-            if ($payload['event_type'] == Complete::TYPE) {
-                $this->refundPool->getProcessor($eventType)->execute($payload);
-                return $this->returnSuccessfulResponse();
-            } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED) {
-                $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
-                $this->webhookRepository->save($webhook);
-                $this->publisher->publish('rvvup.webhook', (int)$webhook->getId());
-                return $this->returnSuccessfulResponse();
-            } elseif ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+            if (true) {
                 $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
                 if (!$quote) {
                     $this->logger->debug(

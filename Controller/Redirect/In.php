@@ -89,6 +89,11 @@ class In implements HttpGetActionInterface
     {
         $rvvupId = $this->request->getParam('rvvup-order-id');
         $quote = $this->checkoutSession->getQuote();
+
+        if (!$quote->getId()) {
+            $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
+        }
+
         $payment = $quote->getPayment();
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
         $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
@@ -106,11 +111,14 @@ class In implements HttpGetActionInterface
                 return $this->redirectToCart();
             }
             if ($validate['already_exists']) {
+                if ($quote->getId()) {
+                    $this->checkoutSession->setLastSuccessQuoteId($quote->getId());
+                }
+
                 if (!$quote->getReservedOrderId()) {
                     if ($this->checkoutSession->getLastOrderId()) {
                         $id = $this->checkoutSession->getLastOrderId();
-                        $this->checkoutSession->setLastSuccessQuoteId($id);
-                        return $this->captureService->processOrderResult(null, $rvvupId);
+                        return $this->captureService->processOrderResult($id, $rvvupId);
                     }
                 }
                 return $this->captureService->processOrderResult((string)$quote->getReservedOrderId(), $rvvupId, true);

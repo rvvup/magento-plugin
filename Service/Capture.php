@@ -437,7 +437,7 @@ class Capture
             ]
         );
         $items = $collection->getItems();
-        if (count($items) > 1) {
+        if (count($items) !== 1) {
             return null;
         }
         $quoteId = end($items)->getQuoteId();
