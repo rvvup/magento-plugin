@@ -113,13 +113,10 @@ class In implements HttpGetActionInterface
             if ($validate['already_exists']) {
                 if ($quote->getId()) {
                     $this->checkoutSession->setLastSuccessQuoteId($quote->getId());
-                }
-
-                if (!$quote->getReservedOrderId()) {
-                    if ($this->checkoutSession->getLastOrderId()) {
-                        $id = $this->checkoutSession->getLastOrderId();
-                        return $this->captureService->processOrderResult($id, $rvvupId);
-                    }
+                    $this->checkoutSession->setLastQuoteId($quote->getId());
+                    $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
+                    $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
+                    return $this->captureService->processOrderResult(null, $rvvupId);
                 }
                 return $this->captureService->processOrderResult((string)$quote->getReservedOrderId(), $rvvupId, true);
             }
