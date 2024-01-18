@@ -123,7 +123,18 @@ class In implements HttpGetActionInterface
         }
 
         $this->captureService->setCheckoutMethod($quote);
-        $orderId = $this->captureService->createOrder($rvvupId, $quote);
+        $order = $this->captureService->createOrder($rvvupId, $quote);
+        $orderId = $order['id'];
+        $reserved = $order['reserved'];
+
+        if ($reserved) {
+            $this->checkoutSession->setLastSuccessQuoteId($quote->getId());
+            $this->checkoutSession->setLastQuoteId($quote->getId());
+            $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
+            $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
+            return $this->captureService->processOrderResult($orderId, $rvvupId, true);
+        }
+
         if (!$orderId) {
             $this->messageManager->addErrorMessage(
                 __(

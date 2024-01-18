@@ -10,6 +10,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -313,11 +314,14 @@ class Capture
         try {
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
             $this->quoteResource->commit();
-            return $orderId;
+            return ['id' => $orderId, 'reserved' => false];
         } catch (NoSuchEntityException $e) {
-            return $quote->getReservedOrderId();
+            return ['id' => $quote->getReservedOrderId(), 'reserved' => true];
         } catch (\Exception $e) {
             $this->quoteResource->rollback();
+            if (str_contains($e->getMessage(), AdapterInterface::ERROR_ROLLBACK_INCOMPLETE_MESSAGE)) {
+                return ['id' => $quote->getReservedOrderId(), 'reserved' => true];
+            }
             $this->logger->error(
                 'Order placement within rvvup payment failed',
                 [
@@ -327,7 +331,7 @@ class Capture
                     'message' => $e->getMessage()
                 ]
             );
-            return false;
+            return ['id' => false, 'reserved' => false];
         }
     }
 

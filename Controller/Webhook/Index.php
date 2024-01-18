@@ -159,7 +159,14 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
-                $orderId = $this->captureService->createOrder($rvvupOrderId, $quote);
+                $order = $this->captureService->createOrder($rvvupOrderId, $quote);
+                $reserved = $order['reserved'];
+                $orderId = $order['id'];
+
+                if ($reserved) {
+                    return $this->returnSuccessfulResponse();
+                }
+
                 if (!$orderId) {
                     return $this->returnExceptionResponse();
                 }
