@@ -609,6 +609,7 @@ define([
                         if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
                             window.SecureTrading.updateJWT(orderPaymentAction.getPaymentToken());
                             $("#tp_place_order").trigger("click");
+                            return;
                         }
 
                         if (orderPaymentAction.getRedirectUrl() !== null) {
