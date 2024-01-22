@@ -81,10 +81,11 @@ define([
                                 chosenWidth = width > windowWidth ? windowWidth : width,
                                 chosenHeight = height > windowHeight ? windowHeight : height,
                                 finalWidth = width === "max" ? windowWidth - 40 : chosenWidth,
-                                finalHeight = height === "max" ? windowHeight - 40 : chosenHeight;
+                                /** Remove 80pixels as margin from top */
+                                finalHeight = height === "max" ? windowHeight - 80 - 40 : chosenHeight;
                             let items = [];
-                            items.push(document.querySelector('.modal-inner-wrap.rvvup'));
                             items.push(document.getElementById(this.getIframeId()));
+                            items.push(document.querySelector('.modal-inner-wrap.rvvup'));
                             items.forEach(function (item) {
                                 if (item) {
                                     item.animate([{
