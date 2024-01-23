@@ -518,8 +518,7 @@ define([
                     data: data,
                     url: url.build('rvvup/payment/cancel'),
                 });
-                this.modal._destroyOverlay();
-                this.modal.closeModal();
+                window.location.reload();
             },
 
             /**
