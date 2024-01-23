@@ -26,7 +26,7 @@ class View extends \Magento\Sales\Block\Order\View
      * @param Context $httpContext
      * @param Data $paymentHelper
      * @param Session $session
-     * @param OrderRepositoryInterface $orderRepository
+     * @param Order $order
      * @param array $data
      */
     public function __construct(
