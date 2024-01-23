@@ -107,4 +107,5 @@
         </arguments>
     </type>
     <preference for="Magento\Sales\Block\Order\View" type="Rvvup\Payments\Block\Order\View"/>
+    <preference for="Magento\Sales\Block\Order\Info" type="Rvvup\Payments\Block\Order\Info"/>
 </config>
