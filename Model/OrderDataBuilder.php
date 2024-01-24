@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
@@ -13,6 +14,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
@@ -20,40 +22,29 @@ use Rvvup\Payments\Gateway\Method;
 
 class OrderDataBuilder
 {
-    /**
-     * @var \Magento\Customer\Api\AddressRepositoryInterface
-     */
+    /** @var AddressRepositoryInterface  */
     private $customerAddressRepository;
 
-    /**
-     * @var UrlInterface
-     */
+    /** @var UrlInterface  */
     private $urlBuilder;
 
-    /**
-     * @var \Rvvup\Payments\Model\ConfigInterface
-     */
+    /** @var ConfigInterface  */
     private $config;
 
-    /**
-     * @var SerializerInterface
-     */
+    /** @var SerializerInterface  */
     private $serializer;
 
-    /**
-     * @var CartRepositoryInterface
-     */
+    /** @var CartRepositoryInterface  */
     private $cartRepository;
 
-    /**
-     * @var SearchCriteriaBuilder
-     */
+    /** @var SearchCriteriaBuilder  */
     private $searchCriteriaBuilder;
 
-    /**
-     * @var OrderRepositoryInterface
-     */
+    /** @var OrderRepositoryInterface  */
     private $orderRepository;
+
+    /** @var Payment  */
+    private $paymentResource;
 
     /**
      * @param AddressRepositoryInterface $customerAddressRepository
@@ -63,6 +54,7 @@ class OrderDataBuilder
      * @param CartRepositoryInterface $cartRepository
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param Payment $paymentResource
      */
     public function __construct(
         AddressRepositoryInterface $customerAddressRepository,
@@ -71,7 +63,8 @@ class OrderDataBuilder
         ConfigInterface $config,
         CartRepositoryInterface $cartRepository,
         OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        Payment $paymentResource
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
@@ -80,6 +73,7 @@ class OrderDataBuilder
         $this->cartRepository = $cartRepository;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->paymentResource = $paymentResource;
     }
 
     /**
@@ -115,6 +109,9 @@ class OrderDataBuilder
 
         $orderDataArray['shippingAddress'] = $this->renderShippingAddress($quote, $express, $shippingAddress);
 
+        $payment = $quote->getPayment();
+        $payment->setAdditionalInformation(Method::CREATE_NEW, false);
+        $this->paymentResource->save($payment);
         // As we have tangible products, the order will require shipping.
         $orderDataArray['shippingTotal']['amount'] = $this->toCurrency($shippingAddress->getShippingAmount());
 
@@ -190,7 +187,8 @@ class OrderDataBuilder
             "requiresShipping" => !$quote->getIsVirtual(),
         ];
 
-        if ($payment->getAdditionalInformation("rvvup_express_payment_data")) {
+        if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)
+        && !$payment->getAdditionalInformation(Method::CREATE_NEW)) {
             unset($orderDataArray["type"]);
             $orderDataArray['merchantId'] = $this->config->getMerchantId();
             $orderDataArray['express'] = true;
@@ -201,6 +199,17 @@ class OrderDataBuilder
             $orderDataArray["redirectToStoreUrl"] = $this->urlBuilder->getUrl('rvvup/redirect/in');
             $orderDataArray["items"] = $this->renderItems($quote);
         }
+
+        if ($id = $payment->getAdditionalInformation(Method::ORDER_ID)) {
+            if (!$payment->getAdditionalInformation(Method::CREATE_NEW) &&
+            !$payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)
+            ) {
+                $payment->setAdditionalInformation(Method::CREATE_NEW, true);
+                $this->paymentResource->save($payment);
+                return $orderDataArray;
+            }
+            $orderDataArray['id'] = $id;
+        };
 
         return $orderDataArray;
     }
@@ -265,7 +274,7 @@ class OrderDataBuilder
         // If we have an express payment and quote belongs to a customer, get customer data from customer object.
         if ($express && $quote->getCustomer() !== null && $quote->getCustomer()->getId() !== null) {
             $customerBillingAddress = $quote->getCustomer()->getDefaultBilling() !== null
-                ? $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultBilling())
+                ? $this->renderCustomerAddress((int)$quote->getCustomer()->getDefaultBilling())
                 : null;
 
             return [
@@ -322,14 +331,16 @@ class OrderDataBuilder
             return $billingAddress !== null ? $this->renderAddress($quote->getBillingAddress()) : null;
         }
 
-        // Otherwise generate the express payment create billing address from customer.
-        // If no default customer billing address, return null.
-        if ($quote->getCustomer()->getId() === null || $quote->getCustomer()->getDefaultBilling() === null) {
+        if ($express && $quote->getPayment()->getAdditionalInformation(Method::CREATE_NEW)) {
             return null;
         }
 
+        if ($billingAddress !== null) {
+            return $this->renderAddress($billingAddress);
+        }
+
         // Otherwise, return customer billing address if full.
-        return $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultBilling());
+        return $this->renderCustomerAddress((int)$quote->getCustomer()->getDefaultBilling());
     }
 
     /**
@@ -349,14 +360,16 @@ class OrderDataBuilder
             return $shippingAddress !== null ? $this->renderAddress($quote->getShippingAddress()) : null;
         }
 
-        // Otherwise generate the express payment create billing address from customer.
-        // If no default customer billing address, return null.
-        if ($quote->getCustomer()->getId() === null || $quote->getCustomer()->getDefaultShipping() === null) {
+        if ($express && $quote->getPayment()->getAdditionalInformation(Method::CREATE_NEW)) {
             return null;
         }
 
+        if ($shippingAddress !== null) {
+            return $this->renderAddress($shippingAddress);
+        }
+
         // Otherwise, return customer billing address if full.
-        return $this->renderCustomerAddress((int) $quote->getCustomer()->getDefaultShipping());
+        return $this->renderCustomerAddress((int)$quote->getCustomer()->getDefaultShipping());
     }
 
     /**
@@ -439,7 +452,7 @@ class OrderDataBuilder
      */
     private function toCurrency($amount): string
     {
-        return number_format((float) $amount, 2, '.', '');
+        return number_format((float)$amount, 2, '.', '');
     }
 
     /**
@@ -448,7 +461,7 @@ class OrderDataBuilder
      */
     private function toQty($qty): string
     {
-        return number_format((float) $qty, 0, '.', '');
+        return number_format((float)$qty, 0, '.', '');
     }
 
     /**

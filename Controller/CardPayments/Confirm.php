@@ -10,7 +10,9 @@ use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Sdk\Exceptions\ApiError;
 
@@ -32,8 +34,13 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     private $orderRepository;
 
-    /** @var Validator  */
+    /** @var Validator */
     private $formKeyValidator;
+
+    /**
+     * @var SessionManagerInterface
+     */
+    private $checkoutSession;
 
     /**
      * @param ResultFactory $resultFactory
@@ -41,19 +48,22 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param RequestInterface $request
      * @param OrderRepositoryInterface $orderRepository
      * @param Validator $formKeyValidator
+     * @param SessionManagerInterface $checkoutSession $
      */
     public function __construct(
         ResultFactory $resultFactory,
         SdkProxy $sdkProxy,
         RequestInterface $request,
         OrderRepositoryInterface $orderRepository,
-        Validator $formKeyValidator
+        Validator $formKeyValidator,
+        SessionManagerInterface $checkoutSession
     ) {
         $this->resultFactory = $resultFactory;
         $this->sdkProxy = $sdkProxy;
         $this->request = $request;
         $this->orderRepository = $orderRepository;
         $this->formKeyValidator = $formKeyValidator;
+        $this->checkoutSession = $checkoutSession;
     }
 
     public function execute()
@@ -61,38 +71,27 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
         $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
 
         try {
-            $orderId = $this->request->getParam('order_id', false);
-            $order = $this->orderRepository->get((int)$orderId);
+            $quote = $this->checkoutSession->getQuote();
+            $rvvupOrderId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
+            $rvvupPaymentId = $quote->getPayment()->getAdditionalInformation(Method::PAYMENT_ID);
 
-            if ($order) {
-                $rvvupOrderId = (string) $order->getPayment()->getAdditionalInformation('rvvup_order_id');
-                $rvvupOrder = $this->sdkProxy->getOrder($rvvupOrderId);
-                $rvvupPaymentId = $rvvupOrder['payments'][0]['id'];
+            $authorizationResponse = $this->request->getParam('auth', false);
+            $threeDSecureResponse = $this->request->getParam('three_d');
 
-                $authorizationResponse = $this->request->getParam('auth', false);
-                $threeDSecureResponse = $this->request->getParam('three_d', null);
+            $this->sdkProxy->confirmCardAuthorization(
+                $rvvupPaymentId,
+                $rvvupOrderId,
+                $authorizationResponse,
+                $threeDSecureResponse
+            );
 
-                $this->sdkProxy->confirmCardAuthorization(
-                    $rvvupPaymentId,
-                    $rvvupOrderId,
-                    $authorizationResponse,
-                    $threeDSecureResponse
-                );
+            $response->setData([
+                'success' => true,
+            ]);
 
-                $response->setData([
-                    'success' => true,
-                ]);
-            } else {
-                $response->setData([
-                    'success' => false,
-                    'error_message' => 'Order not found during card authorization',
-                    'retryable' => false,
-                ]);
-            }
             $response->setHttpResponseCode(200);
             return $response;
         } catch (\Exception $exception) {
-
             $data = [
                 'success' => false,
                 'error_message' => $exception->getMessage()

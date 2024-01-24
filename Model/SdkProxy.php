@@ -5,6 +5,7 @@ namespace Rvvup\Payments\Model;
 use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
+use Rvvup\Sdk\Exceptions\NetworkException;
 use Rvvup\Sdk\GraphQlSdkFactory;
 use Rvvup\Sdk\GraphQlSdk;
 
@@ -161,6 +162,18 @@ class SdkProxy
     public function voidPayment($orderId, $paymentId)
     {
         return $this->getSubject()->voidPayment($orderId, $paymentId);
+    }
+
+    /**
+     * @param string $orderId
+     * @param string $paymentId
+     * @return false|mixed
+     * @throws \JsonException
+     * @throws NetworkException
+     */
+    public function paymentCapture(string $orderId, string $paymentId)
+    {
+        return $this->getSubject()->paymentCapture($orderId, $paymentId);
     }
 
     /**

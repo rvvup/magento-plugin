@@ -8,6 +8,7 @@ define([
         'Magento_Checkout/js/model/url-builder',
         'Rvvup_Payments/js/model/checkout/payment/order-payment-action',
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
+        'Magento_Checkout/js/model/full-screen-loader',
     ], function (
         $,
         _,
@@ -17,7 +18,8 @@ define([
         quote,
         urlBuilder,
         orderPaymentAction,
-        rvvupMethodProperties
+        rvvupMethodProperties,
+        loader
     ) {
         'use strict';
 
@@ -96,6 +98,7 @@ define([
 
                 throw 'Error placing order';
             }).fail(function (response) {
+                loader.stopLoader();
                 errorProcessor.process(response, messageContainer);
             });
         };

@@ -41,9 +41,10 @@ class Config implements ConfigInterface
      * Validate whether Rvvup module & payment methods are active.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode The store's code or storeId as a string
      * @return bool
      */
-    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE): bool
+    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool
     {
         if (!$this->getActiveConfig($scopeType)) {
             return false;

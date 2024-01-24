@@ -15,6 +15,9 @@ var config = {
             },
             'Magento_Checkout/js/view/billing-address': {
                 'Rvvup_Payments/js/view/billing-address-mixin': true
+            },
+            'Magento_Checkout/js/action/place-order': {
+                'Rvvup_Payments/js/action/place-order-mixin': true
             }
         }
     },

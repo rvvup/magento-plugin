@@ -5,6 +5,7 @@ namespace Rvvup\Payments\Controller\Express;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\Controller\ResultFactory;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 
 class Cancel implements HttpGetActionInterface
@@ -39,16 +40,14 @@ class Cancel implements HttpGetActionInterface
     public function execute()
     {
         $payment = $this->checkoutSession->getQuote()->getPayment();
-        if ($payment->getAdditionalInformation('is_rvvup_express_payment')) {
-            $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
-            $order = $this->sdkProxy->getOrder($rvvupOrderId);
-            if ($order && isset($order['payments'])) {
-                $paymentId = $order['payments'][0]['id'];
-                $this->sdkProxy->cancelPayment($paymentId, $rvvupOrderId);
-                $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-                $result->setData(['success' => true]);
-                return $result;
-            }
+        if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {
+            $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
+            $paymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+
+            $this->sdkProxy->cancelPayment($paymentId, $rvvupOrderId);
+            $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+            $result->setData(['success' => true]);
+            return $result;
         }
 
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);

@@ -10,7 +10,7 @@ use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
-use Rvvup\Payments\Service\Order;
+use Rvvup\Payments\Service\Capture;
 
 class Handler
 {
@@ -29,9 +29,9 @@ class Handler
     private $logger;
 
     /**
-     * @var Order
+     * @var Capture
      */
-    private $orderService;
+    private $captureService;
 
     /**
      * @param WebhookRepositoryInterface $webhookRepository
@@ -40,7 +40,7 @@ class Handler
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
-     * @param Order $orderService
+     * @param Capture $captureService
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -49,14 +49,14 @@ class Handler
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
         LoggerInterface $logger,
-        Order $orderService
+        Capture $captureService
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
         $this->config = $config;
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
-        $this->orderService = $orderService;
+        $this->captureService = $captureService;
         $this->logger = $logger;
     }
 
@@ -72,7 +72,7 @@ class Handler
 
             $rvvupOrderId = $payload['order_id'];
 
-            $order = $this->orderService->getOrderByRvvupId($rvvupOrderId);
+            $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
 
             // if Payment method is not Rvvup, exit.
             if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {

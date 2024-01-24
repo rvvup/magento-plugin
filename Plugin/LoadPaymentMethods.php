@@ -151,6 +151,9 @@ class LoadPaymentMethods
         if ($address && $address->getShippingMethod()) {
             if ($address->getShippingRateByCode($address->getShippingMethod())) {
                 $addressId = $address->getShippingRateByCode($address->getShippingMethod())->getAddressId();
+                if (!$addressId) {
+                    return $address->getCountryId() ?: false;
+                }
                 return $quote->getAddressById($addressId)->getCountryId();
             }
         }
