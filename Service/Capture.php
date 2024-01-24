@@ -9,7 +9,6 @@ use Magento\Checkout\Model\Type\Onepage;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Session\SessionManagerInterface;
@@ -184,8 +183,7 @@ class Capture
      * @param string $rvvupId
      * @param Quote $quote
      * @param string $lastTransactionId
-     * @return Redirect|ResultInterface|void
-     * @throws NoSuchEntityException
+     * @return array
      */
     public function validate(string $rvvupId, Quote &$quote, string &$lastTransactionId): array
     {
