@@ -79,7 +79,7 @@ class Capture
 
     /**
      * Set via di.xml
-     * @var SessionManagerInterface|Proxy
+     * @var SessionManagerInterface
      */
     private $checkoutSession;
 
@@ -302,10 +302,9 @@ class Capture
     /**
      * @param string $rvvupId
      * @param Quote $quote
-     * @return array|false|int|Redirect|ResultInterface|mixed
-     * @throws NoSuchEntityException
+     * @return array
      */
-    public function createOrder(string $rvvupId, Quote $quote)
+    public function createOrder(string $rvvupId, Quote $quote): array
     {
         $this->quoteResource->beginTransaction();
         $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
@@ -428,7 +427,7 @@ class Capture
 
     /**
      * @param string $rvvupId
-     * @return null
+     * @return Quote|null
      */
     public function getQuoteByRvvupId(string $rvvupId): ?Quote
     {
