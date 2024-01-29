@@ -387,6 +387,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\CardsMetadata">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+    
     <type name="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
