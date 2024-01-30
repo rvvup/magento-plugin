@@ -424,4 +424,14 @@
                 sortOrder="1"/>
     </type>
 
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="disable_order_creation"
+                type="Rvvup\Payments\Plugin\Guest\DisableOrderCreation"
+                sortOrder="1"/>
+    </type>
+    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
+        <plugin name="disable_order_creation"
+                type="Rvvup\Payments\Plugin\Customer\DisableOrderCreation"
+                sortOrder="1"/>
+    </type>
 </config>
