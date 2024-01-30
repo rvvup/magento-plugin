@@ -40,7 +40,7 @@ class DisableOrderCreation
         PaymentInterface                           $paymentMethod,
         AddressInterface                           $billingAddress = null
     ): int {
-        // No action if Rvvup Payment.
+        // Return reserved order id if Rvvup Payment.
         if (strpos($paymentMethod->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0) {
             $cart = $this->cartRepository->get($cartId);
             $id = $cart->getReservedOrderId();
