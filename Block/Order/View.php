@@ -50,17 +50,17 @@ class View extends \Magento\Sales\Block\Order\View
      */
     protected function _prepareLayout(): void
     {
-        $orderId = $this->getOrder()->getRealOrderId();
-        $payment = $this->getOrder()->getPayment();
-        if (!$orderId) {
-            $orderId = $this->session->getLastRealOrderId();
+        $orderId = $this->getOrder()->getRealOrderId() ?: $this->session->getLastRealOrderId();
+        if ($orderId) {
+            $this->pageConfig->getTitle()->set(__('Order # %1', $orderId));
         }
-        if (!$payment) {
-            $order = $this->order->loadByIncrementId($orderId);
-            $payment = $order->getPayment();
+
+        $payment = $this->getOrder()->getPayment() ?:
+            $this->order->loadByIncrementId($orderId)->getPayment();
+
+        if ($payment) {
+            $infoBlock = $this->_paymentHelper->getInfoBlock($payment, $this->getLayout());
+            $this->setChild('payment_info', $infoBlock);
         }
-        $this->pageConfig->getTitle()->set(__('Order # %1', $orderId));
-        $infoBlock = $this->_paymentHelper->getInfoBlock($payment, $this->getLayout());
-        $this->setChild('payment_info', $infoBlock);
     }
 }
