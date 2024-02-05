@@ -116,7 +116,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
             // Merchant ID does not match, no need to process
             if ($merchantId !== $this->config->getMerchantId()) {
-                return $this->returnInvalidResponse();
+                return $this->returnSkipResponse();
             }
 
             $payload = [
@@ -221,6 +221,17 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
          * 202 Accepted: request has been accepted for processing, but the processing has not been completed
          */
         $response->setHttpResponseCode(202);
+
+        return $response;
+    }
+
+    /**
+     * @return ResultInterface
+     */
+    private function returnSkipResponse(): ResultInterface
+    {
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
+        $response->setHttpResponseCode(210);
 
         return $response;
     }
