@@ -43,6 +43,7 @@ class Config implements ConfigInterface
      * @param string $scopeType
      * @param string|null $scopeCode The store's code or storeId as a string
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool
     {
@@ -59,6 +60,7 @@ class Config implements ConfigInterface
      *
      * @param string $scopeType
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function getActiveConfig(string $scopeType = ScopeInterface::SCOPE_STORE): bool
     {
@@ -70,11 +72,16 @@ class Config implements ConfigInterface
      * Get the JWT value from the config.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string|null
+     * @throws NoSuchEntityException
      */
-    public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE): ?string
-    {
-        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
+    public function getJwtConfig(
+        string $scopeType = ScopeInterface::SCOPE_STORE,
+        string $scopeCode = null
+    ): ?string {
+        $scopeCode = $scopeCode ?:
+            ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
 
         $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT, $scopeType, $scopeCode);
 
@@ -100,11 +107,13 @@ class Config implements ConfigInterface
      * Get the endpoint URL.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string
+     * @throws NoSuchEntityException
      */
-    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE): string
+    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
     {
-        $jwt = $this->getJwt($scopeType);
+        $jwt = $this->getJwt($scopeType, $scopeCode);
 
         return $jwt === null ? '' : (string) $jwt->aud;
     }
@@ -113,11 +122,13 @@ class Config implements ConfigInterface
      * Get the Merchant ID.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string
+     * @throws NoSuchEntityException
      */
-    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE): string
+    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
     {
-        $jwt = $this->getJwt($scopeType);
+        $jwt = $this->getJwt($scopeType, $scopeCode);
 
         return $jwt === null ? '' : (string) $jwt->merchantId;
     }
@@ -126,11 +137,13 @@ class Config implements ConfigInterface
      * Get the Authorization Token.
      *
      * @param string $scopeType
+     * @param string|null $scope
      * @return string
+     * @throws NoSuchEntityException
      */
-    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE): string
+    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE, string $scope = null): string
     {
-        $jwt = $this->getJwt($scopeType);
+        $jwt = $this->getJwt($scopeType, $scope);
 
         if ($jwt === null) {
             return '';
@@ -155,13 +168,14 @@ class Config implements ConfigInterface
      * Get a standard class by decoding the config JWT.
      *
      * @param string $scopeType
-     *
+     * @param string $scopeCode
      * @return \stdClass|null
+     * @throws NoSuchEntityException
      */
-    private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE): ?stdClass
+    private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?stdClass
     {
         if (!$this->jwt) {
-            $jwt = $this->getJwtConfig($scopeType);
+            $jwt = $this->getJwtConfig($scopeType, $scopeCode);
 
             if ($jwt === null) {
                 $this->jwt = null;

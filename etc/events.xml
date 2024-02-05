@@ -53,4 +53,10 @@
                   instance="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver"
                   shared="false" />
     </event>
+
+    <event name="admin_system_config_save">
+        <observer name="Rvvup_Payments::Observer\Webhook"
+                  instance="Rvvup\Payments\Observer\Webhook"
+                  shared="false"/>
+    </event>
 </config>
