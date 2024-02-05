@@ -11,6 +11,7 @@ abstract class AbstractCommand
         'REQUIRES_ACTION' => 'defer',
         'PENDING' => 'defer',
         'SUCCEEDED' => 'success',
+        'AUTHORIZED' => 'success',
         'CANCELLED' => 'decline',
         'DECLINED' => 'decline',
     ];

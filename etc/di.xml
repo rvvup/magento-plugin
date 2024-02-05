@@ -106,7 +106,6 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="initialize" xsi:type="string">Rvvup\Payments\Gateway\Command\InitializeCommand</item>
-                <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
                 <item name="createPayment" xsi:type="string">Rvvup\Payments\Gateway\Command\CreatePayment</item>
             </argument>
         </arguments>
@@ -115,6 +114,7 @@
     <type name="\Rvvup\Payments\Gateway\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
+                <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
                 <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
             </argument>
