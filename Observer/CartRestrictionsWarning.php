@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Rvvup\Payments\Observer;
 
 use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
@@ -15,20 +17,28 @@ class CartRestrictionsWarning implements ObserverInterface
 {
     /** @var ConfigInterface */
     private $config;
+
     /** @var Session */
     private $checkoutSession;
+
     /** @var Messages */
     private $messages;
+
     /** @var ManagerInterface */
     private $messageManager;
+
     /** @var LoggerInterface */
     private $logger;
+
+    /** @var Http */
+    private $request;
 
     /**
      * @param ConfigInterface $config
      * @param SessionManagerInterface $checkoutSession
      * @param Messages $messages
      * @param ManagerInterface $messageManager
+     * @param Http $request
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -36,12 +46,14 @@ class CartRestrictionsWarning implements ObserverInterface
         SessionManagerInterface $checkoutSession,
         Messages $messages,
         ManagerInterface $messageManager,
+        Http $request,
         LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->messages = $messages;
         $this->messageManager = $messageManager;
+        $this->request = $request;
         $this->logger = $logger;
     }
 
@@ -55,6 +67,14 @@ class CartRestrictionsWarning implements ObserverInterface
             if (!$this->config->isActive()) {
                 return;
             }
+
+            //Disable messaging after being redirected not to override messages.
+            if ($referer = $this->request->getServer('HTTP_REFERER')) {
+                if (str_contains($referer, 'rvvup')) {
+                    return;
+                }
+            }
+
             $hasRestrictedItems = false;
             $quote = $this->checkoutSession->getQuote();
             foreach ($quote->getAllItems() as $item) {
@@ -64,9 +84,11 @@ class CartRestrictionsWarning implements ObserverInterface
                 }
             }
             if ($hasRestrictedItems) {
-                $this->messageManager->addWarningMessage(
-                    $this->messages->getCheckoutMessage()
-                );
+                if (!$this->messageManager->getMessages()->getItems()) {
+                    $this->messageManager->addWarningMessage(
+                        $this->messages->getCheckoutMessage()
+                    );
+                }
             }
         } catch (\Exception $e) {
             // Fail gracefully

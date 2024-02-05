@@ -16,7 +16,8 @@ class DataAssignObserver extends AbstractDataAssignObserver
         Method::ORDER_ID,
         Method::DASHBOARD_URL,
         Method::EXPRESS_PAYMENT_KEY,
-        Method::EXPRESS_PAYMENT_DATA_KEY
+        Method::EXPRESS_PAYMENT_DATA_KEY,
+        Method::TRANSACTION_ID,
     ];
 
     /**

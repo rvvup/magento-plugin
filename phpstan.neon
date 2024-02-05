@@ -1,6 +1,8 @@
 parameters:
     reportUnmatchedIgnoredErrors: false
     level: 0
+    scanDirectories:
+        - .
     paths:
         - .
     excludePaths:

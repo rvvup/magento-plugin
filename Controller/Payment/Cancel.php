@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rvvup\Payments\Controller\CardPayments;
+namespace Rvvup\Payments\Controller\Payment;
 
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\HttpPostActionInterface;
@@ -12,11 +12,11 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Data\Form\FormKey\Validator;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Service\Order;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\SdkProxy;
 
 class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
 {
@@ -29,36 +29,36 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var Session */
     private $session;
 
-    /** @var Order */
-    private $orderService;
-
     /** @var LoggerInterface */
     private $logger;
 
     /** @var OrderRepositoryInterface  */
     private $orderRepository;
 
+    /** @var SdkProxy  */
+    private $sdkProxy;
+
     /**
      * @param ResultFactory $resultFactory
      * @param Validator $formKeyValidator
      * @param Session $session
-     * @param Order $orderService
      * @param OrderRepositoryInterface $orderRepository
+     * @param SdkProxy $sdkProxy
      * @param LoggerInterface $logger
      */
     public function __construct(
         ResultFactory $resultFactory,
         Validator $formKeyValidator,
         Session $session,
-        Order $orderService,
         OrderRepositoryInterface $orderRepository,
+        SdkProxy $sdkProxy,
         LoggerInterface $logger
     ) {
         $this->resultFactory = $resultFactory;
         $this->formKeyValidator = $formKeyValidator;
         $this->session = $session;
-        $this->orderService = $orderService;
         $this->orderRepository = $orderRepository;
+        $this->sdkProxy = $sdkProxy;
         $this->logger = $logger;
     }
 
@@ -71,11 +71,7 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
 
         try {
             if ($quote->getId()) {
-                $orders = $this->orderService->getAllOrdersByQuote($quote);
-                /** @var OrderInterface $order */
-                foreach ($orders as $order) {
-                    $this->cancelRvvupOrder($order);
-                }
+                $this->cancelRvvupOrder($quote->getPayment());
             }
         } catch (\Exception $e) {
             $this->logger->warning('Rvvup order cancellation failed with message : ' . $e->getMessage());
@@ -87,20 +83,14 @@ class Cancel implements HttpPostActionInterface, CsrfAwareActionInterface
     }
 
     /**
-     * @param OrderInterface $order
+     * @param PaymentInterface $payment
      * @return void
      */
-    private function cancelRvvupOrder(OrderInterface $order): void
+    private function cancelRvvupOrder(PaymentInterface $payment): void
     {
-        $payment = $order->getPayment();
-        if ($payment->getMethod()) {
-            if (strpos($payment->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0) {
-                if ($order->canCancel()) {
-                    $order->cancel();
-                    $this->orderRepository->save($order);
-                }
-            }
-        }
+        $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
+        $paymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+        $this->sdkProxy->cancelPayment($paymentId, $rvvupOrderId);
     }
 
     /**

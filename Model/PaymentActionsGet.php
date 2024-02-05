@@ -4,44 +4,34 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
 
-use Exception;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SortOrderBuilder;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NotFoundException;
+use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Api\Data\PaymentInterface as PaymentInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
+use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Service\Hash;
 use Throwable;
 
 class PaymentActionsGet implements PaymentActionsGetInterface
 {
     /**
-     * @var \Magento\Framework\Api\SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-
-    /**
-     * @var \Magento\Framework\Api\SortOrderBuilder
-     */
-    private $sortOrderBuilder;
-
-    /**
-     * @var \Magento\Sales\Api\OrderRepositoryInterface
-     */
-    private $orderRepository;
-
-    /**
-     * @var \Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory
+     * @var PaymentActionInterfaceFactory
      */
     private $paymentActionInterfaceFactory;
 
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var LoggerInterface|RvvupLog
      */
     private $logger;
 
@@ -55,30 +45,39 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      */
     private $commandPool;
 
+    /** @var QuoteRepository */
+    private $quoteRepository;
+
+    /** @var Hash */
+    private $hashService;
+
+    /** @var Payment */
+    private $paymentResource;
+
     /**
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param SortOrderBuilder $sortOrderBuilder
-     * @param OrderRepositoryInterface $orderRepository
      * @param PaymentActionInterfaceFactory $paymentActionInterfaceFactory
      * @param SdkProxy $sdkProxy
      * @param CommandPoolInterface $commandPool
+     * @param QuoteRepository $quoteRepository
+     * @param Hash $hashService
+     * @param Payment $paymentResource
      * @param LoggerInterface $logger
      */
     public function __construct(
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        SortOrderBuilder $sortOrderBuilder,
-        OrderRepositoryInterface $orderRepository,
         PaymentActionInterfaceFactory $paymentActionInterfaceFactory,
         SdkProxy $sdkProxy,
         CommandPoolInterface $commandPool,
+        QuoteRepository $quoteRepository,
+        Hash $hashService,
+        Payment $paymentResource,
         LoggerInterface $logger
     ) {
-        $this->sortOrderBuilder = $sortOrderBuilder;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->orderRepository = $orderRepository;
         $this->paymentActionInterfaceFactory = $paymentActionInterfaceFactory;
         $this->sdkProxy = $sdkProxy;
         $this->commandPool = $commandPool;
+        $this->quoteRepository = $quoteRepository;
+        $this->hashService = $hashService;
+        $this->paymentResource = $paymentResource;
         $this->logger = $logger;
     }
 
@@ -92,20 +91,29 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      */
     public function execute(string $cartId, ?string $customerId = null): array
     {
-        $order = $this->getOrderByCartIdAndCustomerId($cartId, $customerId);
+        $quote = $this->quoteRepository->get($cartId);
+        $quote->reserveOrderId();
+        $this->quoteRepository->save($quote);
 
-        $this->validate($order, $cartId, $customerId);
+        // create rvvup order
+        $this->commandPool->get('initialize')->execute(['quote' => $quote]);
 
-        if ($order->getPayment()->getAdditionalInformation('is_rvvup_express_payment')) {
-            $paymentActions = $this->getExpressOrderPaymentActions($order);
-        } else {
-            $paymentActions = $this->createRvvupPayment($order);
+        $this->hashService->saveQuoteHash($quote);
+
+        $payment = $quote->getPayment();
+        if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {
+            if (!$payment->getAdditionalInformation(Method::CREATE_NEW)) {
+                return $this->getExpressOrderPaymentActions($payment);
+            }
         }
+
+        // create rvvup payment
+        $paymentData = $this->createRvvupPayment($quote);
 
         $paymentActionsDataArray = [];
 
         try {
-            foreach ($paymentActions as $paymentAction) {
+            foreach ($paymentData as $paymentAction) {
                 if (!is_array($paymentAction)) {
                     continue;
                 }
@@ -125,7 +133,6 @@ class PaymentActionsGet implements PaymentActionsGetInterface
                 'Error loading Payment Actions for user. Failed return result with message: ' . $t->getMessage(),
                 [
                     'quote_id' => $cartId,
-                    'order_id' => $order->getEntityId(),
                     'customer_id' => $customerId
                 ]
             );
@@ -136,7 +143,6 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         if (empty($paymentActionsDataArray)) {
             $this->logger->error('Error loading Payment Actions for user. No payment actions found.', [
                 'quote_id' => $cartId,
-                'order_id' => $order->getEntityId(),
                 'customer_id' => $customerId
             ]);
 
@@ -147,63 +153,14 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     }
 
     /**
-     * @param string $cartId
-     * @param string|null $customerId
-     * @return OrderInterface
-     * @throws LocalizedException
-     */
-    private function getOrderByCartIdAndCustomerId(string $cartId, ?string $customerId = null): OrderInterface
-    {
-        try {
-            $sortOrder = $this->sortOrderBuilder->setDescendingDirection()
-                ->setField('created_at')
-                ->create();
-
-            $this->searchCriteriaBuilder->setPageSize(1)
-                ->addSortOrder($sortOrder)
-                ->addFilter('quote_id', $cartId);
-
-            // If customer ID is provided, pass it.
-            if ($customerId !== null) {
-                $this->searchCriteriaBuilder->addFilter('customer_id', $customerId);
-            }
-
-            $searchCriteria = $this->searchCriteriaBuilder->create();
-
-            $result = $this->orderRepository->getList($searchCriteria);
-        } catch (Exception $e) {
-            $this->logger->error('Error loading Payment Actions for order with message: ' . $e->getMessage(), [
-                'quote_id' => $cartId,
-                'customer_id' => $customerId
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
-
-        $orders = $result->getItems();
-        $order = reset($orders);
-
-        if (!$order) {
-            $this->logger->error('Error loading Payment Actions. No order found.', [
-                'quote_id' => $cartId,
-                'customer_id' => $customerId
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
-
-        return $order;
-    }
-
-    /**
      * Get the order payment's paymentActions from its additional information
      *
-     * @param OrderInterface $order
+     * @param PaymentInterface $payment
      * @return array
      */
-    private function getExpressOrderPaymentActions(OrderInterface $order): array
+    private function getExpressOrderPaymentActions(PaymentInterface $payment): array
     {
-        $id = $order->getPayment()->getAdditionalInformation('rvvup_order_id');
+        $id = $payment->getAdditionalInformation('rvvup_order_id');
         $rvvupOrder = $this->sdkProxy->getOrder($id);
 
         if (!empty($rvvupOrder)) {
@@ -224,9 +181,21 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         return [];
     }
 
-    private function createRvvupPayment($order): array
+    /**
+     * @param CartInterface $quote
+     * @return array
+     * @throws LocalizedException
+     * @throws AlreadyExistsException
+     * @throws NotFoundException
+     * @throws CommandException
+     */
+    private function createRvvupPayment(CartInterface $quote): array
     {
-        $result = $this->commandPool->get('createPayment')->execute(['payment' => $order->getPayment()]);
+        $payment = $quote->getPayment();
+        $result = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
+        $id = $result['data']['paymentCreate']['id'];
+        $payment->setAdditionalInformation(Method::PAYMENT_ID, $id);
+        $this->paymentResource->save($payment);
         return $result['data']['paymentCreate']['summary']['paymentActions'];
     }
 
@@ -234,11 +203,11 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      * Create & return a PaymentActionInterface Data object.
      *
      * @param array $paymentAction
-     * @return \Rvvup\Payments\Api\Data\PaymentActionInterface
+     * @return PaymentActionInterface
      */
     private function getPaymentActionDataObject(array $paymentAction): PaymentActionInterface
     {
-        /** @var \Rvvup\Payments\Api\Data\PaymentActionInterface $paymentActionData */
+        /** @var PaymentActionInterface $paymentActionData */
         $paymentActionData = $this->paymentActionInterfaceFactory->create();
 
         if (isset($paymentAction['type'])) {
@@ -255,41 +224,5 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         }
 
         return $paymentActionData;
-    }
-
-    /**
-     * @param OrderInterface $order
-     * @param string $cartId
-     * @param string|null $customerId
-     * @return void
-     * @throws LocalizedException
-     */
-    private function validate(OrderInterface $order, string $cartId, ?string $customerId = null): void
-    {
-        $payment = $order->getPayment();
-
-        // Fail-safe, all orders should have an associated payment record
-        if ($payment === null) {
-            $this->logger->error('Error loading Payment Actions for user. No order payment found.', [
-                'quote_id' => $cartId,
-                'order_id' => $order->getEntityId(),
-                'customer_id' => $customerId,
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
-
-        $paymentAdditionalInformation = $payment->getAdditionalInformation();
-
-        if (!isset($paymentAdditionalInformation['rvvup_order_id'])) {
-            $this->logger->error('Error loading Payment Actions. No order id additional information found.', [
-                'quote_id' => $cartId,
-                'order_id' => $order->getEntityId(),
-                'payment_id' => $payment->getEntityId(),
-                'customer_id' => $customerId
-            ]);
-
-            throw new LocalizedException(__('Something went wrong'));
-        }
     }
 }

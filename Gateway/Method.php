@@ -7,6 +7,7 @@ use Magento\Payment\Gateway\Command\CommandManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
+use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
 use Magento\Payment\Model\Method\Adapter;
 use Magento\Store\Model\StoreManagerInterface;
@@ -24,7 +25,15 @@ class Method extends Adapter
      * Constant to be used as a key identifier for Rvvup payments.
      */
     public const ORDER_ID = 'rvvup_order_id';
+
     public const DASHBOARD_URL = 'dashboard_url';
+
+    public const TRANSACTION_ID = 'transaction_id';
+
+    public const PAYMENT_ID = 'rvvup_payment_id';
+
+    public const CREATE_NEW = 'should_create_new_rvvup_order';
+
     public const EXPRESS_PAYMENT_KEY = 'is_rvvup_express_payment';
     public const EXPRESS_PAYMENT_DATA_KEY = 'rvvup_express_payment_data';
 
@@ -46,6 +55,7 @@ class Method extends Adapter
     public const STATUS_PENDING = 'PENDING';
     public const STATUS_REQUIRES_ACTION = 'REQUIRES_ACTION';
     public const STATUS_AUTHORIZED = "AUTHORIZED";
+    public const STATUS_PAYMENT_AUTHORIZED = "PAYMENT_AUTHORIZED";
     public const STATUS_AUTHORIZATION_EXPIRED = "AUTHORIZATION_EXPIRED";
     public const STATUS_SUCCEEDED = 'SUCCEEDED';
 
@@ -186,5 +196,11 @@ class Method extends Adapter
     public function getCaptureType(): string
     {
         return $this->captureType;
+    }
+
+    /** @inheritDoc */
+    public function validate()
+    {
+        return $this;
     }
 }

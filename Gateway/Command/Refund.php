@@ -76,6 +76,7 @@ class Refund implements CommandInterface
 
         $order = $payment->getOrder();
         $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
+        $orderState = $payment->getOrder()->getState();
 
         $input = $this->refundCreateInputFactory->create(
             $rvvupOrderId,
@@ -86,7 +87,7 @@ class Refund implements CommandInterface
         );
 
         $result = $this->sdkProxy->refundCreate($input);
-        $this->cache->clear($rvvupOrderId);
+        $this->cache->clear($rvvupOrderId, $orderState);
         $refundId = $result['id'];
         $refundStatus = $result['status'];
 

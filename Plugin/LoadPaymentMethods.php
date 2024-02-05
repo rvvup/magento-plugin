@@ -128,6 +128,7 @@ class LoadPaymentMethods
             $country = $this->getCountryUsed($quote);
             if ($country && $country !== 'GB') {
                 $this->removePaymentMethodByCode('YAPILY', $methods);
+                $this->removePaymentMethodByCode('PAY_BY_BANK', $methods);
             }
 
             $this->methods = $methods;
@@ -150,6 +151,9 @@ class LoadPaymentMethods
         if ($address && $address->getShippingMethod()) {
             if ($address->getShippingRateByCode($address->getShippingMethod())) {
                 $addressId = $address->getShippingRateByCode($address->getShippingMethod())->getAddressId();
+                if (!$addressId) {
+                    return $address->getCountryId() ?: false;
+                }
                 return $quote->getAddressById($addressId)->getCountryId();
             }
         }
