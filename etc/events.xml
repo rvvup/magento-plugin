@@ -15,6 +15,9 @@
         <observer name="Rvvup_Payments::Model\ProcessOrder\Complete\EmailSenderObserver"
                   instance="Rvvup\Payments\Observer\Model\ProcessOrder\EmailSenderObserver"
                   shared="false" />
+        <observer name="Rvvup_Payments::Model\ProcessOrder\Complete\CardsMetadata"
+                  instance="Rvvup\Payments\Observer\Model\ProcessOrder\CardsMetadata"
+                  shared="false" />
     </event>
 
     <event name="rvvup_payments_process_order_processing_after">
