@@ -14,23 +14,25 @@ use Rvvup\Payments\Service\Capture;
 
 class Handler
 {
-
     /** @var WebhookRepositoryInterface */
     private $webhookRepository;
+
     /** @var SerializerInterface */
     private $serializer;
+
     /** @var ConfigInterface */
     private $config;
+
     /** @var SearchCriteriaBuilder */
     private $paymentDataGet;
+
     /** @var ProcessorPool */
     private $processorPool;
+
     /** @var LoggerInterface */
     private $logger;
 
-    /**
-     * @var Capture
-     */
+    /** @var Capture  */
     private $captureService;
 
     /**
@@ -71,6 +73,53 @@ class Handler
             $payload = $this->serializer->unserialize($webhook->getPayload());
 
             $rvvupOrderId = $payload['order_id'];
+
+            if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
+                if (!$quote) {
+                    $this->logger->debug(
+                        'Webhook exception: Can not find quote by rvvupId for authorize payment status',
+                        [
+                            'order_id' => $rvvupOrderId,
+                        ]
+                    );
+                    return;
+                }
+
+                $payment = $quote->getPayment();
+                $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+                $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
+                $validate = $this->captureService->validate($rvvupOrderId, $quote, $lastTransactionId);
+                if (!$validate['is_valid']) {
+                    if ($validate['redirect_to_cart']) {
+                        return;
+                    }
+                    if ($validate['already_exists']) {
+                        return;
+                    }
+                }
+                $this->captureService->setCheckoutMethod($quote);
+                $order = $this->captureService->createOrder($rvvupOrderId, $quote);
+                $reserved = $order['reserved'];
+                $orderId = $order['id'];
+
+                if ($reserved) {
+                    return;
+                }
+
+                if (!$orderId) {
+                    return;
+                }
+
+                $this->captureService->paymentCapture(
+                    $payment,
+                    $lastTransactionId,
+                    $rvvupPaymentId,
+                    $rvvupOrderId
+                );
+
+                return;
+            }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
 

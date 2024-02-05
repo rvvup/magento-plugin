@@ -355,7 +355,7 @@ class Capture
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                'Order placement failed during payment capture',
+                'Rvvup order capture failed during payment capture',
                 [
                     'payment_id' => $payment->getEntityId(),
                     'last_transaction_id' => $lastTransactionId,
