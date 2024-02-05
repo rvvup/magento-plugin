@@ -8,6 +8,7 @@ use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Sales\Model\Order\Payment;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Sdk\Exceptions\NetworkException;
 
 class Capture extends AbstractCommand implements CommandInterface
 {
@@ -28,11 +29,13 @@ class Capture extends AbstractCommand implements CommandInterface
     /**
      * @param Payment $payment
      * @return void
+     * @throws NetworkException
      */
     private function success(Payment $payment): void
     {
         $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
-        $payment->setTransactionId($rvvupOrderId);
+        $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+        $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId);
     }
 
     /**
