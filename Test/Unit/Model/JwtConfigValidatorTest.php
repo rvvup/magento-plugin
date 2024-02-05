@@ -119,7 +119,7 @@ class JwtConfigValidatorTest extends TestCase
 
     public function testPayloadInvalidJsonErrors()
     {
-        $this->systemUnderTest->setData('value', 'xxx.' . base64_encode('{xxxx}') . '.xxx');
+        $this->systemUnderTest->setData('value', 'xxx.' . base64_encode('{xxxx}'));
         $this->expectException(ValidatorException::class);
         $this->systemUnderTest->beforeSave();
     }
