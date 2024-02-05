@@ -309,6 +309,10 @@ class Capture
         $payment = $quote->getPayment();
 
         try {
+            if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
+                return $quote->getReservedOrderId();
+            }
+
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
             $this->quoteResource->commit();
             return ['id' => $orderId, 'reserved' => false];
@@ -351,7 +355,7 @@ class Capture
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                'Order placement failed during payment capture',
+                'Rvvup order capture failed during payment capture',
                 [
                     'payment_id' => $payment->getEntityId(),
                     'last_transaction_id' => $lastTransactionId,
