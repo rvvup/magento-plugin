@@ -88,7 +88,7 @@ class Handler
                 }
                 $updatedAt = strtotime($quote->getUpdatedAt());
                 /** Restart queue once order will be older that 10 mins */
-                if (time() - $updatedAt < 600) {
+                if (time() - $updatedAt < 60) {
                     throw new ConnectionLostException();
                 }
 

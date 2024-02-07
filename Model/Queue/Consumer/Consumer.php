@@ -148,9 +148,18 @@ class Consumer extends \Magento\Framework\MessageQueue\Consumer
                 /** Adding queue restart for orders which are not older 10 mins */
                 $updateAt = strtotime($message->getProperties()['updated_at']);
                 $queue->reject($message);
-                if (time() - $updateAt > 600) {
+                $connection = $this->resource->getConnection();
+                $table = $this->resource->getTableName('queue_lock');
+                if (time() - $updateAt > 60) {
                     if ($lock) {
-                        $this->resource->getConnection()->delete($this->resource->getTableName('queue_lock'), ['id = ?' => $lock->getId()]);
+                        $connection->delete($table, ['id = ?' => $lock->getId()]);
+                    }
+                } else {
+                    if ($lock) {
+                        /** Set date to be 23h 59m before current time */
+                        $currentDateTime = date('Y-m-d h:m:s');
+                        $date = date('Y-m-d h:m:s', strtotime($currentDateTime . ' -23 hours -59 minutes'));
+                        $connection->update($table, ['created_at' => $date], ['id = ?' => $lock->getId()]);
                     }
                 }
             } catch (NotFoundException $e) {
