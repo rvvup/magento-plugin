@@ -310,7 +310,7 @@ class Capture
 
         try {
             if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
-                return $quote->getReservedOrderId();
+                return ['id' => $quote->getReservedOrderId(), 'reserved' => true];
             }
 
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
