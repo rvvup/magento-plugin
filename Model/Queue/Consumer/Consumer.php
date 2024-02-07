@@ -22,6 +22,7 @@ use Magento\Framework\MessageQueue\MessageValidator;
 use Magento\Framework\MessageQueue\QueueInterface;
 use Magento\Framework\MessageQueue\QueueRepository;
 use Magento\Framework\Phrase;
+use Magento\MysqlMq\Model\QueueManagement;
 use Psr\Log\LoggerInterface;
 
 class Consumer extends \Magento\Framework\MessageQueue\Consumer
@@ -145,9 +146,12 @@ class Consumer extends \Magento\Framework\MessageQueue\Consumer
                 $queue->acknowledge($message);
             } catch (ConnectionLostException $e) {
                 /** Adding queue restart for orders which are not older 10 mins */
+                $updateAt = strtotime($message->getProperties()['updated_at']);
                 $queue->reject($message);
-                if ($lock) {
-                    $this->resource->getConnection()->delete($this->resource->getTableName('queue_lock'), ['id = ?' => $lock->getId()]);
+                if (time() - $updateAt > 600) {
+                    if ($lock) {
+                        $this->resource->getConnection()->delete($this->resource->getTableName('queue_lock'), ['id = ?' => $lock->getId()]);
+                    }
                 }
             } catch (NotFoundException $e) {
                 $queue->acknowledge($message);
