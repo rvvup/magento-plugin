@@ -1,6 +1,4 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/consumer.xsd">
-    <consumer name="rvvup.webhook" connection="db" queue="rvvup.webhook"
-              handler="Rvvup\Payments\Model\Queue\Handler\Handler::execute"
-              consumerInstance="Rvvup\Payments\Model\Queue\Consumer\Consumer"/>
+    <consumer name="rvvup.webhook" connection="db" queue="rvvup.webhook" handler="Rvvup\Payments\Model\Queue\Handler\Handler::execute"/>
 </config>

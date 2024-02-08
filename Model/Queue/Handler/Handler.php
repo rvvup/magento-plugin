@@ -3,7 +3,6 @@
 namespace Rvvup\Payments\Model\Queue\Handler;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\MessageQueue\ConnectionLostException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
@@ -86,11 +85,6 @@ class Handler
                     );
                     return;
                 }
-                $updatedAt = strtotime($quote->getUpdatedAt());
-                /** Restart queue once order will be older that 10 mins */
-                if (time() - $updatedAt < 60) {
-                    throw new ConnectionLostException();
-                }
 
                 $payment = $quote->getPayment();
                 $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
@@ -150,9 +144,6 @@ class Handler
 
             return;
         } catch (\Exception $e) {
-            if (get_class($e) == ConnectionLostException::class) {
-                throw $e;
-            }
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,
             ]);
