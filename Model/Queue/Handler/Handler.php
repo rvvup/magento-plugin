@@ -99,6 +99,9 @@ class Handler
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
+                /** Added 60 sec delay in order not to kill frontend session of a customer */
+                // phpcs:ignore Magento2.Functions.DiscouragedFunction
+                sleep(60);
                 $order = $this->captureService->createOrder($rvvupOrderId, $quote);
                 $reserved = $order['reserved'];
                 $orderId = $order['id'];
