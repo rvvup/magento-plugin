@@ -132,7 +132,7 @@ class In implements HttpGetActionInterface
             $this->checkoutSession->setLastQuoteId($quote->getId());
             $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
             $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
-            return $this->captureService->processOrderResult($orderId, $rvvupId, true);
+            return $this->captureService->processOrderResult((string)$orderId, $rvvupId, true);
         }
 
         if (!$orderId) {
@@ -156,7 +156,7 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        return $this->captureService->processOrderResult($orderId, $rvvupId);
+        return $this->captureService->processOrderResult((string)$orderId, $rvvupId);
     }
 
     /**
