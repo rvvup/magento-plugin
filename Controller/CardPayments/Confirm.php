@@ -100,11 +100,6 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
                 if ($exception->getErrorCode() == 'card_authorization_not_found') {
                     $data['retryable'] = true;
                 }
-                if ($exception->getErrorCode() == '40000') {
-                    $data['error_message'] = "Sorry, the card type you selected isn’t currently supported. " .
-                        "Please try another card or payment method."
-                    ;
-                }
             }
             if (!isset($data['retryable'])) {
                 $data['retryable'] = false;
