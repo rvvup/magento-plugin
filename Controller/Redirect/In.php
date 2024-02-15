@@ -75,7 +75,8 @@ class In implements HttpGetActionInterface
         if ($paymentStatus == Method::STATUS_CANCELLED ||
             $paymentStatus == Method::STATUS_EXPIRED ||
             $paymentStatus == Method::STATUS_DECLINED ||
-            $paymentStatus == Method::STATUS_AUTHORIZATION_EXPIRED) {
+            $paymentStatus == Method::STATUS_AUTHORIZATION_EXPIRED ||
+            $paymentStatus == Method::STATUS_FAILED) {
             return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
                 self::FAILURE,
                 ['_secure' => true, '_fragment' => 'payment']
