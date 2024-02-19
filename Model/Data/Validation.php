@@ -11,7 +11,6 @@ use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Hash;
 use Psr\Log\LoggerInterface;
 
-
 class Validation extends DataObject implements ValidationInterface
 {
     /** Set via di.xml
