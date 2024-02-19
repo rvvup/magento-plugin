@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace Rvvup\Payments\Model\Queue\Handler;
 
@@ -89,24 +90,21 @@ class Handler
                 $payment = $quote->getPayment();
                 $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
                 $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
-                $validate = $this->captureService->validate($rvvupOrderId, $quote, $lastTransactionId);
-                if (!$validate['is_valid']) {
-                    if ($validate['redirect_to_cart']) {
+                $validate = $this->captureService->validate($quote, $lastTransactionId, $rvvupOrderId);
+                if (!$validate->getIsValid()) {
+                    if ($validate->getRedirectToCart()) {
                         return;
                     }
-                    if ($validate['already_exists']) {
+                    if ($validate->getAlreadyExists()) {
                         return;
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
-                /** Added 60 sec delay in order not to kill frontend session of a customer */
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                sleep(60);
-                $order = $this->captureService->createOrder($rvvupOrderId, $quote);
-                $reserved = $order['reserved'];
-                $orderId = $order['id'];
+                $validation = $this->captureService->createOrder($rvvupOrderId, $quote, true);
+                $alreadyExists = $validation->getAlreadyExists();
+                $orderId = $validation->getOrderId();
 
-                if ($reserved) {
+                if ($alreadyExists) {
                     return;
                 }
 
