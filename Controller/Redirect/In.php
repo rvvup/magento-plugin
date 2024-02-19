@@ -12,8 +12,6 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Capture;
 
@@ -41,16 +39,6 @@ class In implements HttpGetActionInterface
     /** @var ManagerInterface */
     private $messageManager;
 
-    /**
-     * Set via di.xml
-     *
-     * @var LoggerInterface|RvvupLog
-     */
-    private $logger;
-
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
-
     /** @var Capture */
     private $captureService;
 
@@ -59,8 +47,6 @@ class In implements HttpGetActionInterface
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
      * @param ManagerInterface $messageManager
-     * @param LoggerInterface $logger
-     * @param OrderRepositoryInterface $orderRepository
      * @param Capture $captureService
      */
     public function __construct(
@@ -68,16 +54,12 @@ class In implements HttpGetActionInterface
         ResultFactory $resultFactory,
         SessionManagerInterface $checkoutSession,
         ManagerInterface $messageManager,
-        LoggerInterface $logger,
-        OrderRepositoryInterface $orderRepository,
         Capture $captureService
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
         $this->checkoutSession = $checkoutSession;
         $this->messageManager = $messageManager;
-        $this->logger = $logger;
-        $this->orderRepository = $orderRepository;
         $this->captureService = $captureService;
     }
 
@@ -88,6 +70,19 @@ class In implements HttpGetActionInterface
     public function execute()
     {
         $rvvupId = $this->request->getParam('rvvup-order-id');
+        $paymentStatus = $this->request->getParam('payment-status');
+
+        if ($paymentStatus == Method::STATUS_CANCELLED ||
+            $paymentStatus == Method::STATUS_EXPIRED ||
+            $paymentStatus == Method::STATUS_DECLINED ||
+            $paymentStatus == Method::STATUS_AUTHORIZATION_EXPIRED ||
+            $paymentStatus == Method::STATUS_FAILED) {
+            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
+                self::FAILURE,
+                ['_secure' => true, '_fragment' => 'payment']
+            );
+        }
+
         $quote = $this->checkoutSession->getQuote();
 
         if (!$quote->getId()) {
