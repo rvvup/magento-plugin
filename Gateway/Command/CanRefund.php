@@ -54,7 +54,7 @@ class CanRefund implements ValueHandlerInterface
         try {
             $payment = $subject['payment']->getPayment();
 
-            $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
+            $orderId = $payment->getAdditionalInformation(Method::ORDER_ID) ?: $payment->getParentId();
             if ($orderId) {
                 $invoiceCollection = $payment->getOrder()->getInvoiceCollection();
 
