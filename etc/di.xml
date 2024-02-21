@@ -202,7 +202,18 @@
 
     <type name="Rvvup\Payments\Service\Capture">
         <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Service\Result">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\Data\Validation">
+        <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
@@ -392,7 +403,7 @@
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
-    
+
     <type name="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
@@ -440,4 +451,5 @@
                 type="Rvvup\Payments\Plugin\Customer\DisableOrderCreation"
                 sortOrder="1"/>
     </type>
+    <preference for="Rvvup\Payments\Api\Data\ValidationInterface" type="Rvvup\Payments\Model\Data\Validation"/>
 </config>
