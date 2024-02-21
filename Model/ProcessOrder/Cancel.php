@@ -51,7 +51,9 @@ class Cancel implements ProcessorInterface
     private $allowedStatuses = [
         Method::STATUS_CANCELLED,
         Method::STATUS_DECLINED,
-        Method::STATUS_EXPIRED
+        Method::STATUS_EXPIRED,
+        Method::STATUS_FAILED,
+        Method::STATUS_AUTHORIZATION_EXPIRED,
     ];
 
     /**

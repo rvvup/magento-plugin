@@ -611,6 +611,10 @@ define([
                             $("#tp_place_order").trigger("click");
                             return;
                         }
+                        if (code === 'rvvup_APPLE_PAY' && orderPaymentAction.getRedirectUrl() !== null) {
+                            window.location.replace(orderPaymentAction.getRedirectUrl());
+                            return;
+                        }
 
                         if (orderPaymentAction.getRedirectUrl() !== null) {
                             self.showRvvupModal(orderPaymentAction.getRedirectUrl());

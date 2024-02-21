@@ -7,28 +7,21 @@ namespace Rvvup\Payments\Service;
 use Magento\Checkout\Helper\Data;
 use Magento\Checkout\Model\Type\Onepage;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Controller\Result\Redirect;
-use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
 use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\OrderIncrementIdChecker;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
-use Rvvup\Payments\Api\Data\SessionMessageInterface;
-use Rvvup\Payments\Controller\Redirect\In;
+use Rvvup\Payments\Api\Data\ValidationInterface;
+use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
 use Rvvup\Payments\Exception\PaymentValidationException;
-use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
-use Rvvup\Payments\Model\ProcessOrder\Cancel;
-use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\SdkProxy;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
@@ -58,38 +51,23 @@ class Capture
     /** @var SdkProxy */
     private $sdkProxy;
 
-    /** @var PaymentDataGetInterface */
-    private $paymentDataGet;
-
-    /** @var ProcessorPool */
-    private $processorPool;
-
-    /** @var Hash */
-    private $hashService;
-
     /** @var CollectionFactory */
     private $collectionFactory;
 
     /** @var CartRepositoryInterface */
     private $cartRepository;
 
-    /** @var ResultFactory */
-    private $resultFactory;
-
-    /**
-     * Set via di.xml
-     * @var SessionManagerInterface
-     */
-    private $checkoutSession;
-
     /** @var Data */
     private $checkoutHelper;
 
-    /** @var OrderInterface */
-    private $order;
-
     /** @var OrderIncrementIdChecker */
     private $orderIncrementChecker;
+
+    /** @var ValidationInterface  */
+    private $validationInterface;
+
+    /** @var ValidationInterfaceFactory  */
+    private $validationInterfaceFactory;
 
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -98,16 +76,12 @@ class Capture
      * @param QuoteResource $quoteResource
      * @param QuoteManagement $quoteManagement
      * @param SdkProxy $sdkProxy
-     * @param PaymentDataGetInterface $paymentDataGet
-     * @param ProcessorPool $processorPool
-     * @param Hash $hashService
      * @param CollectionFactory $collectionFactory
      * @param CartRepositoryInterface $cartRepository
-     * @param ResultFactory $resultFactory
-     * @param SessionManagerInterface $checkoutSession
      * @param Data $checkoutHelper
-     * @param OrderInterface $order
      * @param OrderIncrementIdChecker $orderIncrementIdChecker
+     * @param ValidationInterface $validationInterface
+     * @param ValidationInterfaceFactory $validationInterfaceFactory
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -117,16 +91,12 @@ class Capture
         QuoteResource $quoteResource,
         QuoteManagement $quoteManagement,
         SdkProxy $sdkProxy,
-        PaymentDataGetInterface $paymentDataGet,
-        ProcessorPool $processorPool,
-        Hash $hashService,
         CollectionFactory $collectionFactory,
         CartRepositoryInterface $cartRepository,
-        ResultFactory $resultFactory,
-        SessionManagerInterface $checkoutSession,
         Data $checkoutHelper,
-        OrderInterface $order,
         OrderIncrementIdChecker $orderIncrementIdChecker,
+        ValidationInterface $validationInterface,
+        ValidationInterfaceFactory $validationInterfaceFactory,
         LoggerInterface $logger
     ) {
         $this->logger = $logger;
@@ -136,16 +106,12 @@ class Capture
         $this->quoteResource = $quoteResource;
         $this->quoteManagement = $quoteManagement;
         $this->sdkProxy = $sdkProxy;
-        $this->paymentDataGet = $paymentDataGet;
-        $this->processorPool = $processorPool;
         $this->collectionFactory = $collectionFactory;
         $this->cartRepository = $cartRepository;
-        $this->resultFactory = $resultFactory;
-        $this->checkoutSession = $checkoutSession;
         $this->checkoutHelper = $checkoutHelper;
-        $this->order = $order;
         $this->orderIncrementChecker = $orderIncrementIdChecker;
-        $this->hashService = $hashService;
+        $this->validationInterface = $validationInterface;
+        $this->validationInterfaceFactory = $validationInterfaceFactory;
     }
 
     /**
@@ -174,154 +140,87 @@ class Capture
         }
 
         $payments = $resultSet->getItems();
-        /** @var \Magento\Sales\Api\Data\OrderPaymentInterface $payment */
+        /** @var OrderPaymentInterface $payment */
         $payment = reset($payments);
         return $this->orderRepository->get($payment->getParentId());
     }
 
     /**
-     * @param string $rvvupId
      * @param Quote $quote
      * @param string $lastTransactionId
-     * @return array
+     * @param string|null $rvvupId
+     * @param string|null $paymentStatus
+     * @return ValidationInterface
      */
-    public function validate(string $rvvupId, Quote &$quote, string &$lastTransactionId): array
-    {
-        // First validate we have a Rvvup Order ID, silently return to basket page.
-        // A standard Rvvup return should always include `rvvup-order-id` param.
-        if ($rvvupId === null) {
-            $this->logger->error('No Rvvup Order ID provided');
-            return [
-                'is_valid' => false,
-                'redirect_to_cart' => true,
-                'restore_quote' => true,
-                'message' => '',
-                'already_exists' => false
-            ];
-        }
-
-        if (!$quote->getIsActive()) {
-            return [
-                'is_valid' => false,
-                'redirect_to_cart' => false,
-                'restore_quote' => false,
-                'message' => '',
-                'already_exists' => true
-            ];
-        }
-
-        if (!$quote->getItems()) {
-            $quote = $this->getQuoteByRvvupId($rvvupId);
-            $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
-        }
-        if (empty($quote->getId())) {
-            $this->logger->error('Missing quote for Rvvup payment', [$rvvupId, $lastTransactionId]);
-            $message = __(
-                'An error occurred while processing your payment (ID %1). Please contact us. ',
-                $rvvupId
-            );
-            return [
-                'is_valid' => false,
-                'redirect_to_cart' => true,
-                'restore_quote' => false,
-                'message' => $message,
-                'already_exists' => false
-            ];
-        }
-
-        $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
-        $quote->collectTotals();
-        $savedHash = $this->hashService->getHashForData($quote);
-        if ($hash !== $savedHash) {
-            $this->logger->error(
-                'Payment hash is invalid during Rvvup Checkout',
-                [
-                    'payment_id' => $quote->getPayment()->getEntityId(),
-                    'quote_id' => $quote->getId(),
-                    'last_transaction_id' => $lastTransactionId,
-                    'rvvup_order_id' => $rvvupId
-                ]
-            );
-
-            $message = __(
-                'Your cart was modified after making payment request, please place order again. ' . $rvvupId
-            );
-            return [
-                'is_valid' => false,
-                'redirect_to_cart' => true,
-                'restore_quote' => false,
-                'message' => $message,
-                'already_exists' => false
-            ];
-        }
-        if ($rvvupId !== $lastTransactionId) {
-            $this->logger->error(
-                'Payment transaction id is invalid during Rvvup Checkout',
-                [
-                    'payment_id' => $quote->getPayment()->getEntityId(),
-                    'quote_id' => $quote->getId(),
-                    'last_transaction_id' => $lastTransactionId,
-                    'rvvup_order_id' => $rvvupId
-                ]
-            );
-            $message = __(
-                'This checkout cannot complete, a new cart was opened in another tab. ' . $rvvupId
-            );
-            return [
-                'is_valid' => false,
-                'redirect_to_cart' => true,
-                'restore_quote' => false,
-                'message' => $message,
-                'already_exists' => false
-            ];
-        }
-
-        if ($quote->getReservedOrderId()) {
-            if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
-                return [
-                    'is_valid' => false,
-                    'redirect_to_cart' => false,
-                    'restore_quote' => false,
-                    'message' => '',
-                    'already_exists' => true
-                ];
-            }
-        }
-
-        return [
-            'is_valid' => true,
-            'redirect_to_cart' => false,
-            'restore_quote' => false,
-            'message' => '',
-            'already_exists' => false
-        ];
+    public function validate(
+        Quote &$quote,
+        string &$lastTransactionId,
+        string $rvvupId = null,
+        string $paymentStatus = null
+    ): ValidationInterface {
+        return $this->validationInterface->validate($quote, $lastTransactionId, $rvvupId, $paymentStatus);
     }
 
     /**
      * @param string $rvvupId
      * @param Quote $quote
-     * @return array
+     * @param bool $isWebhook
+     * @return ValidationInterface
      */
-    public function createOrder(string $rvvupId, Quote $quote): array
+    public function createOrder(string $rvvupId, Quote $quote, bool $isWebhook = false): ValidationInterface
     {
+        if ($isWebhook) {
+            /** Added 60 sec delay in order not to kill frontend session of a customer */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            sleep(60);
+        }
+
         $this->quoteResource->beginTransaction();
         $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
         $payment = $quote->getPayment();
 
         try {
             if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
-                return $quote->getReservedOrderId();
+                return $this->validationInterfaceFactory->create(
+                    [
+                        'data' => [
+                        ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
+                        ValidationInterface::ALREADY_EXISTS => true]
+                    ]
+                );
             }
 
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
             $this->quoteResource->commit();
-            return ['id' => $orderId, 'reserved' => false];
+            return $this->validationInterfaceFactory->create(
+                [
+                    'data' => [
+                    ValidationInterface::ORDER_ID => $orderId,
+                    ValidationInterface::ALREADY_EXISTS => false
+                    ]
+                ]
+            );
         } catch (NoSuchEntityException $e) {
-            return ['id' => $quote->getReservedOrderId(), 'reserved' => true];
+            return $this->validationInterfaceFactory->create(
+                [
+                    'data' =>
+                    [
+                        ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
+                        ValidationInterface::ALREADY_EXISTS => true
+                    ]
+                ]
+            );
         } catch (\Exception $e) {
             $this->quoteResource->rollback();
             if (str_contains($e->getMessage(), AdapterInterface::ERROR_ROLLBACK_INCOMPLETE_MESSAGE)) {
-                return ['id' => $quote->getReservedOrderId(), 'reserved' => true];
+                return $this->validationInterfaceFactory->create(
+                    [
+                        'data' => [
+                            ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
+                            ValidationInterface::ALREADY_EXISTS => true
+                        ]
+                    ]
+                );
             }
             $this->logger->error(
                 'Order placement within rvvup payment failed',
@@ -332,7 +231,14 @@ class Capture
                     'message' => $e->getMessage()
                 ]
             );
-            return ['id' => false, 'reserved' => false];
+            return $this->validationInterfaceFactory->create(
+                [
+                    'data' => [
+                            ValidationInterface::ORDER_ID => false,
+                            ValidationInterface::ALREADY_EXISTS => false
+                        ]
+                ]
+            );
         }
     }
 
@@ -366,65 +272,6 @@ class Capture
             return false;
         }
         return true;
-    }
-
-    /**
-     * Update Magento Order based on Rvuup Order and payment statuses
-     * @param string|null $orderId
-     * @param string $rvvupId
-     * @param bool $reservedOrderId
-     * @return Redirect
-     */
-    public function processOrderResult(?string $orderId, string $rvvupId, bool $reservedOrderId = false): Redirect
-    {
-        if (!$orderId) {
-            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
-                In::SUCCESS,
-                ['_secure' => true]
-            );
-        }
-
-        try {
-            if ($reservedOrderId) {
-                $order = $this->order->loadByIncrementId($orderId);
-            } else {
-                $order = $this->orderRepository->get($orderId);
-            }
-            // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
-            $rvvupData = $this->paymentDataGet->execute($rvvupId);
-
-            if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
-                if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {
-                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
-                }
-            }
-
-            $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
-            $result = $processor->execute($order, $rvvupData);
-            if (get_class($processor) == Cancel::class) {
-                return $this->processResultPage($result, true);
-            }
-            return $this->processResultPage($result, false);
-        } catch (\Exception $e) {
-            $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
-                'rvvup_order_id' => $rvvupId,
-                'rvvup_order_status' => $rvvupData['payments'][0]['status'] ?? ''
-            ]);
-
-            if (isset($order)) {
-                $order->addStatusToHistory(
-                    $order->getStatus(),
-                    'Failed to update Magento order from Rvvup order status check',
-                    false
-                );
-                $this->orderRepository->save($order);
-            }
-
-            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
-                In::SUCCESS,
-                ['_secure' => true]
-            );
-        }
     }
 
     /**
@@ -472,36 +319,5 @@ class Capture
                 $quote->setCheckoutMethod(Onepage::METHOD_REGISTER);
             }
         }
-    }
-
-    /**
-     * @param ProcessOrderResultInterface $result
-     * @param bool $restoreQuote
-     * @return Redirect
-     */
-    private function processResultPage(ProcessOrderResultInterface $result, bool $restoreQuote): Redirect
-    {
-        if ($restoreQuote) {
-            $this->checkoutSession->restoreQuote();
-        }
-
-        /** @var Redirect $redirect */
-        $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-
-        $params = ['_secure' => true];
-
-        // If specifically we are redirecting the user to the checkout page,
-        // set the redirect to the payment step
-        // and set the messages to be added to the custom group.
-        if ($result->getRedirectPath() === IN::FAILURE) {
-            $params['_fragment'] = 'payment';
-            $messageGroup = SessionMessageInterface::MESSAGE_GROUP;
-        }
-
-        $result->setSessionMessage($messageGroup ?? null);
-
-        $redirect->setPath($result->getRedirectPath(), $params);
-
-        return $redirect;
     }
 }
