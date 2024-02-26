@@ -107,7 +107,7 @@ class PaymentLink
                 $historyComment->setIsCustomerNotified(true);
                 $historyComment->setIsVisibleOnFront(true);
                 $historyComment->setStatus($order->getStatus());
-                $historyComment->setComment('Rvvup paylink was generated, please pay using following link:'.
+                $historyComment->setComment('This order requires payment, please pay using following link:'.
                     PHP_EOL . 'https://checkout.dev.rvvuptech.com/l/' . $body['id']);
                 $this->orderManagement->addComment($order->getEntityId(), $historyComment);
             }
