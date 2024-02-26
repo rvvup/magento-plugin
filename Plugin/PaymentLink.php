@@ -15,7 +15,7 @@ use Magento\Store\Model\ScopeInterface;
 use Rvvup\Payments\Model\Config;
 use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Sdk\Curl;
-use Zend_Http_Client;
+use Laminas\Http\Request;
 
 class PaymentLink
 {
@@ -87,7 +87,7 @@ class PaymentLink
         $amount = number_format((float)$order->getGrandTotal(), 2, '.', '');
         $params = $this->getData($amount, $storeId, $order);
 
-        $request = $this->curl->request(Zend_Http_Client::POST, $this->getApiUrl($storeId), $params);
+        $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
         $body = $this->json->unserialize($request->body);
         $this->processApiResponse($body, $order, $amount);
     }
