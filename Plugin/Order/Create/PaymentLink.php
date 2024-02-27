@@ -94,7 +94,7 @@ class PaymentLink
     {
         $merchantId = $this->config->getMerchantId(ScopeInterface::SCOPE_STORE, $storeId);
         $baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
-        $baseUrl = str_replace('graphql', 'api/v1', $baseUrl);
+        $baseUrl = str_replace('graphql', 'api/2024-03-01', $baseUrl);
 
         return "$baseUrl/$merchantId/payment-links";
     }
