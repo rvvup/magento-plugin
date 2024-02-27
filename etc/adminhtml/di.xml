@@ -38,9 +38,9 @@
                 type="Rvvup\Payments\Plugin\Cancel\Payment"
                 sortOrder="1"/>
     </type>
-    <type name="Magento\Quote\Model\QuoteManagement">
-        <plugin name="createPaymentLink"
-                type="Rvvup\Payments\Plugin\PaymentLink"
+    <type name="Magento\Sales\Model\AdminOrder\Create">
+        <plugin name="addRvvupPaymentLink"
+                type="Rvvup\Payments\Plugin\Order\Create\PaymentLink"
                 sortOrder="1"/>
     </type>
 </config>
