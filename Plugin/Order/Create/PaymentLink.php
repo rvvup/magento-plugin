@@ -44,7 +44,7 @@ class PaymentLink
     public function afterImportPostData(Create $subject, $result, array $data)
     {
         if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE
-        && $data['send_confirmation']) {
+        && isset($data['send_confirmation']) && $data['send_confirmation']) {
             $this->createRvvupPayByLink($result->getQuote(), $subject);
         }
 
