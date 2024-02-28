@@ -6,7 +6,6 @@ use Laminas\Http\Request;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\AdminOrder\Create;
 use Magento\Store\Model\ScopeInterface;
 use Rvvup\Payments\Model\Config;
@@ -36,16 +35,17 @@ class PaymentLink
 
     /**
      * @param Create $subject
-     * @param $result
+     * @param Create $result
      * @param array $data
      * @return mixed
      * @throws NoSuchEntityException
      */
-    public function afterImportPostData(Create $subject, $result, array $data)
+    public function afterImportPostData(Create $subject, Create $result, array $data)
     {
-        if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE
-        && isset($data['send_confirmation']) && $data['send_confirmation']) {
-            $this->createRvvupPayByLink($result->getQuote(), $subject);
+        if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+            if (isset($data['comment'])) {
+                $this->createRvvupPayByLink($result->getQuote(), $subject, $data['comment']);
+            }
         }
 
         return $result;
@@ -55,10 +55,11 @@ class PaymentLink
      * Create Rvvup pay-by-link and save it to comment
      * @param CartInterface $quote
      * @param Create $subject
+     * @param array $data
      * @return void
      * @throws NoSuchEntityException
      */
-    private function createRvvupPayByLink(CartInterface $quote, Create $subject): void
+    private function createRvvupPayByLink(CartInterface $quote, Create $subject, array $data): void
     {
         $storeId = (string)$quote->getStore()->getId();
         $amount = number_format((float)$quote->getGrandTotal(), 2, '.', '');
@@ -66,20 +67,22 @@ class PaymentLink
 
         $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
         $body = $this->json->unserialize($request->body);
-        $this->processApiResponse($body, $amount, $subject);
+        $this->processApiResponse($body, $amount, $subject, $data['customer_note']);
     }
 
     /**
      * @param array $body
      * @param string $amount
      * @param Create $subject
+     * @param string $message
      * @return void
      */
-    private function processApiResponse(array $body, string $amount, Create $subject): void
+    private function processApiResponse(array $body, string $amount, Create $subject, string $message): void
     {
         if ($body['status'] == 'ACTIVE') {
             if ($amount == $body['amount']['amount']) {
-                $message = 'This order requires payment, please pay using following link:'. PHP_EOL . $body['url'];
+                $message = 'This order requires payment, please pay using following link:'. PHP_EOL . $body['url']
+                . PHP_EOL . $message;
                 $subject->getQuote()->addData(['customer_note' => $message, 'customer_note_notify' => true]);
             }
         }
@@ -102,7 +105,7 @@ class PaymentLink
     /**
      * @param string $amount
      * @param string $storeId
-     * @param OrderInterface $order
+     * @param CartInterface $cart
      * @return array
      * @throws NoSuchEntityException
      */
