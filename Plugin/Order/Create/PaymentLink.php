@@ -109,7 +109,7 @@ class PaymentLink
                 $result->getId(),
                 $result->getOrderCurrencyCode(),
                 $subject,
-                []
+                ['status' => $result->getStatus()]
             );
         }
 
@@ -163,12 +163,13 @@ class PaymentLink
                 if (isset($data['send_confirmation']) && $data['send_confirmation']) {
                     $message .= PHP_EOL . $data['comment']['customer_note'];
                     $subject->getQuote()->addData(['customer_note' => $message, 'customer_note_notify' => true]);
-                } elseif (empty($data)) {
+                } elseif (isset($data['status'])) {
                     $historyComment = $this->orderStatusHistoryFactory->create();
                     $historyComment->setParentId($orderId);
                     $historyComment->setIsCustomerNotified(true);
                     $historyComment->setIsVisibleOnFront(true);
                     $historyComment->setComment($message);
+                    $historyComment->setStatus($data['status']);
                     $this->orderManagement->addComment($orderId, $historyComment);
                 }
             }
