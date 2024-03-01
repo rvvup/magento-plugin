@@ -24,7 +24,7 @@ class PaymentLink
     /** @var Config */
     private $config;
 
-    /** @var SerializerInterface  */
+    /** @var SerializerInterface */
     private $json;
 
     /** @var OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory */
@@ -33,7 +33,7 @@ class PaymentLink
     /** @var OrderManagementInterface $orderManagement */
     private $orderManagement;
 
-    /** @var Http  */
+    /** @var Http */
     private $request;
 
     /**
@@ -86,7 +86,8 @@ class PaymentLink
                 $amount = (float)$quote->getGrandTotal();
                 $orderId = $quote->reserveOrderId()->getReservedOrderId();
                 $currencyCode = $quote->getQuoteCurrencyCode();
-                $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
+                $id = $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
+                $this->savePaymentLink($subject, $id);
             }
         }
         return $result;
@@ -103,7 +104,7 @@ class PaymentLink
     {
         $order = $this->request->getPost('order');
         if (!(isset($order['send_confirmation']) && $order['send_confirmation'])) {
-            $this->createRvvupPayByLink(
+            $id = $this->createRvvupPayByLink(
                 (string)$result->getStoreId(),
                 $result->getGrandTotal(),
                 $result->getId(),
@@ -111,9 +112,25 @@ class PaymentLink
                 $subject,
                 ['status' => $result->getStatus()]
             );
+            $this->savePaymentLink($subject, $id);
         }
 
         return $result;
+    }
+
+    /**
+     * @param Create $subject
+     * @param string $id
+     * @return void
+     */
+    private function savePaymentLink(Create $subject, string $id): void
+    {
+        try {
+            $payment = $subject->getQuote()->getPayment();
+            $payment->setAdditionalInformation('rvvup_payment_link_id', $id);
+        } catch (\Exception $e) {
+            $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -124,8 +141,7 @@ class PaymentLink
      * @param string $currencyCode
      * @param Create $subject
      * @param array $data
-     * @return void
-     * @throws NoSuchEntityException
+     * @return string|null
      */
     private function createRvvupPayByLink(
         string $storeId,
@@ -134,7 +150,7 @@ class PaymentLink
         string $currencyCode,
         Create $subject,
         array $data
-    ): void {
+    ): ?string {
         try {
             $amount = number_format($amount, 2, '.', '');
             $params = $this->getData($amount, $storeId, $orderId, $currencyCode);
@@ -142,9 +158,11 @@ class PaymentLink
             $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
             $body = $this->json->unserialize($request->body);
             $this->processApiResponse($body, $amount, $subject, $data, $orderId);
+            return $body['id'];
         } catch (\Exception $e) {
             $this->logger->error('Rvvup payment link creation failed with error: ' . $e->getMessage());
         }
+        return null;
     }
 
     /**
@@ -159,7 +177,7 @@ class PaymentLink
     {
         if ($body['status'] == 'ACTIVE') {
             if ($amount == $body['amount']['amount']) {
-                $message = 'This order requires payment, please pay using following link:'. PHP_EOL . $body['url'];
+                $message = PHP_EOL . $body['url'];
                 if (isset($data['send_confirmation']) && $data['send_confirmation']) {
                     $message .= PHP_EOL . $data['comment']['customer_note'];
                     $subject->getQuote()->addData(['customer_note' => $message, 'customer_note_notify' => true]);

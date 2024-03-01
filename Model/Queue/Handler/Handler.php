@@ -5,6 +5,7 @@ namespace Rvvup\Payments\Model\Queue\Handler;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
@@ -75,6 +76,14 @@ class Handler
 
             $rvvupOrderId = $payload['order_id'];
 
+            if ($paymentLinkId = $payload['payment_link_id']) {
+                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId);
+                if ($order) {
+                    $this->processOrder($order);
+                    return;
+                }
+            }
+
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
                 $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
                 if (!$quote) {
@@ -123,31 +132,34 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-
-            // if Payment method is not Rvvup, exit.
-            if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
-                return;
-            }
-
-            if (isset($rvvupOrderId)) {
-                $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
-                if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
-                    $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
-                        'rvvup_order_id' => $rvvupOrderId
-                    ]);
-                    return;
-                }
-                $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
-                    $order,
-                    $rvvupData
-                );
-            }
-
+            $this->processOrder($order);
             return;
         } catch (\Exception $e) {
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,
             ]);
+        }
+    }
+
+    private function processOrder(OrderInterface $order): void
+    {
+        // if Payment method is not Rvvup, exit.
+        if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
+            return;
+        }
+
+        if (isset($rvvupOrderId)) {
+            $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
+            if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
+                $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
+                    'rvvup_order_id' => $rvvupOrderId
+                ]);
+                return;
+            }
+            $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
+                $order,
+                $rvvupData
+            );
         }
     }
 }

@@ -13,6 +13,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
 use Magento\Quote\Model\QuoteManagement;
+use Magento\Quote\Model\ResourceModel\Quote\Payment\Collection;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
@@ -121,7 +122,7 @@ class Capture
      */
     public function getOrderByRvvupId(string $rvvupOrderId): OrderInterface
     {
-        // Saerch for the payment record by the Rvvup order ID which is stored in the credit card field.
+        // Search for the payment record by the Rvvup order ID
         $searchCriteria = $this->searchCriteriaBuilder->addFilter(
             'additional_information',
             '%' . $rvvupOrderId . '%',
@@ -280,7 +281,7 @@ class Capture
      */
     public function getQuoteByRvvupId(string $rvvupId): ?Quote
     {
-        /** @var \Magento\Quote\Model\ResourceModel\Quote\Payment\Collection $collection */
+        /** @var Collection $collection */
         $collection = $this->collectionFactory->create();
         $collection->addFieldToFilter(
             'additional_information',
@@ -295,6 +296,33 @@ class Capture
         $quoteId = end($items)->getQuoteId();
         try {
             return $this->cartRepository->get($quoteId);
+        } catch (NoSuchEntityException $ex) {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $paymentLinkId
+     * @return Quote|null
+     */
+    public function getOrderByRvvupPaymentLinkId(string $paymentLinkId): ?OrderInterface
+    {
+        /** @var Collection $collection */
+        $collection = $this->collectionFactory->create();
+        $collection->addFieldToFilter(
+            'additional_information',
+            [
+                'like' => "%\"rvvup_payment_link_id\":\"$paymentLinkId\"%"
+            ]
+        );
+        $items = $collection->getItems();
+        if (count($items) !== 1) {
+            return null;
+        }
+        $quoteId = end($items)->getQuoteId();
+        try {
+            $cart = $this->cartRepository->get($quoteId);
+            return $this->orderRepository->get($cart->getOrigOrderId());
         } catch (NoSuchEntityException $ex) {
             return null;
         }

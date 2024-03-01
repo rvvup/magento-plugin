@@ -96,6 +96,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $eventType = $this->request->getParam('event_type', false);
             $paymentId = $this->request->getParam('payment_id', false);
             $refundId = $this->request->getParam('refund_id', false);
+            $paymentLinkId = $this->request->getParam('payment_link_id', false);
 
             // Ensure required params are present
             if (!$merchantId || !$rvvupOrderId) {
@@ -118,6 +119,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'refund_id' => $refundId,
                 'payment_id' => $paymentId,
                 'event_type' => $eventType,
+                'payment_link_id' => $paymentLinkId
             ];
 
             if ($payload['event_type'] == Complete::TYPE) {

@@ -8,9 +8,9 @@ use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 interface ProcessorInterface
 {
     /**
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param OrderInterface $order
      * @param array $rvvupData
-     * @return \Rvvup\Payments\Api\Data\ProcessOrderResultInterface
+     * @return ProcessOrderResultInterface
      */
     public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface;
 }
