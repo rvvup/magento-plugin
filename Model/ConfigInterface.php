@@ -15,11 +15,13 @@ interface ConfigInterface
     public const XML_PATH_JWT = 'jwt';
     public const XML_PATH_PRODUCT_TYPES_ENABLED = 'enabled_product_types';
     public const XML_PATH_PAYPAL_BLOCK = 'paypal_block/';
+    public const XML_PATH_EMAIL = 'email/';
     public const XML_PATH_STYLE = 'style';
     public const XML_PATH_BACKGROUND_STYLING = 'background_styling';
     public const XML_PATH_BORDER_STYLING = 'border_styling';
     public const XML_PATH_USE_PLACE_ORDER_STYLING = 'use_place_order_styling';
     public const XML_PATH_PLACE_ORDER_STYLING = 'place_order_styling';
+    public const XML_PATH_PAY_BY_LINK_TEXT = 'pay_by_link';
 
     /**
      * Validate whether Rvvup module & payment methods are active.
@@ -83,6 +85,13 @@ interface ConfigInterface
      * @return string
      */
     public function getPaypalBlockStyling(string $config): string;
+
+    /**
+     * Get text for pay-by-link emails
+     * @param string $scopeType
+     * @return string
+     */
+    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE): string;
 
     /**
      * Get valid product types

@@ -39,6 +39,9 @@
                     <badge_theme>black-on-mint</badge_theme>
                     <modal_theme>mint</modal_theme>
                 </clearpay_messaging>
+                <email>
+                    <pay_by_link><![CDATA[This order requires payment, please pay using following button: ]]></pay_by_link>
+                </email>
             </rvvup>
         </payment>
     </default>

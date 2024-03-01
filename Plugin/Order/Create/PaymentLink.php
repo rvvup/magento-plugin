@@ -185,9 +185,11 @@ class PaymentLink
     {
         if ($body['status'] == 'ACTIVE') {
             if ($amount == $body['amount']['amount']) {
-                $message = PHP_EOL . $body['url'];
+                $message = $this->config->getPayByLinkText() . PHP_EOL . $body['url'];
                 if (isset($data['send_confirmation']) && $data['send_confirmation']) {
-                    $message .= PHP_EOL . $data['comment']['customer_note'];
+                    if ($data['comment']['customer_note']) {
+                        $message .= PHP_EOL . $data['comment']['customer_note'];
+                    }
                     $subject->getQuote()->addData(['customer_note' => $message, 'customer_note_notify' => true]);
                 } elseif (isset($data['status'])) {
                     $historyComment = $this->orderStatusHistoryFactory->create();
