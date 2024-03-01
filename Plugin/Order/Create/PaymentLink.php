@@ -6,6 +6,7 @@ use Laminas\Http\Request;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Model\AdminOrder\Create;
@@ -43,6 +44,9 @@ class PaymentLink
      */
     private $logger;
 
+    /** @var Payment */
+    private $quotePaymentResource;
+
     /**
      * @param Curl $curl
      * @param Config $config
@@ -50,6 +54,7 @@ class PaymentLink
      * @param OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
      * @param OrderManagementInterface $orderManagement
      * @param Http $request
+     * @param Payment $quotePaymentResource
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -59,6 +64,7 @@ class PaymentLink
         OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
         OrderManagementInterface           $orderManagement,
         Http                               $request,
+        Payment                            $quotePaymentResource,
         LoggerInterface                    $logger
     ) {
         $this->curl = $curl;
@@ -67,6 +73,7 @@ class PaymentLink
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->orderManagement = $orderManagement;
         $this->request = $request;
+        $this->quotePaymentResource = $quotePaymentResource;
         $this->logger = $logger;
     }
 
@@ -128,6 +135,7 @@ class PaymentLink
         try {
             $payment = $subject->getQuote()->getPayment();
             $payment->setAdditionalInformation('rvvup_payment_link_id', $id);
+            $this->quotePaymentResource->save($payment);
         } catch (\Exception $e) {
             $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
         }

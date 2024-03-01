@@ -70,6 +70,9 @@ class Capture
     /** @var ValidationInterfaceFactory  */
     private $validationInterfaceFactory;
 
+    /** @var OrderInterface */
+    private $order;
+
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
@@ -83,6 +86,7 @@ class Capture
      * @param OrderIncrementIdChecker $orderIncrementIdChecker
      * @param ValidationInterface $validationInterface
      * @param ValidationInterfaceFactory $validationInterfaceFactory
+     * @param OrderInterface $order
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -98,6 +102,7 @@ class Capture
         OrderIncrementIdChecker $orderIncrementIdChecker,
         ValidationInterface $validationInterface,
         ValidationInterfaceFactory $validationInterfaceFactory,
+        OrderInterface $order,
         LoggerInterface $logger
     ) {
         $this->logger = $logger;
@@ -112,6 +117,7 @@ class Capture
         $this->checkoutHelper = $checkoutHelper;
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->validationInterface = $validationInterface;
+        $this->order = $order;
         $this->validationInterfaceFactory = $validationInterfaceFactory;
     }
 
@@ -322,7 +328,7 @@ class Capture
         $quoteId = end($items)->getQuoteId();
         try {
             $cart = $this->cartRepository->get($quoteId);
-            return $this->orderRepository->get($cart->getOrigOrderId());
+            return $this->order->loadByIncrementId($cart->getReservedOrderId());
         } catch (NoSuchEntityException $ex) {
             return null;
         }

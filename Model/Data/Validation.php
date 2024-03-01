@@ -8,7 +8,6 @@ use Magento\Sales\Model\OrderIncrementIdChecker;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Hash;
 use Psr\Log\LoggerInterface;
 
@@ -25,25 +24,19 @@ class Validation extends DataObject implements ValidationInterface
     /** @var OrderIncrementIdChecker */
     private $orderIncrementChecker;
 
-    /** @var Capture */
-    private $captureService;
-
     /**
      * @param Hash|null $hashService
      * @param OrderIncrementIdChecker|null $orderIncrementIdChecker
-     * @param Capture $captureService
      * @param LoggerInterface|null $logger
      * @param array $data
      */
     public function __construct(
         Hash $hashService,
         OrderIncrementIdChecker $orderIncrementIdChecker,
-        Capture $captureService,
         LoggerInterface $logger,
         array $data = []
     ) {
         $this->logger = $logger;
-        $this->captureService = $captureService;
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->hashService = $hashService;
         parent::__construct($data);
@@ -86,12 +79,6 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        if (!$quote->getItems()) {
-            $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
-            if ($quote->getId()) {
-                $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
-            }
-        }
         if (empty($quote->getId())) {
             $this->logger->error('Missing quote for Rvvup payment', [$rvvupId, $lastTransactionId]);
             $message = __(

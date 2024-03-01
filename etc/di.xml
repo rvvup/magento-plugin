@@ -205,6 +205,13 @@
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
+
+    <type name="Rvvup\Payments\Model\Queue\Handler\Handler">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Service\Result">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
