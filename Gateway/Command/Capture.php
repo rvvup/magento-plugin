@@ -8,6 +8,7 @@ use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Sales\Model\Order\Payment;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Sdk\Exceptions\NetworkException;
 
 class Capture extends AbstractCommand implements CommandInterface
@@ -35,7 +36,10 @@ class Capture extends AbstractCommand implements CommandInterface
     {
         $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
-        $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId);
+        /** Do not proceed with payment for pay-by-link orders */
+        if ($payment->getMethod() !== RvvupConfigProvider::CODE) {
+            $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId);
+        }
     }
 
     /**

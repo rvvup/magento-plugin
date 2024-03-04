@@ -180,9 +180,15 @@ class PaymentLink
      * @param array $data
      * @param string $orderId
      * @return void
+     * @throws NoSuchEntityException
      */
-    private function processApiResponse(array $body, string $amount, Create $subject, array $data, string $orderId): void
-    {
+    private function processApiResponse(
+        array $body,
+        string $amount,
+        Create $subject,
+        array $data,
+        string $orderId
+    ): void {
         if ($body['status'] == 'ACTIVE') {
             if ($amount == $body['amount']['amount']) {
                 $message = $this->config->getPayByLinkText() . PHP_EOL . $body['url'];
