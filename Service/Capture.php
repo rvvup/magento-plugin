@@ -190,6 +190,25 @@ class Capture
                 );
             }
 
+            if (empty($quote->getCustomerEmail())) {
+                $billingAddress = $quote->getBillingAddress();
+                $shippingAddress = $quote->getShippingAddress();
+
+                if ($shippingAddress) {
+                    $email = $shippingAddress->getEmail();
+                    $quote->setCustomerEmail($email);
+                }
+
+                if ($billingAddress) {
+                    if (empty($quote->getCustomerFirstname())) {
+                        $quote->setCustomerFirstname($billingAddress->getFirstname());
+                    }
+                    if (empty($quote->getCustomerLastname())) {
+                        $quote->setCustomerLastname($billingAddress->getLastname());
+                    }
+                }
+            }
+
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
             $this->quoteResource->commit();
             return $this->validationInterfaceFactory->create(
