@@ -45,7 +45,12 @@ class CanVoid implements ValueHandlerInterface
     {
         try {
             $payment = $subject['payment']->getPayment();
-            $orderId = $payment->getAdditionalInformation(Method::ORDER_ID) ?: $payment->getParentId();
+            $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
+
+            if (!$orderId) {
+                return false;
+            }
+
             $value = $this->cache->get($orderId, 'void', $payment->getOrder()->getState());
             if ($value) {
                 return $this->serializer->unserialize($value)['available'];

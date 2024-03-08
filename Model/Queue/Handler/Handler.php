@@ -16,6 +16,7 @@ use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\RvvupConfigProvider;
+use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
 
 class Handler
@@ -44,6 +45,9 @@ class Handler
     /** @var Payment */
     private $paymentResource;
 
+    /** @var Cache */
+    private $cacheService;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -52,6 +56,7 @@ class Handler
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
      * @param Payment $paymentResource
+     * @param Cache $cacheService
      * @param Capture $captureService
      */
     public function __construct(
@@ -62,6 +67,7 @@ class Handler
         ProcessorPool $processorPool,
         LoggerInterface $logger,
         Payment $paymentResource,
+        Cache $cacheService,
         Capture $captureService
     ) {
         $this->webhookRepository = $webhookRepository;
@@ -71,6 +77,7 @@ class Handler
         $this->processorPool = $processorPool;
         $this->captureService = $captureService;
         $this->paymentResource = $paymentResource;
+        $this->cacheService = $cacheService;
         $this->logger = $logger;
     }
 
@@ -180,6 +187,7 @@ class Handler
         $payment->setAdditionalInformation(Method::ORDER_ID, $rvvupOrderId);
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
         $this->paymentResource->save($payment);
+        $this->cacheService->clear($rvvupOrderId, $order->getState());
         $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
             $order,
             $rvvupData

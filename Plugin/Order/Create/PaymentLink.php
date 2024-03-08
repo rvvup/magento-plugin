@@ -88,13 +88,18 @@ class PaymentLink
     {
         if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
             if (isset($data['comment'])) {
-                $quote = $result->getQuote();
-                $storeId = (string)$quote->getStore()->getId();
-                $amount = (float)$quote->getGrandTotal();
-                $orderId = $quote->reserveOrderId()->getReservedOrderId();
-                $currencyCode = $quote->getQuoteCurrencyCode();
-                $id = $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
-                $this->savePaymentLink($subject, $id);
+                if (!$subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_id')) {
+                    $quote = $result->getQuote();
+                    $storeId = (string)$quote->getStore()->getId();
+                    $amount = (float)$quote->getGrandTotal();
+                    $orderId = $quote->reserveOrderId()->getReservedOrderId();
+                    $currencyCode = $quote->getQuoteCurrencyCode();
+                    list($id, $message) = $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
+                    $this->savePaymentLink($subject, $id, $message);
+                } else {
+                    $message = $subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
+                    $subject->getQuote()->addData(['customer_note' => $message, 'customer_note_notify' => true]);
+                }
             }
         }
         return $result;
@@ -111,15 +116,17 @@ class PaymentLink
     {
         $order = $this->request->getPost('order');
         if (!(isset($order['send_confirmation']) && $order['send_confirmation'])) {
-            $id = $this->createRvvupPayByLink(
-                (string)$result->getStoreId(),
-                $result->getGrandTotal(),
-                $result->getId(),
-                $result->getOrderCurrencyCode(),
-                $subject,
-                ['status' => $result->getStatus()]
-            );
-            $this->savePaymentLink($subject, $id);
+            if (!$subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_id')) {
+                list($id, $message) = $this->createRvvupPayByLink(
+                    (string)$result->getStoreId(),
+                    $result->getGrandTotal(),
+                    $result->getId(),
+                    $result->getOrderCurrencyCode(),
+                    $subject,
+                    ['status' => $result->getStatus()]
+                );
+                $this->savePaymentLink($subject, $id, $message);
+            }
         }
 
         return $result;
@@ -128,13 +135,15 @@ class PaymentLink
     /**
      * @param Create $subject
      * @param string $id
+     * @param string $message
      * @return void
      */
-    private function savePaymentLink(Create $subject, string $id): void
+    private function savePaymentLink(Create $subject, string $id, string $message): void
     {
         try {
             $payment = $subject->getQuote()->getPayment();
             $payment->setAdditionalInformation('rvvup_payment_link_id', $id);
+            $payment->setAdditionalInformation('rvvup_payment_link_message', $message);
             $this->quotePaymentResource->save($payment);
         } catch (\Exception $e) {
             $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
@@ -158,19 +167,19 @@ class PaymentLink
         string $currencyCode,
         Create $subject,
         array $data
-    ): ?string {
+    ): ?array {
         try {
             $amount = number_format($amount, 2, '.', '');
             $params = $this->getData($amount, $storeId, $orderId, $currencyCode);
 
             $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
             $body = $this->json->unserialize($request->body);
-            $this->processApiResponse($body, $amount, $subject, $data, $orderId);
-            return $body['id'];
+            $message = $this->processApiResponse($body, $amount, $subject, $data, $orderId);
+            return [$body['id'], $message];
         } catch (\Exception $e) {
             $this->logger->error('Rvvup payment link creation failed with error: ' . $e->getMessage());
         }
-        return null;
+        return [null,null];
     }
 
     /**
@@ -179,7 +188,7 @@ class PaymentLink
      * @param Create $subject
      * @param array $data
      * @param string $orderId
-     * @return void
+     * @return string|null
      * @throws NoSuchEntityException
      */
     private function processApiResponse(
@@ -188,7 +197,7 @@ class PaymentLink
         Create $subject,
         array $data,
         string $orderId
-    ): void {
+    ): ?string {
         if ($body['status'] == 'ACTIVE') {
             if ($amount == $body['amount']['amount']) {
                 $message = $this->config->getPayByLinkText() . PHP_EOL . $body['url'];
@@ -200,14 +209,16 @@ class PaymentLink
                 } elseif (isset($data['status'])) {
                     $historyComment = $this->orderStatusHistoryFactory->create();
                     $historyComment->setParentId($orderId);
-                    $historyComment->setIsCustomerNotified(true);
+                    $historyComment->setIsCustomerNotified(false);
                     $historyComment->setIsVisibleOnFront(true);
                     $historyComment->setComment($message);
                     $historyComment->setStatus($data['status']);
                     $this->orderManagement->addComment($orderId, $historyComment);
                 }
+                return $message;
             }
         }
+        return null;
     }
 
     /**
@@ -238,6 +249,7 @@ class PaymentLink
             'amount' => ['amount' => $amount, 'currency' => $currencyCode],
             'reference' => $orderId,
             'source' => 'MAGENTO_PAYMENT_LINK',
+            'Idempotency-Key' => $orderId,
             'reusable' => false
         ];
 

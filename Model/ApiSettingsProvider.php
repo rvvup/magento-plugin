@@ -42,7 +42,9 @@ class ApiSettingsProvider extends \Magento\Framework\DataObject
         if (!$this->apiData) {
             $methods = $this->sdk->getMethods('0', 'GBP');
             foreach ($methods as $method) {
-                $this->apiData[$method['name']] = $method;
+                if (isset($method['name'])) {
+                    $this->apiData[$method['name']] = $method;
+                }
             }
         }
     }
