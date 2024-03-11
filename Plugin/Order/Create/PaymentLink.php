@@ -94,9 +94,15 @@ class PaymentLink
                     $amount = (float)$quote->getGrandTotal();
                     $orderId = $quote->reserveOrderId()->getReservedOrderId();
                     $currencyCode = $quote->getQuoteCurrencyCode();
+                    $order = $this->request->getPost('order');
+                    if (!isset($order['account']) || !isset($order['send_confirmation'])) {
+                        return $result;
+                    }
                     list($id, $message) =
                         $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
-                    $this->savePaymentLink($subject, $id, $message);
+                    if ($id && $message) {
+                        $this->savePaymentLink($subject, $id, $message);
+                    }
                 } else {
                     $quote = $subject->getQuote();
                     $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
@@ -127,7 +133,9 @@ class PaymentLink
                     $subject,
                     ['status' => $result->getStatus()]
                 );
-                $this->savePaymentLink($subject, $id, $message);
+                if ($id && $message) {
+                    $this->savePaymentLink($subject, $id, $message);
+                }
             }
         }
 
@@ -148,6 +156,7 @@ class PaymentLink
             $payment->setAdditionalInformation('rvvup_payment_link_message', $message);
             $this->quotePaymentResource->save($payment);
         } catch (\Exception $e) {
+
             $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
         }
     }
@@ -211,7 +220,7 @@ class PaymentLink
                 } elseif (isset($data['status'])) {
                     $historyComment = $this->orderStatusHistoryFactory->create();
                     $historyComment->setParentId($orderId);
-                    $historyComment->setIsCustomerNotified(false);
+                    $historyComment->setIsCustomerNotified(true);
                     $historyComment->setIsVisibleOnFront(true);
                     $historyComment->setComment($message);
                     $historyComment->setStatus($data['status']);
