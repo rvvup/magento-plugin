@@ -446,6 +446,9 @@
         <plugin name="canCreditMemoDisable"
                 type="Rvvup\Payments\Plugin\Cancel\Payment"
                 sortOrder="1"/>
+        <plugin name="aroundVoid"
+                type="Rvvup\Payments\Plugin\PaymentVoid"
+                sortOrder="1"/>
     </type>
 
     <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">

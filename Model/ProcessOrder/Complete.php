@@ -7,7 +7,10 @@ use Magento\Framework\Event\ManagerInterface as EventManager;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\InvoiceOrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Config as OrderConfig;
+use Magento\Sales\Model\Order\OrderStateResolverInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
@@ -42,30 +45,41 @@ class Complete implements ProcessorInterface
      */
     private $logger;
 
+    /** @var OrderConfig */
+    private $config;
+    
+    /** @var OrderRepositoryInterface */
+    private $orderRepository;
+
     /**
-     * @param \Magento\Framework\Event\ManagerInterface|EventManager $eventManager
-     * @param \Magento\Sales\Api\InvoiceOrderInterface $invoiceOrder
-     * @param \Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory $processOrderResultFactory
-     * @param \Psr\Log\LoggerInterface $logger
-     * @return void
+     * @param ManagerInterface|EventManager $eventManager
+     * @param InvoiceOrderInterface $invoiceOrder
+     * @param ProcessOrderResultInterfaceFactory $processOrderResultFactory
+     * @param OrderConfig $config
+     * @param OrderRepositoryInterface $orderRepository
+     * @param LoggerInterface $logger
      */
     public function __construct(
         EventManager $eventManager,
         InvoiceOrderInterface $invoiceOrder,
         ProcessOrderResultInterfaceFactory $processOrderResultFactory,
+        OrderConfig $config,
+        OrderRepositoryInterface $orderRepository,
         LoggerInterface $logger
     ) {
         $this->eventManager = $eventManager;
         $this->invoiceOrder = $invoiceOrder;
         $this->processOrderResultFactory = $processOrderResultFactory;
+        $this->config = $config;
+        $this->orderRepository = $orderRepository;
         $this->logger = $logger;
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param OrderInterface $order
      * @param array $rvvupData
-     * @return \Rvvup\Payments\Api\Data\ProcessOrderResultInterface
-     * @throws \Rvvup\Payments\Exception\PaymentValidationException
+     * @return ProcessOrderResultInterface
+     * @throws PaymentValidationException
      */
     public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
     {
@@ -77,7 +91,7 @@ class Complete implements ProcessorInterface
             }
         }
 
-        /** @var \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult */
+        /** @var ProcessOrderResultInterface $processOrderResult */
         $processOrderResult = $this->processOrderResultFactory->create();
 
         try {
@@ -93,6 +107,11 @@ class Complete implements ProcessorInterface
             // Don't notify the customer, this will be done on the event,
             // as we need to trigger the order confirmation email first & then the invoice if enabled.
             $invoiceId = $this->invoiceOrder->execute($order->getEntityId(), true);
+
+            /** Manually set to processing */
+            $order->setState(Processing::TYPE);
+            $order->setStatus($this->config->getStateDefaultStatus($order->getState()));
+            $this->orderRepository->save($order);
 
             $this->eventManager->dispatch('rvvup_payments_process_order_complete_after', [
                 'payment_process_type' => self::TYPE,
@@ -130,7 +149,7 @@ class Complete implements ProcessorInterface
      * 2 - Order total is invoiced
      * 3 - Order state is not New & Order state is not Pending Payment (Default states for unpaid Rvvup orders)
      *
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param OrderInterface $order
      * @return bool
      */
     private function isProcessed(OrderInterface $order): bool
