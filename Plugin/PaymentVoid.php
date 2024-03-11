@@ -9,11 +9,11 @@ use Rvvup\Payments\Model\RvvupConfigProvider;
 class PaymentVoid
 {
     /**
-    * @param Payment $subject
-    * @param callable $proceed
-    * @return bool
-    * @throws LocalizedException
-    */
+     * @param Payment $subject
+     * @param callable $proceed
+     * @return bool
+     * @throws LocalizedException
+     */
     public function aroundCanVoid(Payment $subject, callable $proceed): bool
     {
         $methodName = $subject->getMethod();

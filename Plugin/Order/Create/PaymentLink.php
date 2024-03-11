@@ -94,11 +94,13 @@ class PaymentLink
                     $amount = (float)$quote->getGrandTotal();
                     $orderId = $quote->reserveOrderId()->getReservedOrderId();
                     $currencyCode = $quote->getQuoteCurrencyCode();
-                    list($id, $message) = $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
+                    list($id, $message) =
+                        $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
                     $this->savePaymentLink($subject, $id, $message);
                 } else {
-                    $message = $subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
-                    $subject->getQuote()->addData(['customer_note' => $message, 'customer_note_notify' => true]);
+                    $quote = $subject->getQuote();
+                    $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
+                    $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
                 }
             }
         }
