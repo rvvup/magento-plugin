@@ -87,7 +87,7 @@ class Webhook implements ObserverInterface
                     $this->updateStores($website->getStores());
                 } elseif ($storeId) {
                     $store = $this->storeManager->getStore($storeId);
-                    $url = $store->getBaseUrl(UrlInterface::URL_TYPE_WEB, true) . 'rvvup/webhook';
+                    $url = $store->getBaseUrl(UrlInterface::URL_TYPE_LINK, true) . 'rvvup/webhook';
                     $this->registerWebhookUrl($url, ScopeInterface::SCOPE_STORE, $storeId);
                 }
             }
@@ -101,7 +101,7 @@ class Webhook implements ObserverInterface
     private function updateStores(array $stores): void
     {
         foreach ($stores as $store) {
-            $url = $store->getBaseUrl(UrlInterface::URL_TYPE_WEB, true) . 'rvvup/webhook';
+            $url = $store->getBaseUrl(UrlInterface::URL_TYPE_LINK, true) . 'rvvup/webhook';
             $this->registerWebhookUrl($url, ScopeInterface::SCOPE_STORE, (string)$store->getId());
         }
     }

@@ -19,6 +19,7 @@ use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\OrderIncrementIdChecker;
+use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
@@ -73,6 +74,9 @@ class Capture
     /** @var OrderInterface */
     private $order;
 
+    /** @var StoreManagerInterface */
+    private $storeManager;
+
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
@@ -86,6 +90,7 @@ class Capture
      * @param OrderIncrementIdChecker $orderIncrementIdChecker
      * @param ValidationInterface $validationInterface
      * @param ValidationInterfaceFactory $validationInterfaceFactory
+     * @param StoreManagerInterface $storeManager
      * @param OrderInterface $order
      * @param LoggerInterface $logger
      */
@@ -102,6 +107,7 @@ class Capture
         OrderIncrementIdChecker $orderIncrementIdChecker,
         ValidationInterface $validationInterface,
         ValidationInterfaceFactory $validationInterfaceFactory,
+        StoreManagerInterface $storeManager,
         OrderInterface $order,
         LoggerInterface $logger
     ) {
@@ -118,6 +124,7 @@ class Capture
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->validationInterface = $validationInterface;
         $this->order = $order;
+        $this->storeManager = $storeManager;
         $this->validationInterfaceFactory = $validationInterfaceFactory;
     }
 
@@ -301,7 +308,13 @@ class Capture
         }
         $quoteId = end($items)->getQuoteId();
         try {
-            return $this->cartRepository->get($quoteId);
+            $quote = $this->cartRepository->get($quoteId);
+
+            if ($quote->getStoreId() != $this->storeManager->getStore()->getId()) {
+                return null;
+            }
+
+            return $quote;
         } catch (NoSuchEntityException $ex) {
             return null;
         }
