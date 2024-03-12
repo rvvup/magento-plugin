@@ -109,6 +109,7 @@ class Handler
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
                     return;
                 }
+                return;
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {

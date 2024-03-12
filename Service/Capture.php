@@ -336,7 +336,7 @@ class Capture
         $quoteId = end($items)->getQuoteId();
         try {
             $cart = $this->cartRepository->get($quoteId);
-            if ($cart->getStoreId() != (int)$storeId) {
+            if ($cart->getStoreId() != $storeId) {
                 return null;
             }
             return $this->order->loadByIncrementId($cart->getReservedOrderId());
