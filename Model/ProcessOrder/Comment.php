@@ -57,7 +57,7 @@ class Comment implements ProcessorInterface
 
         try {
             $message = 'Rvvup payment link order was updated by webhook with rvvup status : '
-                . $rvvupData['payments'][0]['status'];
+                . $rvvupData['payments'][0]['status'] . ', Rvvup payment id: ' . $rvvupData['payments'][0]['id'];
             $order->addCommentToStatusHistory($message);
             $this->orderRepository->save($order);
         } catch (Exception $e) {
