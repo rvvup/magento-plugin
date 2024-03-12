@@ -341,6 +341,9 @@ class Capture
         $quoteId = end($items)->getQuoteId();
         try {
             $cart = $this->cartRepository->get($quoteId);
+            if ($cart->getStoreId() != $this->storeManager->getStore()->getId()) {
+                return null;
+            }
             return $this->order->loadByIncrementId($cart->getReservedOrderId());
         } catch (NoSuchEntityException $ex) {
             return null;
