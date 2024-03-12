@@ -260,6 +260,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             try {
                 $storeId = $this->storeRepository->getActiveStoreByCode($storeCode)->getId();
             } catch (\Exception $e) {
+                return (string) $storeId;
             }
         }
         return (string) $storeId;
