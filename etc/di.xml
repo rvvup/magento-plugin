@@ -360,6 +360,10 @@
     <type name="Rvvup\Payments\Gateway\Command\VoidPayment">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="cancelStatuses" xsi:type="array">
+                <item name="0" xsi:type="const">\Magento\Sales\Model\Order::STATE_COMPLETE</item>
+                <item name="1" xsi:type="const">\Magento\Sales\Model\Order::STATE_PROCESSING</item>
+            </argument>
         </arguments>
     </type>
 

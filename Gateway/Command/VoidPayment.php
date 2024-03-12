@@ -7,10 +7,14 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Config as OrderConfig;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Cache;
 
@@ -30,21 +34,39 @@ class VoidPayment implements CommandInterface
     /** @var Cache */
     private $cache;
 
+    /** @var array */
+    private $cancelStatuses;
+
+    /** @var OrderRepositoryInterface */
+    private $orderRepository;
+
+    /** @var OrderConfig */
+    private $config;
+
     /**
      * @param SdkProxy $sdkProxy
      * @param InvoiceRepository $invoiceRepository
      * @param Cache $cache
+     * @param array $cancelStatuses
+     * @param OrderRepositoryInterface $orderRepository
+     * @param OrderConfig $config
      * @param LoggerInterface $logger
      */
     public function __construct(
         SdkProxy $sdkProxy,
         InvoiceRepository $invoiceRepository,
         Cache $cache,
+        array $cancelStatuses,
+        OrderRepositoryInterface $orderRepository,
+        OrderConfig $config,
         LoggerInterface $logger
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->invoiceRepository = $invoiceRepository;
         $this->cache = $cache;
+        $this->cancelStatuses = $cancelStatuses;
+        $this->orderRepository = $orderRepository;
+        $this->config = $config;
         $this->logger = $logger;
     }
 
@@ -57,14 +79,26 @@ class VoidPayment implements CommandInterface
     {
         try {
             $payment = $commandSubject['payment']->getPayment();
+            $order = $payment->getOrder();
 
             list($rvvupOrderId, $paymentId) = $this->getRvvupData($payment);
-            $this->sdkProxy->voidPayment($rvvupOrderId, $paymentId);
+            if ($paymentId) {
+                $this->sdkProxy->voidPayment($rvvupOrderId, $paymentId);
+            }
 
-            $orderState = $payment->getOrder()->getState();
-            $this->cache->clear($rvvupOrderId, $orderState);
+            $orderState = $order->getState();
+            if ($rvvupOrderId && $orderState) {
+                $this->cache->clear($rvvupOrderId, $orderState);
+            }
 
-            $order = $payment->getOrder();
+            if ($payment->getMethod() == RvvupConfigProvider::CODE) {
+                if (in_array($order->getStatus(), $this->cancelStatuses)) {
+                    $order->setState(Order::STATE_CANCELED);
+                    $order->setStatus($this->config->getStateDefaultStatus($order->getState()));
+                    $this->orderRepository->save($order);
+                }
+            }
+
             $this->disableOnlineRefunds($order);
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
@@ -79,8 +113,10 @@ class VoidPayment implements CommandInterface
     private function getRvvupData(Payment $payment)
     {
         $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
-        $rvvupOrder = $this->sdkProxy->getOrder($rvvupOrderId);
-        $paymentId = $rvvupOrder['payments'][0]['id'];
+        if ($rvvupOrderId) {
+            $rvvupOrder = $this->sdkProxy->getOrder($rvvupOrderId);
+        }
+        $paymentId = $rvvupOrder['payments'][0]['id'] ?? null;
         return [$rvvupOrderId, $paymentId];
     }
 

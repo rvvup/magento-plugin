@@ -10,7 +10,6 @@ use Magento\Sales\Api\InvoiceOrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Config as OrderConfig;
-use Magento\Sales\Model\Order\OrderStateResolverInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
@@ -47,7 +46,7 @@ class Complete implements ProcessorInterface
 
     /** @var OrderConfig */
     private $config;
-    
+
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
@@ -109,7 +108,7 @@ class Complete implements ProcessorInterface
             $invoiceId = $this->invoiceOrder->execute($order->getEntityId(), true);
 
             /** Manually set to processing */
-            $order->setState(Processing::TYPE);
+            $order->setState(Order::STATE_PROCESSING);
             $order->setStatus($this->config->getStateDefaultStatus($order->getState()));
             $this->orderRepository->save($order);
 
