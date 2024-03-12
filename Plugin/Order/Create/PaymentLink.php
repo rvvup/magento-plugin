@@ -260,7 +260,6 @@ class PaymentLink
             'amount' => ['amount' => $amount, 'currency' => $currencyCode],
             'reference' => $orderId,
             'source' => 'MAGENTO_PAYMENT_LINK',
-            'Idempotency-Key' => $orderId,
             'reusable' => false
         ];
 
@@ -269,6 +268,7 @@ class PaymentLink
         $headers = [
             'Content-Type: application/json',
             'Accept: application/json',
+            'Idempotency-Key' => $orderId,
             'Authorization: Bearer ' . $token
         ];
 
