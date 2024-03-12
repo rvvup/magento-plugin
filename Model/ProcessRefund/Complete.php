@@ -57,9 +57,9 @@ class Complete implements ProcessorInterface
 
     /**
      * Complete refund
-     *
      * @param array $payload
      * @return void
+     * @throws Exception
      */
     public function execute(array $payload): void
     {

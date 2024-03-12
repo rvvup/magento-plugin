@@ -81,7 +81,16 @@ class LoadMethodInstances
                 );
                 return $instance;
             }
+        } elseif (0 === strpos($code, 'rvvup')) {
+            return $this->methodFactory->create(
+                'RvvupFacade',
+                [
+                    'code' => $code,
+                    'title' => 'Rvvup Payment Link'
+                ]
+            );
         }
+
         return $proceed($code);
     }
 }

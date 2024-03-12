@@ -9,13 +9,19 @@ class ProcessorPool
     /** @var array */
     private $processors = [];
 
+    /** @var array */
+    private $paymentLinkProcessors = [];
+
     /**
      * @param array $processors
+     * @param array $paymentLinkProcessors
      */
     public function __construct(
-        array $processors
+        array $processors,
+        array $paymentLinkProcessors
     ) {
         $this->processors = $processors;
+        $this->paymentLinkProcessors = $paymentLinkProcessors;
     }
 
     /**
@@ -29,5 +35,18 @@ class ProcessorPool
             return $this->processors[$status];
         }
         throw new LocalizedException(__('No OrderProcessor for status %1', $status));
+    }
+
+    /**
+     * @param string $status
+     * @return ProcessorInterface
+     * @throws LocalizedException
+     */
+    public function getPaymentLinkProcessor(string $status): ProcessorInterface
+    {
+        if (isset($this->paymentLinkProcessors[$status])) {
+            return $this->paymentLinkProcessors[$status];
+        }
+        throw new LocalizedException(__('No Payment Link Processor for status %1', $status));
     }
 }

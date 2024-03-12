@@ -4,13 +4,20 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\Queue\Handler;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
+use Magento\Framework\Serialize\Serializer\Json;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Model\RvvupConfigProvider;
+use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
 
 class Handler
@@ -36,6 +43,15 @@ class Handler
     /** @var Capture  */
     private $captureService;
 
+    /** @var Payment */
+    private $paymentResource;
+
+    /** @var Cache */
+    private $cacheService;
+
+    /** @var Json */
+    private $json;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -43,7 +59,10 @@ class Handler
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
+     * @param Payment $paymentResource
+     * @param Cache $cacheService
      * @param Capture $captureService
+     * @param Json $json
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -52,7 +71,10 @@ class Handler
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
         LoggerInterface $logger,
-        Capture $captureService
+        Payment $paymentResource,
+        Cache $cacheService,
+        Capture $captureService,
+        Json $json
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
@@ -60,23 +82,38 @@ class Handler
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
         $this->captureService = $captureService;
+        $this->paymentResource = $paymentResource;
+        $this->cacheService = $cacheService;
         $this->logger = $logger;
+        $this->json = $json;
     }
 
     /**
-     * @param int $id
+     * @param string $data
      * @return void
      */
-    public function execute(int $id)
+    public function execute(string $data)
     {
         try {
-            $webhook = $this->webhookRepository->getById($id);
+            $data = $this->json->unserialize($data);
+
+            $webhook = $this->webhookRepository->getById((int)$data['id']);
             $payload = $this->serializer->unserialize($webhook->getPayload());
 
             $rvvupOrderId = $payload['order_id'];
+            $rvvupPaymentId = $payload['payment_id'];
+
+            if ($paymentLinkId = $payload['payment_link_id']) {
+                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $data['store']);
+                if ($order) {
+                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+                    return;
+                }
+                return;
+            }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
+                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $data['store']);
                 if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
@@ -123,31 +160,54 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-
-            // if Payment method is not Rvvup, exit.
-            if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
-                return;
-            }
-
-            if (isset($rvvupOrderId)) {
-                $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
-                if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
-                    $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
-                        'rvvup_order_id' => $rvvupOrderId
-                    ]);
-                    return;
-                }
-                $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
-                    $order,
-                    $rvvupData
-                );
-            }
-
+            $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
             return;
         } catch (\Exception $e) {
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,
             ]);
+        }
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param string $rvvupOrderId
+     * @param string $rvvupPaymentId
+     * @return void
+     * @throws LocalizedException
+     * @throws AlreadyExistsException
+     */
+    private function processOrder(OrderInterface $order, string $rvvupOrderId, string $rvvupPaymentId): void
+    {
+        // if Payment method is not Rvvup, exit.
+        if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
+            if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
+                return;
+            }
+        }
+
+        $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
+        if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
+            $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
+                    'rvvup_order_id' => $rvvupOrderId
+                ]);
+            return;
+        }
+        $payment = $order->getPayment();
+        $payment->setAdditionalInformation(Method::ORDER_ID, $rvvupOrderId);
+        $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
+        $this->paymentResource->save($payment);
+        $this->cacheService->clear($rvvupOrderId, $order->getState());
+        if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) === 0) {
+            $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
+                $order,
+                $rvvupData
+            );
+        } else {
+            $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
+                $order,
+                $rvvupData
+            );
         }
     }
 }

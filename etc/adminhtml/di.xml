@@ -38,4 +38,14 @@
                 type="Rvvup\Payments\Plugin\Cancel\Payment"
                 sortOrder="1"/>
     </type>
+    <type name="Magento\Sales\Model\AdminOrder\Create">
+        <plugin name="addRvvupPaymentLink"
+                type="Rvvup\Payments\Plugin\Order\Create\PaymentLink"
+                sortOrder="1"/>
+    </type>
+    <type name="Rvvup\Payments\Model\Checks\HasCartRestrictedProduct">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
 </config>

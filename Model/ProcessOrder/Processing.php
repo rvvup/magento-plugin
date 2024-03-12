@@ -14,6 +14,7 @@ use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Magento\Framework\Stdlib\DateTime\DateTime;
+use Rvvup\Payments\Model\RvvupConfigProvider;
 
 class Processing implements ProcessorInterface
 {
@@ -68,7 +69,9 @@ class Processing implements ProcessorInterface
         if ($order->getPayment() === null
             || strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
         ) {
-            throw new PaymentValidationException(__('Order is not paid via Rvvup'));
+            if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
+                throw new PaymentValidationException(__('Order is not paid via Rvvup'));
+            }
         }
 
         try {

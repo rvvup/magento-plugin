@@ -13,6 +13,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
 use Magento\Quote\Model\QuoteManagement;
+use Magento\Quote\Model\ResourceModel\Quote\Payment\Collection;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
@@ -69,6 +70,9 @@ class Capture
     /** @var ValidationInterfaceFactory  */
     private $validationInterfaceFactory;
 
+    /** @var OrderInterface */
+    private $order;
+
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
@@ -82,6 +86,7 @@ class Capture
      * @param OrderIncrementIdChecker $orderIncrementIdChecker
      * @param ValidationInterface $validationInterface
      * @param ValidationInterfaceFactory $validationInterfaceFactory
+     * @param OrderInterface $order
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -97,6 +102,7 @@ class Capture
         OrderIncrementIdChecker $orderIncrementIdChecker,
         ValidationInterface $validationInterface,
         ValidationInterfaceFactory $validationInterfaceFactory,
+        OrderInterface $order,
         LoggerInterface $logger
     ) {
         $this->logger = $logger;
@@ -111,6 +117,7 @@ class Capture
         $this->checkoutHelper = $checkoutHelper;
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->validationInterface = $validationInterface;
+        $this->order = $order;
         $this->validationInterfaceFactory = $validationInterfaceFactory;
     }
 
@@ -121,7 +128,7 @@ class Capture
      */
     public function getOrderByRvvupId(string $rvvupOrderId): OrderInterface
     {
-        // Saerch for the payment record by the Rvvup order ID which is stored in the credit card field.
+        // Search for the payment record by the Rvvup order ID
         $searchCriteria = $this->searchCriteriaBuilder->addFilter(
             'additional_information',
             '%' . $rvvupOrderId . '%',
@@ -276,11 +283,12 @@ class Capture
 
     /**
      * @param string $rvvupId
+     * @param string|null $storeId
      * @return Quote|null
      */
-    public function getQuoteByRvvupId(string $rvvupId): ?Quote
+    public function getQuoteByRvvupId(string $rvvupId, string $storeId = null): ?Quote
     {
-        /** @var \Magento\Quote\Model\ResourceModel\Quote\Payment\Collection $collection */
+        /** @var Collection $collection */
         $collection = $this->collectionFactory->create();
         $collection->addFieldToFilter(
             'additional_information',
@@ -294,7 +302,44 @@ class Capture
         }
         $quoteId = end($items)->getQuoteId();
         try {
-            return $this->cartRepository->get($quoteId);
+            $quote = $this->cartRepository->get($quoteId);
+
+            if ($storeId && $quote->getStoreId() != (int)$storeId) {
+                return null;
+            }
+
+            return $quote;
+        } catch (NoSuchEntityException $ex) {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $paymentLinkId
+     * @param string $storeId
+     * @return Quote|null
+     */
+    public function getOrderByRvvupPaymentLinkId(string $paymentLinkId, string $storeId): ?OrderInterface
+    {
+        /** @var Collection $collection */
+        $collection = $this->collectionFactory->create();
+        $collection->addFieldToFilter(
+            'additional_information',
+            [
+                'like' => "%\"rvvup_payment_link_id\":\"$paymentLinkId\"%"
+            ]
+        );
+        $items = $collection->getItems();
+        if (count($items) !== 1) {
+            return null;
+        }
+        $quoteId = end($items)->getQuoteId();
+        try {
+            $cart = $this->cartRepository->get($quoteId);
+            if ($cart->getStoreId() != $storeId) {
+                return null;
+            }
+            return $this->order->loadByIncrementId($cart->getReservedOrderId());
         } catch (NoSuchEntityException $ex) {
             return null;
         }

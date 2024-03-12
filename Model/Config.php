@@ -220,7 +220,7 @@ class Config implements ConfigInterface
 
     /**
      * @param string $scopeType
-     * @return bool
+     * @return array
      * @throws NoSuchEntityException
      */
     public function getValidProductTypes(
@@ -230,5 +230,18 @@ class Config implements ConfigInterface
         $path = self::RVVUP_CONFIG . self::PRODUCT_RESTRICTIONS . self::XML_PATH_PRODUCT_TYPES_ENABLED;
         $types = $this->scopeConfig->getValue($path, $scopeType, $scopeCode);
         return explode(',', $types);
+    }
+
+    /**
+     * @param string $scopeType
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE): string
+    {
+        $config = self::RVVUP_CONFIG . self::XML_PATH_EMAIL . self::XML_PATH_PAY_BY_LINK_TEXT;
+        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
+
+        return $this->scopeConfig->getValue($config, $scopeType, $scopeCode);
     }
 }

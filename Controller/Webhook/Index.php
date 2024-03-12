@@ -5,12 +5,19 @@ namespace Rvvup\Payments\Controller\Webhook;
 
 use Exception;
 use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Store\Api\StoreRepositoryInterface;
+use Magento\Store\App\Request\StorePathInfoValidator;
+use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\MessageQueue\PublisherInterface;
 use Rvvup\Payments\Gateway\Method;
@@ -55,25 +62,50 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var RefundPool */
     private $refundPool;
 
+    /** @var StoreManagerInterface */
+    private $storeManager;
+
+    /** @var Json */
+    private $json;
+
+    /** @var StorePathInfoValidator */
+    private $storePathInfoValidator;
+
+    /** @var Http */
+    private $http;
+
+    /** @var StoreRepositoryInterface */
+    private $storeRepository;
+
     /**
      * @param RequestInterface $request
+     * @param StoreRepositoryInterface $storeRepository
+     * @param Http $http
      * @param ConfigInterface $config
      * @param SerializerInterface $serializer
      * @param ResultFactory $resultFactory
      * @param LoggerInterface $logger
      * @param PublisherInterface $publisher
      * @param WebhookRepository $webhookRepository
+     * @param StoreManagerInterface $storeManager
+     * @param Json $json
+     * @param StorePathInfoValidator $storePathInfoValidator
      * @param RefundPool $refundPool
      */
     public function __construct(
-        RequestInterface $request,
-        ConfigInterface $config,
-        SerializerInterface $serializer,
-        ResultFactory $resultFactory,
-        LoggerInterface $logger,
-        PublisherInterface $publisher,
-        WebhookRepository $webhookRepository,
-        RefundPool $refundPool
+        RequestInterface         $request,
+        StoreRepositoryInterface $storeRepository,
+        Http                     $http,
+        ConfigInterface          $config,
+        SerializerInterface      $serializer,
+        ResultFactory            $resultFactory,
+        LoggerInterface          $logger,
+        PublisherInterface       $publisher,
+        WebhookRepository        $webhookRepository,
+        StoreManagerInterface    $storeManager,
+        Json                     $json,
+        StorePathInfoValidator   $storePathInfoValidator,
+        RefundPool               $refundPool
     ) {
         $this->request = $request;
         $this->config = $config;
@@ -82,6 +114,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->logger = $logger;
         $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
+        $this->storeManager = $storeManager;
+        $this->json = $json;
+        $this->storePathInfoValidator = $storePathInfoValidator;
+        $this->http = $http;
+        $this->storeRepository = $storeRepository;
         $this->refundPool = $refundPool;
     }
 
@@ -96,6 +133,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $eventType = $this->request->getParam('event_type', false);
             $paymentId = $this->request->getParam('payment_id', false);
             $refundId = $this->request->getParam('refund_id', false);
+            $paymentLinkId = $this->request->getParam('payment_link_id', false);
 
             // Ensure required params are present
             if (!$merchantId || !$rvvupOrderId) {
@@ -118,6 +156,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'refund_id' => $refundId,
                 'payment_id' => $paymentId,
                 'event_type' => $eventType,
+                'payment_link_id' => $paymentLinkId
             ];
 
             if ($payload['event_type'] == Complete::TYPE) {
@@ -125,9 +164,16 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $this->returnSuccessfulResponse();
             } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED ||
                 $payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                $storeId = $this->getStoreId();
                 $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
                 $this->webhookRepository->save($webhook);
-                $this->publisher->publish('rvvup.webhook', (int)$webhook->getId());
+                $this->publisher->publish(
+                    'rvvup.webhook',
+                    $this->json->serialize([
+                        'id' => (string) $webhook->getId(),
+                        'store' => $storeId
+                    ])
+                );
                 return $this->returnSuccessfulResponse();
             }
 
@@ -201,5 +247,22 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $response->setHttpResponseCode(500);
 
         return $response;
+    }
+
+    /**
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    private function getStoreId(): string
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        if ($storeCode = $this->storePathInfoValidator->getValidStoreCode($this->http)) {
+            try {
+                $storeId = $this->storeRepository->getActiveStoreByCode($storeCode)->getId();
+            } catch (\Exception $e) {
+                return (string) $storeId;
+            }
+        }
+        return (string) $storeId;
     }
 }

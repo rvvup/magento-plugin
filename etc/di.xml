@@ -205,6 +205,13 @@
             <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
+
+    <type name="Rvvup\Payments\Model\Queue\Handler\Handler">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Service\Result">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
@@ -313,6 +320,19 @@
                 <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
                 <item name="REQUIRES_PAYMENT" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\UpdateOrder</item>
             </argument>
+            <argument name="paymentLinkProcessors" xsi:type="array">
+                <item name="CANCELLED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="FAILED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="AUTHORIZATION_EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="PENDING" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="REQUIRES_ACTION" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="REQUIRES_PAYMENT" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="REFUND_COMPLETED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="AUTHORIZED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
+                <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
+            </argument>
         </arguments>
     </type>
 
@@ -338,6 +358,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Model\ProcessOrder\Comment">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Model\Payment\PaymentCreateExpress">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
@@ -353,6 +379,10 @@
     <type name="Rvvup\Payments\Gateway\Command\VoidPayment">
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="cancelStatuses" xsi:type="array">
+                <item name="0" xsi:type="const">\Magento\Sales\Model\Order::STATE_COMPLETE</item>
+                <item name="1" xsi:type="const">\Magento\Sales\Model\Order::STATE_PROCESSING</item>
+            </argument>
         </arguments>
     </type>
 
@@ -438,6 +468,9 @@
     <type name="Magento\Sales\Model\Order\Payment">
         <plugin name="canCreditMemoDisable"
                 type="Rvvup\Payments\Plugin\Cancel\Payment"
+                sortOrder="1"/>
+        <plugin name="aroundVoid"
+                type="Rvvup\Payments\Plugin\PaymentVoid"
                 sortOrder="1"/>
     </type>
 

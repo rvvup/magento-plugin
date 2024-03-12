@@ -64,7 +64,7 @@
                         <source_model>Magento\Catalog\Model\Product\Type</source_model>
                     </field>
                 </group>
-                <group id="paypal_block" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <group id="paypal_block" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Paypal Block Styling</label>
                     <field id="use_place_order_styling" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Use Place Order button styling</label>
@@ -83,6 +83,14 @@
                         <label>Border styling</label>
                     </field>
                     <comment>This settings will be used as styling for paypal buttons</comment>
+                </group>
+                <group id="email" sortOrder="130" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Email Configuration</label>
+                    <field id="pay_by_link" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Pay by link text</label>
+                    </field>
+                    <comment>Text for order_new and order_update emails which will be put before
+                        link to pay for an order which was created by admin</comment>
                 </group>
             </group>
         </section>

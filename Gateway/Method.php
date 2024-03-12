@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Gateway;
 
 use Magento\Framework\Event\ManagerInterface;
+use Magento\Payment\Block\Form;
 use Magento\Payment\Gateway\Command\CommandManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
@@ -203,5 +204,10 @@ class Method extends Adapter
     public function validate()
     {
         return $this;
+    }
+
+    public function getFormBlockType()
+    {
+        return Form::class;
     }
 }
