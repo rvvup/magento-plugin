@@ -188,9 +188,16 @@ class Handler
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
         $this->paymentResource->save($payment);
         $this->cacheService->clear($rvvupOrderId, $order->getState());
-        $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
-            $order,
-            $rvvupData
-        );
+        if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) === 0) {
+            $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
+                $order,
+                $rvvupData
+            );
+        } else {
+            $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
+                $order,
+                $rvvupData
+            );
+        }
     }
 }

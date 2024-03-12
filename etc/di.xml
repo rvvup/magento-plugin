@@ -320,6 +320,19 @@
                 <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
                 <item name="REQUIRES_PAYMENT" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\UpdateOrder</item>
             </argument>
+            <argument name="paymentLinkProcessors" xsi:type="array">
+                <item name="CANCELLED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="DECLINED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="FAILED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="AUTHORIZATION_EXPIRED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="PENDING" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="REQUIRES_ACTION" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="REQUIRES_PAYMENT" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="REFUND_COMPLETED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Comment</item>
+                <item name="AUTHORIZED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Processing</item>
+                <item name="SUCCEEDED" xsi:type="object">Rvvup\Payments\Model\ProcessOrder\Complete</item>
+            </argument>
         </arguments>
     </type>
 
@@ -342,6 +355,12 @@
         <arguments>
             <argument name="logger" xsi:type="object">RvvupLog</argument>
             <argument name="commandPool" xsi:type="object">RvvupCommandPool</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Model\ProcessOrder\Comment">
+        <arguments>
+            <argument name="logger" xsi:type="object">RvvupLog</argument>
         </arguments>
     </type>
 
