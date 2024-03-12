@@ -12,6 +12,7 @@ use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
+use Magento\Framework\Serialize\Serializer\Json;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
@@ -48,6 +49,9 @@ class Handler
     /** @var Cache */
     private $cacheService;
 
+    /** @var Json */
+    private $json;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -58,6 +62,7 @@ class Handler
      * @param Payment $paymentResource
      * @param Cache $cacheService
      * @param Capture $captureService
+     * @param Json $json
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -68,7 +73,8 @@ class Handler
         LoggerInterface $logger,
         Payment $paymentResource,
         Cache $cacheService,
-        Capture $captureService
+        Capture $captureService,
+        Json $json
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
@@ -79,23 +85,26 @@ class Handler
         $this->paymentResource = $paymentResource;
         $this->cacheService = $cacheService;
         $this->logger = $logger;
+        $this->json = $json;
     }
 
     /**
-     * @param int $id
+     * @param string $data
      * @return void
      */
-    public function execute(int $id)
+    public function execute(string $data)
     {
         try {
-            $webhook = $this->webhookRepository->getById($id);
+            $data = $this->json->unserialize($data);
+
+            $webhook = $this->webhookRepository->getById((int)$data['id']);
             $payload = $this->serializer->unserialize($webhook->getPayload());
 
             $rvvupOrderId = $payload['order_id'];
             $rvvupPaymentId = $payload['payment_id'];
 
             if ($paymentLinkId = $payload['payment_link_id']) {
-                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId);
+                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $data['store']);
                 if ($order) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
                     return;
@@ -103,7 +112,7 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
+                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $data['store']);
                 if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',

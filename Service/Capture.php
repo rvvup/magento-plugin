@@ -19,7 +19,6 @@ use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\OrderIncrementIdChecker;
-use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
@@ -74,9 +73,6 @@ class Capture
     /** @var OrderInterface */
     private $order;
 
-    /** @var StoreManagerInterface */
-    private $storeManager;
-
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
@@ -90,7 +86,6 @@ class Capture
      * @param OrderIncrementIdChecker $orderIncrementIdChecker
      * @param ValidationInterface $validationInterface
      * @param ValidationInterfaceFactory $validationInterfaceFactory
-     * @param StoreManagerInterface $storeManager
      * @param OrderInterface $order
      * @param LoggerInterface $logger
      */
@@ -107,7 +102,6 @@ class Capture
         OrderIncrementIdChecker $orderIncrementIdChecker,
         ValidationInterface $validationInterface,
         ValidationInterfaceFactory $validationInterfaceFactory,
-        StoreManagerInterface $storeManager,
         OrderInterface $order,
         LoggerInterface $logger
     ) {
@@ -124,7 +118,6 @@ class Capture
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->validationInterface = $validationInterface;
         $this->order = $order;
-        $this->storeManager = $storeManager;
         $this->validationInterfaceFactory = $validationInterfaceFactory;
     }
 
@@ -290,9 +283,10 @@ class Capture
 
     /**
      * @param string $rvvupId
+     * @param string|null $storeId
      * @return Quote|null
      */
-    public function getQuoteByRvvupId(string $rvvupId): ?Quote
+    public function getQuoteByRvvupId(string $rvvupId, string $storeId = null): ?Quote
     {
         /** @var Collection $collection */
         $collection = $this->collectionFactory->create();
@@ -310,7 +304,7 @@ class Capture
         try {
             $quote = $this->cartRepository->get($quoteId);
 
-            if ($quote->getStoreId() != $this->storeManager->getStore()->getId()) {
+            if ($storeId && $quote->getStoreId() != (int)$storeId) {
                 return null;
             }
 
@@ -322,9 +316,10 @@ class Capture
 
     /**
      * @param string $paymentLinkId
+     * @param string $storeId
      * @return Quote|null
      */
-    public function getOrderByRvvupPaymentLinkId(string $paymentLinkId): ?OrderInterface
+    public function getOrderByRvvupPaymentLinkId(string $paymentLinkId, string $storeId): ?OrderInterface
     {
         /** @var Collection $collection */
         $collection = $this->collectionFactory->create();
@@ -341,7 +336,7 @@ class Capture
         $quoteId = end($items)->getQuoteId();
         try {
             $cart = $this->cartRepository->get($quoteId);
-            if ($cart->getStoreId() != $this->storeManager->getStore()->getId()) {
+            if ($cart->getStoreId() != (int)$storeId) {
                 return null;
             }
             return $this->order->loadByIncrementId($cart->getReservedOrderId());
