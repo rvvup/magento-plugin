@@ -48,12 +48,8 @@ class Comment implements ProcessorInterface
      */
     public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
     {
-        if ($order->getPayment() === null
-            || strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
-        ) {
-            if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
-                throw new PaymentValidationException(__('Order is not paid via Rvvup'));
-            }
+        if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
+            throw new PaymentValidationException(__('Order is not paid via Rvvup Payment Link'));
         }
 
         /** @var ProcessOrderResultInterface $processOrderResult */
