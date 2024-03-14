@@ -276,6 +276,10 @@ define([
                 return window.checkoutConfig.payment[this.index].background;
             },
 
+            getUsePlaceOrderStyling: function () {
+                return window.checkoutConfig.payment[this.index].use_place_order_styling;
+            },
+
             /**
              * Render the PayPal button if the PayPal container is in place.
              */
