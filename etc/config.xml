@@ -27,7 +27,7 @@
                     <enabled_product_types>simple,virtual,downloadable,bundle,grouped,configurable</enabled_product_types>
                 </product_restrictions>
                 <paypal_block>
-                    <use_place_order_styling>1</use_place_order_styling>
+                    <use_place_order_styling>0</use_place_order_styling>
                     <style>action-toolbar</style>
                     <border_styling>none</border_styling>
                     <background_styling>none</background_styling>

@@ -56,12 +56,28 @@
                  'data-pp-style-color': getPayLaterConfigValue('color'),
                  'data-pp-style-ratio': getPayLaterConfigValue('ratio')
          }"></div>
+        <!-- ko if: (getUsePlaceOrderStyling() == true) -->
+        <div class="actions-toolbar" data-bind="style: {display: !shouldDisplayPayPalButton() ? '' : 'none'}">
+            <div class="primary">
+                <div data-bind="attr: {class: getPaypalBlockStyling()}, style: {display: 'block'
+                ,border :getPaypalBlockBorderStyling(), background :getPaypalBlockABackgroundStyling()}">
+                    <div afterRender="afterRenderPaypalComponentProcessor"
+                         data-bind="attr: {'id': getPayPalId()}, css: {disabled: !isPlaceOrderActionAllowed()}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--/ko-->
+
+        <!-- ko if: (getUsePlaceOrderStyling() == false) -->
         <!-- PayPal Place Order button, show if PayPal option is selected -->
         <div data-bind="attr: {class: getPaypalBlockStyling()}, style: {display: shouldDisplayPayPalButton() ? 'block' : 'none'
         ,border :getPaypalBlockBorderStyling(), background :getPaypalBlockABackgroundStyling()}">
             <div afterRender="afterRenderPaypalComponentProcessor"
                  data-bind="attr: {'id': getPayPalId()}, css: {disabled: !isPlaceOrderActionAllowed()}"></div>
         </div>
+        <!--/ko-->
+
         <!-- Place Order button, hide if PayPal option is selected -->
         <!--Pay By Card Form-->
         <!-- ko if: (getCode() == 'rvvup_CARD' && rvvup_parameters.settings.card.flow === 'INLINE') -->
