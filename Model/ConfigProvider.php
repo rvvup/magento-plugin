@@ -137,6 +137,9 @@ class ConfigProvider implements ConfigProviderInterface
 
                 $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['background'] =
                     $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_BACKGROUND_STYLING);
+
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['use_place_order_styling'] = (bool)
+                    $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_USE_PLACE_ORDER_STYLING);
             }
         }
 
