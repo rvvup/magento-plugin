@@ -208,6 +208,7 @@ class Capture
                 ]
             );
         } catch (NoSuchEntityException $e) {
+            $this->quoteResource->rollback();
             return $this->validationInterfaceFactory->create(
                 [
                     'data' =>
