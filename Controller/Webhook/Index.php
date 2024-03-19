@@ -165,24 +165,27 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED ||
                 $payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
                 $storeId = $this->getStoreId();
-                $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
-                $this->webhookRepository->save($webhook);
-                $this->logger->debug(
-                    'Webhook index log',
-                    [
-                        'rvvup_order_id' => $rvvupOrderId,
-                        'payment_id' => $paymentLinkId,
-                        'store_id' => $storeId,
-                        'time' => date('m/d/Y h:i:s a', time())
-                    ]
-                );
-                $this->publisher->publish(
-                    'rvvup.webhook',
-                    $this->json->serialize([
-                        'id' => (string) $webhook->getId(),
-                        'store' => $storeId
-                    ])
-                );
+                if ($storeId == 1) {
+                    $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
+                    $this->webhookRepository->save($webhook);
+                    $this->logger->debug(
+                        'Webhook index log',
+                        [
+                            'rvvup_order_id' => $rvvupOrderId,
+                            'payment_id' => $paymentLinkId,
+                            'store_id' => $storeId,
+                            'time' => date('m/d/Y h:i:s a', time())
+                        ]
+                    );
+
+                    $this->publisher->publish(
+                        'rvvup.webhook',
+                        $this->json->serialize([
+                            'id' => (string) $webhook->getId(),
+                            'store' => $storeId
+                        ])
+                    );
+                }
                 return $this->returnSuccessfulResponse();
             }
 
