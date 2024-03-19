@@ -167,6 +167,15 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 $storeId = $this->getStoreId();
                 $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
                 $this->webhookRepository->save($webhook);
+                $this->logger->debug(
+                    'Webhook index log',
+                    [
+                        'rvvup_order_id' => $rvvupOrderId,
+                        'payment_id' => $paymentLinkId,
+                        'store_id' => $storeId,
+                        'time' => date('m/d/Y h:i:s a', time())
+                    ]
+                );
                 $this->publisher->publish(
                     'rvvup.webhook',
                     $this->json->serialize([
