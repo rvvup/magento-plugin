@@ -105,12 +105,37 @@ class Complete implements ProcessorInterface
 
             // Don't notify the customer, this will be done on the event,
             // as we need to trigger the order confirmation email first & then the invoice if enabled.
+            $this->logger->debug(
+                'Webhook debug: Processing order complete before invoice',
+                [
+                    'order_id' => $order->getEntityId(),
+                    'processor' => $rvvupData['payments'][0]['status'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
             $invoiceId = $this->invoiceOrder->execute($order->getEntityId(), true);
+            $this->logger->debug(
+                'Webhook debug: Processing order complete after invoice',
+                [
+                    'order_id' => $order->getEntityId(),
+                    'invoice_id' => $invoiceId,
+                    'processor' => $rvvupData['payments'][0]['status'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
 
             /** Manually set to processing */
             $order->setState(Order::STATE_PROCESSING);
             $order->setStatus($this->config->getStateDefaultStatus($order->getState()));
             $this->orderRepository->save($order);
+            $this->logger->debug(
+                'Webhook debug: Processing order complete set processing status',
+                [
+                    'order_id' => $order->getEntityId(),
+                    'processor' => $rvvupData['payments'][0]['status'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
 
             $this->eventManager->dispatch('rvvup_payments_process_order_complete_after', [
                 'payment_process_type' => self::TYPE,

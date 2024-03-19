@@ -222,11 +222,29 @@ class Handler
         $this->paymentResource->save($payment);
         $this->cacheService->clear($rvvupOrderId, $order->getState());
         if ($order->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+            $this->logger->debug(
+                'Webhook debug: Processing order webhook for payment links',
+                [
+                    'rvvup_order_id' => $rvvupOrderId,
+                    'order_id' => $order->getEntityId(),
+                    'processor' => $rvvupData['payments'][0]['status'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
             $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
                 $rvvupData
             );
         } else {
+            $this->logger->debug(
+                'Webhook debug: Processing order webhook for rvvup payment',
+                [
+                    'rvvup_order_id' => $rvvupOrderId,
+                    'order_id' => $order->getEntityId(),
+                    'processor' => $rvvupData['payments'][0]['status'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
             $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
                 $rvvupData
