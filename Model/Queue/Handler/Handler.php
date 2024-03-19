@@ -113,6 +113,9 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                /** Added 60 sec delay in order not to kill frontend session of a customer */
+                // phpcs:ignore Magento2.Functions.DiscouragedFunction
+                sleep(60);
                 $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $data['store']);
                 if (!$quote) {
                     $this->logger->debug(
@@ -137,7 +140,7 @@ class Handler
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
-                $validation = $this->captureService->createOrder($rvvupOrderId, $quote, true);
+                $validation = $this->captureService->createOrder($rvvupOrderId, $quote);
                 $alreadyExists = $validation->getAlreadyExists();
                 $orderId = $validation->getOrderId();
 
