@@ -162,8 +162,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             if ($payload['event_type'] == Complete::TYPE) {
                 $this->refundPool->getProcessor($eventType)->execute($payload);
                 return $this->returnSuccessfulResponse();
-            } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED ||
-                $payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+            } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED ) {
                 $storeId = $this->getStoreId();
                 if ($storeId == 1) {
                     $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
