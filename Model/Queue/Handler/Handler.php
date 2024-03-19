@@ -170,6 +170,10 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+            if ($order->getStoreId() !== $data['store']) {
+                return;
+            }
+
             $this->logger->debug(
                 'Webhook debug: Processing payment completed webhook',
                 [
