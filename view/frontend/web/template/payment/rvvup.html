@@ -57,7 +57,7 @@
                  'data-pp-style-ratio': getPayLaterConfigValue('ratio')
          }"></div>
         <!-- ko if: (getUsePlaceOrderStyling() == true) -->
-        <div class="actions-toolbar" data-bind="style: {display: !shouldDisplayPayPalButton() ? '' : 'none'}">
+        <div class="actions-toolbar" data-bind="style: {display: 'block'}">
             <div class="primary">
                 <div data-bind="attr: {class: getPaypalBlockStyling()}, style: {display: 'block'
                 ,border :getPaypalBlockBorderStyling(), background :getPaypalBlockABackgroundStyling()}">
