@@ -3,7 +3,9 @@
     "column": {
       "webhook_id": true,
       "id": true,
-      "payload": true
+      "payload": true,
+      "created_at": true,
+      "is_processed": true  
     },
     "index": {
       "RVVUP_WEBHOOK_WEBHOOK_ID": true

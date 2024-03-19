@@ -102,9 +102,10 @@ class Handler
 
             $rvvupOrderId = $payload['order_id'];
             $rvvupPaymentId = $payload['payment_id'];
+            $storeId = $payload['store_id'];
 
             if ($paymentLinkId = $payload['payment_link_id']) {
-                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $data['store']);
+                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $storeId);
                 if ($order) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
                     return;
@@ -113,10 +114,7 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                /** Added 60 sec delay in order not to kill frontend session of a customer */
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                sleep(60);
-                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $data['store']);
+                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
                 if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',

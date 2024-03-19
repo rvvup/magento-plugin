@@ -5,6 +5,10 @@
         <column xsi:type="int" name="webhook_id" padding="10" unsigned="true" nullable="false" identity="true"
                 comment="Webhook Id Column"/>
         <column xsi:type="varchar" name="payload" nullable="false" length="255" comment="Payload Column"/>
+        <column xsi:type="datetime" name="created_at" on_update="false"
+                nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
+        <column xsi:type="boolean" name="is_processed"
+                nullable="false" default="false" comment="Is Processed"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="webhook_id"/>
         </constraint>

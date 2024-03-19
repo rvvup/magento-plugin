@@ -16,6 +16,7 @@ use Magento\Quote\Model\QuoteManagement;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\Collection;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Api\Data\OrderPaymentSearchResultInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\OrderIncrementIdChecker;
@@ -123,19 +124,13 @@ class Capture
 
     /**
      * @param string $rvvupOrderId
+     * @param int|null $storeId
      * @return OrderInterface
-     * @throws \Exception
+     * @throws PaymentValidationException
      */
-    public function getOrderByRvvupId(string $rvvupOrderId): OrderInterface
+    public function getOrderByRvvupId(string $rvvupOrderId, int $storeId = null): OrderInterface
     {
-        // Search for the payment record by the Rvvup order ID
-        $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-            'additional_information',
-            '%' . $rvvupOrderId . '%',
-            'like'
-        )->create();
-
-        $resultSet = $this->orderPaymentRepository->getList($searchCriteria);
+        $resultSet = $this->getOrderListByRvvupId($rvvupOrderId, $storeId);
 
         // We always expect 1 payment object for a Rvvup Order ID.
         if ($resultSet->getTotalCount() !== 1) {
@@ -150,6 +145,28 @@ class Capture
         /** @var OrderPaymentInterface $payment */
         $payment = reset($payments);
         return $this->orderRepository->get($payment->getParentId());
+    }
+
+    /**
+     * @param string $rvvupOrderId
+     * @param int|null $storeId
+     * @return OrderPaymentSearchResultInterface
+     */
+    public function getOrderListByRvvupId(string $rvvupOrderId, int $storeId = null): OrderPaymentSearchResultInterface
+    {
+        // Search for the payment record by the Rvvup order ID
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter(
+            'additional_information',
+            '%' . $rvvupOrderId . '%',
+            'like'
+        );
+
+        if ($storeId !== null) {
+            $searchCriteria->addFilter('store_id', $storeId);
+        }
+        $searchCriteria = $searchCriteria->create();
+
+        return $this->orderPaymentRepository->getList($searchCriteria);
     }
 
     /**
