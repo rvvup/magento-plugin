@@ -128,7 +128,8 @@ class Complete implements ProcessorInterface
             $processOrderResult->setCustomerMessage($e->getMessage());
         } catch (Exception $e) {
             $this->logger->error('Error during processing order complete on SUCCESS status: ' . $e->getMessage(), [
-                'order_id' => $order->getEntityId()
+                'order_id' => $order->getEntityId(),
+                'store_id' => $order->getStoreId()
             ]);
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
