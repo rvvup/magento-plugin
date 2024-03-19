@@ -182,7 +182,7 @@ class Webhook
     {
         $order = $this->captureService->getOrderByRvvupPaymentLinkId(
             $data['payment_link_id'],
-            $storeId
+            (string)$storeId
         );
 
         if (!$order->getId()) {
