@@ -119,6 +119,8 @@ class Handler
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
                         [
                             'order_id' => $rvvupOrderId,
+                            'store_id' => $data['store'],
+                            'time' => date('m/d/Y h:i:s a', time())
                         ]
                     );
                     return;
@@ -137,6 +139,14 @@ class Handler
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
+                $this->logger->debug(
+                    'Webhook debug: Creating order from webhook',
+                    [
+                        'order_id' => $rvvupOrderId,
+                        'store_id' => $data['store'],
+                        'time' => date('m/d/Y h:i:s a', time())
+                    ]
+                );
                 $validation = $this->captureService->createOrder($rvvupOrderId, $quote, true);
                 $alreadyExists = $validation->getAlreadyExists();
                 $orderId = $validation->getOrderId();
@@ -160,6 +170,15 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+            $this->logger->debug(
+                'Webhook debug: Processing payment completed webhook',
+                [
+                    'rvvup_order_id' => $rvvupOrderId,
+                    'order_id' => $order->getEntityId(),
+                    'store_id' => $data['store'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
             $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
             return;
         } catch (\Exception $e) {
