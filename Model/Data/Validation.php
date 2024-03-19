@@ -79,11 +79,6 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        if (!$quote->getItems()) {
-            $quote = $this->getQuoteByRvvupId($rvvupId);
-            $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
-        }
-
         if (empty($quote->getId())) {
             $this->logger->error('Missing quote for Rvvup payment', [$rvvupId, $lastTransactionId]);
             $message = __(
