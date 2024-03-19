@@ -113,12 +113,16 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                // phpcs:ignore Magento2.Functions.DiscouragedFunction
+                sleep(60);
                 $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $data['store']);
                 if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
                         [
                             'order_id' => $rvvupOrderId,
+                            'store_id' => $data['store'],
+                            'time' => date('m/d/Y h:i:s a', time())
                         ]
                     );
                     return;
@@ -137,6 +141,14 @@ class Handler
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
+                $this->logger->debug(
+                    'Webhook debug: Creating order from webhook',
+                    [
+                        'order_id' => $rvvupOrderId,
+                        'store_id' => $data['store'],
+                        'time' => date('m/d/Y h:i:s a', time())
+                    ]
+                );
                 $validation = $this->captureService->createOrder($rvvupOrderId, $quote, true);
                 $alreadyExists = $validation->getAlreadyExists();
                 $orderId = $validation->getOrderId();
@@ -160,6 +172,19 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+            if ($order->getStoreId() !== $data['store']) {
+                return;
+            }
+
+            $this->logger->debug(
+                'Webhook debug: Processing payment completed webhook',
+                [
+                    'rvvup_order_id' => $rvvupOrderId,
+                    'order_id' => $order->getEntityId(),
+                    'store_id' => $data['store'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
             $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
             return;
         } catch (\Exception $e) {
@@ -199,11 +224,29 @@ class Handler
         $this->paymentResource->save($payment);
         $this->cacheService->clear($rvvupOrderId, $order->getState());
         if ($order->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+            $this->logger->debug(
+                'Webhook debug: Processing order webhook for payment links',
+                [
+                    'rvvup_order_id' => $rvvupOrderId,
+                    'order_id' => $order->getEntityId(),
+                    'processor' => $rvvupData['payments'][0]['status'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
             $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
                 $rvvupData
             );
         } else {
+            $this->logger->debug(
+                'Webhook debug: Processing order webhook for rvvup payment',
+                [
+                    'rvvup_order_id' => $rvvupOrderId,
+                    'order_id' => $order->getEntityId(),
+                    'processor' => $rvvupData['payments'][0]['status'],
+                    'time' => date('m/d/Y h:i:s a', time())
+                ]
+            );
             $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
                 $rvvupData
