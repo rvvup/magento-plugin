@@ -113,6 +113,8 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                // phpcs:ignore Magento2.Functions.DiscouragedFunction
+                sleep(60);
                 $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $data['store']);
                 if (!$quote) {
                     $this->logger->debug(

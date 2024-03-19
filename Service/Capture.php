@@ -176,11 +176,6 @@ class Capture
      */
     public function createOrder(string $rvvupId, Quote $quote, bool $isWebhook = false): ValidationInterface
     {
-        if ($isWebhook) {
-            /** Added 60 sec delay in order not to kill frontend session of a customer */
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction
-            sleep(60);
-        }
 
         $this->quoteResource->beginTransaction();
         $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
