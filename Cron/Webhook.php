@@ -58,13 +58,9 @@ class Webhook
      */
     public function execute(): void
     {
-        $date = date('Y-m-d H:i:s', strtotime('-2 minutes'));
-        $lastAcceptableDate = date('Y-m-d H:i:s', strtotime('now'));
         /** @var WebhookCollection $collection */
         $collection = $this->webhookCollectionFactory->create();
         $collection->addFieldToSelect('*')
-            ->addFieldToFilter('created_at', ['gt' => $date])
-            ->addFieldToFilter('created_at', ['lt' => $lastAcceptableDate])
             ->addFieldToFilter('is_processed', ['eq' => 'false']);
 
         $this->processWebhooks($collection);
@@ -80,10 +76,10 @@ class Webhook
         foreach ($collection->getItems() as $item) {
             $payload = $item->getData('payload');
             $data = $this->json->unserialize($payload);
+            $webhookId = (int) $item->getData('webhook_id');
             if (isset($data['store_id'])) {
                 $storeId = (int) $data['store_id'];
                 $orderId = $data['order_id'];
-                $webhookId = (int) $item->getData('webhook_id');
 
                 if ($data['payment_link_id']) {
                     if (!$this->validatePaymentLink($storeId, $data, $webhookId)) {
@@ -100,6 +96,10 @@ class Webhook
                 }
 
                 $this->addWebhookToQueue($webhookId);
+            } else {
+                $webhook = $this->webhookRepository->getById($webhookId);
+                $webhook->setData('is_processed', true);
+                $this->webhookRepository->save($webhook);
             }
         }
     }
