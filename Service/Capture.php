@@ -16,6 +16,7 @@ use Magento\Quote\Model\QuoteManagement;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\Collection;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Api\Data\OrderPaymentSearchResultInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\OrderIncrementIdChecker;
@@ -123,19 +124,13 @@ class Capture
 
     /**
      * @param string $rvvupOrderId
-     * @return OrderInterface
-     * @throws \Exception
+     * @param int|null $storeId
+     * @return OrderInterface|null
+     * @throws PaymentValidationException
      */
-    public function getOrderByRvvupId(string $rvvupOrderId): OrderInterface
+    public function getOrderByRvvupId(string $rvvupOrderId, int $storeId = null): ?OrderInterface
     {
-        // Search for the payment record by the Rvvup order ID
-        $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-            'additional_information',
-            '%' . $rvvupOrderId . '%',
-            'like'
-        )->create();
-
-        $resultSet = $this->orderPaymentRepository->getList($searchCriteria);
+        $resultSet = $this->getOrderListByRvvupId($rvvupOrderId);
 
         // We always expect 1 payment object for a Rvvup Order ID.
         if ($resultSet->getTotalCount() !== 1) {
@@ -149,7 +144,33 @@ class Capture
         $payments = $resultSet->getItems();
         /** @var OrderPaymentInterface $payment */
         $payment = reset($payments);
-        return $this->orderRepository->get($payment->getParentId());
+        $order = $this->orderRepository->get($payment->getParentId());
+
+        if ($storeId && $order->getStoreId() !== $storeId) {
+            $this->logger->warning('Webhook log. Payment not found for an order in specified store', [
+                'rvvup_order_id' => $rvvupOrderId,
+                'store_id' => $storeId,
+                'payments_count' => $resultSet->getTotalCount()
+            ]);
+            return null;
+        }
+
+        return $order;
+    }
+
+    /**
+     * @param string $rvvupOrderId
+     * @return OrderPaymentSearchResultInterface
+     */
+    public function getOrderListByRvvupId(string $rvvupOrderId): OrderPaymentSearchResultInterface
+    {
+        // Search for the payment record by the Rvvup order ID
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter(
+            'additional_information',
+            '%' . $rvvupOrderId . '%',
+            'like'
+        )->create();
+        return $this->orderPaymentRepository->getList($searchCriteria);
     }
 
     /**
@@ -171,17 +192,10 @@ class Capture
     /**
      * @param string $rvvupId
      * @param Quote $quote
-     * @param bool $isWebhook
      * @return ValidationInterface
      */
-    public function createOrder(string $rvvupId, Quote $quote, bool $isWebhook = false): ValidationInterface
+    public function createOrder(string $rvvupId, Quote $quote): ValidationInterface
     {
-        if ($isWebhook) {
-            /** Added 60 sec delay in order not to kill frontend session of a customer */
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction
-            sleep(60);
-        }
-
         $this->quoteResource->beginTransaction();
         $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
         $payment = $quote->getPayment();

@@ -5,7 +5,6 @@ namespace Rvvup\Payments\Controller\Webhook;
 
 use Exception;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Request\InvalidRequestException;
@@ -13,13 +12,11 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Magento\Store\App\Request\StorePathInfoValidator;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
-use Magento\Framework\MessageQueue\PublisherInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\Complete;
@@ -32,7 +29,7 @@ use Rvvup\Payments\Model\WebhookRepository;
  */
 class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 {
-    private const PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
+    public const PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
 
     /** @var RequestInterface */
     private $request;
@@ -45,9 +42,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /** @var ResultFactory */
     private $resultFactory;
-
-    /** @var PublisherInterface */
-    private $publisher;
 
     /** @var WebhookRepository */
     private $webhookRepository;
@@ -64,9 +58,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /** @var StoreManagerInterface */
     private $storeManager;
-
-    /** @var Json */
-    private $json;
 
     /** @var StorePathInfoValidator */
     private $storePathInfoValidator;
@@ -85,10 +76,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param SerializerInterface $serializer
      * @param ResultFactory $resultFactory
      * @param LoggerInterface $logger
-     * @param PublisherInterface $publisher
      * @param WebhookRepository $webhookRepository
      * @param StoreManagerInterface $storeManager
-     * @param Json $json
      * @param StorePathInfoValidator $storePathInfoValidator
      * @param RefundPool $refundPool
      */
@@ -100,10 +89,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         SerializerInterface      $serializer,
         ResultFactory            $resultFactory,
         LoggerInterface          $logger,
-        PublisherInterface       $publisher,
         WebhookRepository        $webhookRepository,
         StoreManagerInterface    $storeManager,
-        Json                     $json,
         StorePathInfoValidator   $storePathInfoValidator,
         RefundPool               $refundPool
     ) {
@@ -112,10 +99,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->serializer = $serializer;
         $this->resultFactory = $resultFactory;
         $this->logger = $logger;
-        $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
         $this->storeManager = $storeManager;
-        $this->json = $json;
         $this->storePathInfoValidator = $storePathInfoValidator;
         $this->http = $http;
         $this->storeRepository = $storeRepository;
@@ -156,6 +141,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'refund_id' => $refundId,
                 'payment_id' => $paymentId,
                 'event_type' => $eventType,
+                'store_id' => $this->getStoreId(),
                 'payment_link_id' => $paymentLinkId
             ];
 
@@ -164,16 +150,14 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $this->returnSuccessfulResponse();
             } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED ||
                 $payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                $storeId = $this->getStoreId();
-                $webhook = $this->webhookRepository->new(['payload' => $this->serializer->serialize($payload)]);
-                $this->webhookRepository->save($webhook);
-                $this->publisher->publish(
-                    'rvvup.webhook',
-                    $this->json->serialize([
-                        'id' => (string) $webhook->getId(),
-                        'store' => $storeId
-                    ])
+                $date = date('Y-m-d H:i:s', strtotime('now'));
+                $webhook = $this->webhookRepository->new(
+                    [
+                        'payload' => $this->serializer->serialize($payload),
+                        'created_at' => $date
+                    ]
                 );
+                $this->webhookRepository->save($webhook);
                 return $this->returnSuccessfulResponse();
             }
 

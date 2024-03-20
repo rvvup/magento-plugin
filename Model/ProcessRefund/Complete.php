@@ -65,7 +65,7 @@ class Complete implements ProcessorInterface
     {
         $order = $this->captureService->getOrderByRvvupId($payload['order_id']);
 
-        if (!$order->getId()) {
+        if (!$order || !$order->getId()) {
             $this->writeErrorMessage($payload);
             return;
         }

@@ -102,10 +102,11 @@ class Handler
 
             $rvvupOrderId = $payload['order_id'];
             $rvvupPaymentId = $payload['payment_id'];
+            $storeId = $payload['store_id'];
 
             if ($paymentLinkId = $payload['payment_link_id']) {
-                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $data['store']);
-                if ($order) {
+                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $storeId);
+                if ($order && $order->getId()) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
                     return;
                 }
@@ -113,7 +114,7 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $data['store']);
+                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
                 if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
@@ -137,7 +138,7 @@ class Handler
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
-                $validation = $this->captureService->createOrder($rvvupOrderId, $quote, true);
+                $validation = $this->captureService->createOrder($rvvupOrderId, $quote);
                 $alreadyExists = $validation->getAlreadyExists();
                 $orderId = $validation->getOrderId();
 
@@ -160,7 +161,9 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-            $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+            if ($order && $order->getId()) {
+                $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+            }
             return;
         } catch (\Exception $e) {
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
