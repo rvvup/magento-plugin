@@ -139,7 +139,8 @@ class Webhook
         $orderList = $this->captureService->getOrderListByRvvupId($orderId);
         if ($orderList->getTotalCount() == 1) {
             $items = $orderList->getItems();
-            $order = end($items);
+            $orderPayment = end($items);
+            $order = $orderPayment->getPayment();
             if ($order->getStoreId() !== $storeId) {
                 $webhook = $this->webhookRepository->getById($webhookId);
                 $webhook->setData('is_processed', true);
