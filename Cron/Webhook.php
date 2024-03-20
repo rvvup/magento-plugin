@@ -90,15 +90,15 @@ class Webhook
                 $webhookId = (int) $item->getData('webhook_id');
 
                 if ($data['payment_link_id']) {
-                    if (!$this->processPaymentLink($storeId, $data, $webhookId)) {
+                    if (!$this->validatePaymentLink($storeId, $data, $webhookId)) {
                         continue;
                     }
                 } elseif ($data['event_type'] == Index::PAYMENT_COMPLETED) {
-                    if (!$this->processPaymentCompleted($orderId, $storeId, $webhookId)) {
+                    if (!$this->validatePaymentCompleted($orderId, $storeId, $webhookId)) {
                         continue;
                     }
                 } elseif ($data['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                    if (!$this->processPaymentAuthorized($orderId, $storeId, $webhookId)) {
+                    if (!$this->validatePaymentAuthorized($orderId, $storeId, $webhookId)) {
                         continue;
                     }
                 }
@@ -134,9 +134,9 @@ class Webhook
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    private function processPaymentCompleted(string $orderId, int $storeId, int $webhookId): bool
+    private function validatePaymentCompleted(string $orderId, int $storeId, int $webhookId): bool
     {
-        $orderList = $this->captureService->getOrderListByRvvupId($orderId, $storeId);
+        $orderList = $this->captureService->getOrderListByRvvupId($orderId);
         if ($orderList->getTotalCount() == 1) {
             $items = $orderList->getItems();
             $order = end($items);
@@ -158,7 +158,7 @@ class Webhook
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    private function processPaymentAuthorized(string $orderId, int $storeId, int $webhookId): bool
+    private function validatePaymentAuthorized(string $orderId, int $storeId, int $webhookId): bool
     {
         $quote = $this->captureService->getQuoteByRvvupId($orderId, (string)$storeId);
         if (!$quote || !$quote->getId()) {
@@ -178,7 +178,7 @@ class Webhook
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    private function processPaymentLink(int $storeId, array $data, int $webhookId): bool
+    private function validatePaymentLink(int $storeId, array $data, int $webhookId): bool
     {
         $order = $this->captureService->getOrderByRvvupPaymentLinkId(
             $data['payment_link_id'],

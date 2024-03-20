@@ -125,12 +125,12 @@ class Capture
     /**
      * @param string $rvvupOrderId
      * @param int|null $storeId
-     * @return OrderInterface
+     * @return OrderInterface|null
      * @throws PaymentValidationException
      */
-    public function getOrderByRvvupId(string $rvvupOrderId, int $storeId = null): OrderInterface
+    public function getOrderByRvvupId(string $rvvupOrderId, int $storeId = null): ?OrderInterface
     {
-        $resultSet = $this->getOrderListByRvvupId($rvvupOrderId, $storeId);
+        $resultSet = $this->getOrderListByRvvupId($rvvupOrderId);
 
         // We always expect 1 payment object for a Rvvup Order ID.
         if ($resultSet->getTotalCount() !== 1) {
@@ -144,28 +144,32 @@ class Capture
         $payments = $resultSet->getItems();
         /** @var OrderPaymentInterface $payment */
         $payment = reset($payments);
-        return $this->orderRepository->get($payment->getParentId());
+        $order = $this->orderRepository->get($payment->getParentId());
+
+        if ($storeId && $order->getStoreId() !== $storeId) {
+            $this->logger->warning('Webhook log. Payment not found for an order in specified store', [
+                'rvvup_order_id' => $rvvupOrderId,
+                'store_id' => $storeId,
+                'payments_count' => $resultSet->getTotalCount()
+            ]);
+            return null;
+        }
+
+        return $order;
     }
 
     /**
      * @param string $rvvupOrderId
-     * @param int|null $storeId
      * @return OrderPaymentSearchResultInterface
      */
-    public function getOrderListByRvvupId(string $rvvupOrderId, int $storeId = null): OrderPaymentSearchResultInterface
+    public function getOrderListByRvvupId(string $rvvupOrderId): OrderPaymentSearchResultInterface
     {
         // Search for the payment record by the Rvvup order ID
         $searchCriteria = $this->searchCriteriaBuilder->addFilter(
             'additional_information',
             '%' . $rvvupOrderId . '%',
             'like'
-        );
-
-        if ($storeId !== null) {
-            $searchCriteria->addFilter('store_id', $storeId);
-        }
-        $searchCriteria = $searchCriteria->create();
-
+        )->create();
         return $this->orderPaymentRepository->getList($searchCriteria);
     }
 

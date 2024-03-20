@@ -161,7 +161,9 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-            $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+            if ($order && $order->getId()) {
+                $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+            }
             return;
         } catch (\Exception $e) {
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
