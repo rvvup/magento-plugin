@@ -185,7 +185,7 @@ class Webhook
             (string)$storeId
         );
 
-        if (!$order->getId()) {
+        if (!$order || !$order->getId()) {
             $webhook = $this->webhookRepository->getById($webhookId);
             $webhook->setData('is_processed', true);
             $this->webhookRepository->save($webhook);

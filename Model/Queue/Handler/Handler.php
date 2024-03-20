@@ -106,7 +106,7 @@ class Handler
 
             if ($paymentLinkId = $payload['payment_link_id']) {
                 $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $storeId);
-                if ($order) {
+                if ($order && $order->getId()) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
                     return;
                 }
