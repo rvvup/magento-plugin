@@ -58,8 +58,8 @@ class Webhook
      */
     public function execute(): void
     {
-        $date = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-        $lastAcceptableDate = date('Y-m-d H:i:s', strtotime('-2 minutes'));
+        $date = date('Y-m-d H:i:s', strtotime('-2 minutes'));
+        $lastAcceptableDate = date('Y-m-d H:i:s', strtotime('-1 minutes'));
         /** @var WebhookCollection $collection */
         $collection = $this->webhookCollectionFactory->create();
 
