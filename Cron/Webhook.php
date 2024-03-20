@@ -62,10 +62,6 @@ class Webhook
         $lastAcceptableDate = date('Y-m-d H:i:s', strtotime('now'));
         /** @var WebhookCollection $collection */
         $collection = $this->webhookCollectionFactory->create();
-
-        /** We process webhooks only if:
-         * they exist longer than 2 minutes
-         */
         $collection->addFieldToSelect('*')
             ->addFieldToFilter('created_at', ['gt' => $date])
             ->addFieldToFilter('created_at', ['lt' => $lastAcceptableDate])
