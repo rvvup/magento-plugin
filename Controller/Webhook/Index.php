@@ -127,12 +127,12 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                  * so returning a 400 should be fine to indicate the request is invalid and won't cause
                  * Rvvup to make repeated requests to the webhook.
                  */
-                //return $this->returnInvalidResponse();
+                return $this->returnInvalidResponse();
             }
 
             // Merchant ID does not match, no need to process
             if ($merchantId !== $this->config->getMerchantId()) {
-               // return $this->returnSkipResponse();
+                return $this->returnSkipResponse();
             }
 
             $payload = [
