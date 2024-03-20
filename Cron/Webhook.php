@@ -59,7 +59,7 @@ class Webhook
     public function execute(): void
     {
         $date = date('Y-m-d H:i:s', strtotime('-2 minutes'));
-        $lastAcceptableDate = date('Y-m-d H:i:s', strtotime('-1 minutes'));
+        $lastAcceptableDate = date('Y-m-d H:i:s', strtotime('now'));
         /** @var WebhookCollection $collection */
         $collection = $this->webhookCollectionFactory->create();
 
