@@ -59,8 +59,10 @@ class Webhook
     public function execute(): void
     {
         /** @var WebhookCollection $collection */
+        $acceptableDate = date('Y-m-d H:i:s', strtotime('-1 minutes'));
         $collection = $this->webhookCollectionFactory->create();
         $collection->addFieldToSelect('*')
+            ->addFieldToFilter('created_at', ['lt' => $acceptableDate])
             ->addFieldToFilter('is_processed', ['eq' => 'false']);
 
         $this->processWebhooks($collection);
