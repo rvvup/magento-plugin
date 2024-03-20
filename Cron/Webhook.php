@@ -140,8 +140,8 @@ class Webhook
         if ($orderList->getTotalCount() == 1) {
             $items = $orderList->getItems();
             $orderPayment = end($items);
-            $order = $orderPayment->getPayment();
-            if ($order->getStoreId() !== $storeId) {
+            $order = $orderPayment->getOrder();
+            if (!$order || (int)$order->getStoreId() !== $storeId) {
                 $webhook = $this->webhookRepository->getById($webhookId);
                 $webhook->setData('is_processed', true);
                 $this->webhookRepository->save($webhook);
