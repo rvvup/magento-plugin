@@ -4,11 +4,13 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\Queue\Handler;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\Area;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment;
+use Magento\Store\Model\App\Emulation;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
@@ -52,6 +54,9 @@ class Handler
     /** @var Json */
     private $json;
 
+    /** @var Emulation */
+    private $emulation;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -62,6 +67,7 @@ class Handler
      * @param Payment $paymentResource
      * @param Cache $cacheService
      * @param Capture $captureService
+     * @param Emulation $emulation
      * @param Json $json
      */
     public function __construct(
@@ -74,6 +80,7 @@ class Handler
         Payment $paymentResource,
         Cache $cacheService,
         Capture $captureService,
+        Emulation $emulation,
         Json $json
     ) {
         $this->webhookRepository = $webhookRepository;
@@ -85,6 +92,7 @@ class Handler
         $this->paymentResource = $paymentResource;
         $this->cacheService = $cacheService;
         $this->logger = $logger;
+        $this->emulation = $emulation;
         $this->json = $json;
     }
 
@@ -102,7 +110,13 @@ class Handler
 
             $rvvupOrderId = $payload['order_id'];
             $rvvupPaymentId = $payload['payment_id'];
-            $storeId = $payload['store_id'];
+            $storeId = $payload['store_id'] ?? false;
+
+            if (!$storeId) {
+                return;
+            }
+
+            $this->emulation->startEnvironmentEmulation((int) $storeId);
 
             if ($paymentLinkId = $payload['payment_link_id']) {
                 $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $storeId);

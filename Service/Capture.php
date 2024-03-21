@@ -344,6 +344,7 @@ class Capture
                 'like' => "%\"rvvup_payment_link_id\":\"$paymentLinkId\"%"
             ]
         );
+        $collection->clear();
         $items = $collection->getItems();
         if (count($items) !== 1) {
             return null;

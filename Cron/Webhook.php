@@ -59,9 +59,11 @@ class Webhook
     public function execute(): void
     {
         /** @var WebhookCollection $collection */
+
         $collection = $this->webhookCollectionFactory->create();
         $collection->addFieldToSelect('*')
             ->addFieldToFilter('is_processed', ['eq' => 'false']);
+        $collection->clear();
 
         $this->processWebhooks($collection);
     }
@@ -186,6 +188,7 @@ class Webhook
             $webhook = $this->webhookRepository->getById($webhookId);
             $webhook->setData('is_processed', true);
             $this->webhookRepository->save($webhook);
+            return false;
         }
 
         return true;
