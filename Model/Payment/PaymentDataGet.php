@@ -42,7 +42,7 @@ class PaymentDataGet implements PaymentDataGetInterface
         try {
             return $this->sdkProxy->getOrder($rvvupId);
         } catch (Throwable $t) {
-            $this->logger->error('Failed to get data from Rvvup for payment', ['rvvup_order_id' => $rvvupId]);
+            $this->logger->error('Failed to get data from Rvvup for order id', ['rvvup_order_id' => $rvvupId]);
             return [];
         }
     }
