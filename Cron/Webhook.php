@@ -59,7 +59,6 @@ class Webhook
     public function execute(): void
     {
         /** @var WebhookCollection $collection */
-
         $collection = $this->webhookCollectionFactory->create();
         $collection->addFieldToSelect('*')
             ->addFieldToFilter('is_processed', ['eq' => 'false']);
