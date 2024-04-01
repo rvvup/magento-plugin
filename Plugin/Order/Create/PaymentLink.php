@@ -156,7 +156,6 @@ class PaymentLink
             $payment->setAdditionalInformation('rvvup_payment_link_message', $message);
             $this->quotePaymentResource->save($payment);
         } catch (\Exception $e) {
-
             $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
         }
     }
@@ -181,6 +180,9 @@ class PaymentLink
     ): ?array {
         try {
             $amount = number_format($amount, 2, '.', '');
+            if ($amount <= 0) {
+                return [null,null];
+            }
             $params = $this->getData($amount, $storeId, $orderId, $currencyCode);
 
             $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
