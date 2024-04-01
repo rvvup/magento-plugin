@@ -9,9 +9,9 @@
         </label>
         <img data-bind="attr: {'src': getLogoUrl(),'class': getCode().replace('_','-').toLowerCase() + '-img'}" />
         <br>
-        <span data-bind="text: getDescription()"></span>
     </div>
     <div class="payment-method-content">
+        <span data-bind="text: getDescription()"></span>
         <!-- ko foreach: getRegion('messages') -->
             <!-- ko template: getTemplate() --><!-- /ko -->
         <!--/ko-->
