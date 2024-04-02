@@ -1,0 +1,18 @@
+<!-- PayPal PayLater Messaging -->
+<div class="rvvup-pp-message"
+     data-pp-message
+     data-pp-placement="payment"
+     data-bind="style: {
+                 display: shouldDisplayPayPalButton() && getPayLaterConfigValue('enabled') ? '' : 'none'
+             },
+             attr: {
+                 'data-pp-amount': getPayLaterTotal(),
+                 'data-pp-style-layout': getPayLaterConfigValue('layout'),
+                 'data-pp-style-logo-type': getPayLaterConfigValue('logoType'),
+                 'data-pp-style-logo-position': getPayLaterConfigValue('logoPosition'),
+                 'data-pp-style-text-color': getPayLaterConfigValue('textColor'),
+                 'data-pp-style-text-size': getPayLaterConfigValue('textSize'),
+                 'data-pp-style-text-align': getPayLaterConfigValue('textAlignment'),
+                 'data-pp-style-color': getPayLaterConfigValue('color'),
+                 'data-pp-style-ratio': getPayLaterConfigValue('ratio')
+         }"></div>
