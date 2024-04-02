@@ -1,0 +1,15 @@
+<div class="actions-toolbar rvvup-actions-toolbar" data-bind="style: {display: !shouldDisplayPayPalButton() ? '' : 'none'}">
+    <div class="primary rvvup-primary">
+        <button class="action primary checkout"
+                type="submit"
+                data-bind="
+                        click: placeOrder,
+                        attr: {title: $t('Place Order')},
+                        css: {disabled: !isPlaceOrderActionAllowed()},
+                        enable: (getCode() == isChecked())
+                        "
+                disabled>
+            <span data-bind="i18n: 'Place Order'"></span>
+        </button>
+    </div>
+</div>

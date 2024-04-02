@@ -47,7 +47,20 @@ define([
         return Component.extend({
             defaults: {
                 template: 'Rvvup_Payments/payment/rvvup',
+                templates: {
+                    rvvupCancelExpressPaymentTemplate: 'Rvvup_Payments/payment/cancel-express-payment',
+                    rvvupPlaceOrderTemplate: 'Rvvup_Payments/payment/place-order',
+                    rvvupCardFormTemplate: 'Rvvup_Payments/payment/card-form',
+                    rvvupPaypalButtonTemplate: 'Rvvup_Payments/payment/paypal-button',
+                    rvvupPaypalPayLaterTemplate: 'Rvvup_Payments/payment/paypal-pay-later',
+                    rvvupIframeModalTemplate: 'Rvvup_Payments/payment/iframe-modal',
+                    rvvupIframeSrcTemplate: 'Rvvup_Payments/payment/iframe-src',
+                    rvvupPaymentTitleTemplate:'Rvvup_Payments/payment/payment-title',
+                },
                 redirectAfterPlaceOrder: false
+            },
+            getCustomTemplate: function(name) {
+                return this.templates[name] || '';
             },
 
             initialize: function () {

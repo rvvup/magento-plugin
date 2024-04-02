@@ -29,7 +29,7 @@ $thresholds = $clearpay->getThresholds($product);
 <?php endif; ?>
 <?php if (is_array($thresholds) && $clearpay->isInThreshold($product, $thresholds)): ?>
     <div class="clearpay">
-        <afterpay-placement style="display:none" id="clearpay-summary"
+        <afterpay-placement style="display:none" id="clearpay-summary" class="rvvup-product-page-clearpay-messaging"
                             data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
                             data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
                             data-amount="<?= $escaper->escapeHtmlAttr($priceViewModel->getPrice($product)) ?>"

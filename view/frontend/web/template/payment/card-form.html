@@ -1,0 +1,10 @@
+<!--Pay By Card Form-->
+<!-- ko if: (getCode() == 'rvvup_CARD' && rvvup_parameters.settings.card.flow === 'INLINE') -->
+<form id="st-form" method="POST" class="rvvup-card-form">
+    <div id="st-card-number" class="rvvup-card-field rvvup-card-number"></div>
+    <div id="st-expiration-date" class="rvvup-card-field rvvup-card-expiry"></div>
+    <div id="st-security-code" class="rvvup-card-field  rvvup-card-security-code"></div>
+    <input type="hidden" id="tp_place_order">
+</form>
+<div data-bind="afterRender: renderCardForm"></div>
+<!--/ko-->
