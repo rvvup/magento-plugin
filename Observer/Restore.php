@@ -50,13 +50,12 @@ class Restore implements ObserverInterface
         $quote = $this->session->getQuote();
 
         if ($quote && !$quote->hasItems() && !$quote->getHasError()) {
-
             $order = $this->session->getLastRealOrder();
 
             if ($this->isOrderApplicable($order)) {
                 $path = trim($observer->getRequest()->getOriginalPathInfo(), '/');
                 if (!in_array($path, $this->restrictedPaths)) {
-                        $this->session->restoreQuote();
+                    $this->session->restoreQuote();
                 }
             }
         }

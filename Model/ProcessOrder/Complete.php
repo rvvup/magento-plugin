@@ -108,6 +108,7 @@ class Complete implements ProcessorInterface
             $invoiceId = $this->invoiceOrder->execute($order->getEntityId(), true);
 
             /** Manually set to processing */
+            $order = $this->orderRepository->get($order->getEntityId());
             $order->setState(Order::STATE_PROCESSING);
             $order->setStatus($this->config->getStateDefaultStatus($order->getState()));
             $this->orderRepository->save($order);
