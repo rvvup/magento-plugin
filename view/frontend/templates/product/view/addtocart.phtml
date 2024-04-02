@@ -22,13 +22,14 @@ $paypalViewModel = $block->getData('rvvup_payments_paypal_view_model');
 $product = $block->getProduct();
 $thresholds = $clearpay->getThresholds($product);
 ?>
+<div class="rvvup-product-page-messaging-wrapper">
 <?php if ($restrictions->showRestrictionMessage($product)): ?>
     <p>
         <?= $escaper->escapeHtml($restrictions->getMessages()->getPdpMessage()) ?>
     </p>
 <?php endif; ?>
 <?php if (is_array($thresholds) && $clearpay->isInThreshold($product, $thresholds)): ?>
-    <div class="clearpay">
+    <div class="clearpay rvvup-product-page-messaging-element rvvup-product-page-messaging-clearpay">
         <afterpay-placement style="display:none" id="clearpay-summary" class="rvvup-product-page-clearpay-messaging"
                             data-locale="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentLocale()) ?>"
                             data-currency="<?= $escaper->escapeHtmlAttr($clearpay->getCurrentCurrencyCode()) ?>"
@@ -76,7 +77,7 @@ $thresholds = $clearpay->getThresholds($product);
     && $paypalViewModel->isAvailable((string) $priceViewModel->getPrice($product))
     && $paypalViewModel->getPayLaterMessagingValue('enabled') === true
 ): ?>
-<div>
+<div class="rvvup-product-page-messaging-element rvvup-product-page-messaging-paypal">
     <div class="rvvup-paypal-paylater-messaging-container"
          data-pp-message
          data-pp-placement="product"
@@ -92,3 +93,4 @@ $thresholds = $clearpay->getThresholds($product);
     ></div>
 </div>
 <?php endif; ?>
+</div>
