@@ -4,6 +4,8 @@
         <policy id="frame-src">
             <values>
                 <value id="rvvup-frame" type="host">*.rvvuptech.com</value>
+                <value id="rvvup-frame-prod" type="host">*.rvvup.com</value>
+                <value id="rvvup-afterpay-frame" type="host">*.afterpay.com</value>
                 <value id="rvvup-clearpay-frame" type="host">*.clearpay.co.uk</value>
                 <value id="rvvup-paypal-frame" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-frame" type="host">*.sandbox.paypal.com</value>
@@ -23,6 +25,7 @@
             <values>
                 <value id="rvvup-afterpay-img" type="host">*.afterpay.com</value>
                 <value id="rvvup-payment-img" type="host">assets.dev.rvvuptech.com</value>
+                <value id="rvvup-payment-img" type="host">assets.rvvup.com</value>
                 <value id="rvvup-paypal-img" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-img" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-stats-paypal" type="host">*.stats.paypal.com</value>
@@ -35,6 +38,7 @@
         </policy>
         <policy id="connect-src">
             <values>
+                <value id="rvvup-afterpay-connect" type="host">*.afterpay.com</value>
                 <value id="rvvup-paypal-connect" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-connect" type="host">*.sandbox.paypal.com</value>
             </values>
