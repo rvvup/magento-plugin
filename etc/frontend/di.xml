@@ -107,9 +107,4 @@
     </type>
     <preference for="Magento\Sales\Block\Order\View" type="Rvvup\Payments\Block\Order\View"/>
     <preference for="Magento\Sales\Block\Order\Info" type="Rvvup\Payments\Block\Order\Info"/>
-    <type name="Magento\Quote\Model\BillingAddressManagement">
-        <plugin name="setBillingAddressEmail"
-                type="Rvvup\Payments\Plugin\Email\BillingAddress"
-                sortOrder="1"/>
-    </type>
 </config>
