@@ -54,7 +54,9 @@ class BillingAddress
         $quote = $this->quoteRepository->getActive($cartId);
         $email = $quote->getBillingAddress()->getEmail();
         if ($email) {
-            $address->setEmail($email);
+            if (!$address->getEmail()) {
+                $address->setEmail($email);
+            }
         }
 
         return [$cartId, $address, $useForShipping];
