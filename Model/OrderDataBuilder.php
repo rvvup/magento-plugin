@@ -289,18 +289,12 @@ class OrderDataBuilder
         if ($billingAddress !== null
             && ($billingAddress->getFirstname() !== null || $billingAddress->getLastname() !== null)
         ) {
-            $email = $billingAddress->getEmail();
-
-            if (empty($email)) {
-                $email = $quote->getShippingAddress()->getEmail();
-                $quote->setCustomerEmail($email);
-                $this->cartRepository->save($quote);
-            }
+            
             return [
                 'givenName' => $billingAddress->getFirstname() ?? '',
                 'surname' => $billingAddress->getLastname() ?? '',
                 'phoneNumber' => $billingAddress->getTelephone() ?? '',
-                'email' => $email,
+                'email' => $billingAddress->getEmail() ?? '',
             ];
         }
 
