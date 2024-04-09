@@ -59,9 +59,8 @@ class Validation extends DataObject implements ValidationInterface
                     'cause' => '',
                     'rvvup_order_id' => '',
                     'rvvup_payment_id' => $lastTransactionId,
-                    'magento' => [
-                        'order_id' => $quote->getReservedOrderId()
-                    ]]);
+                    'magento' => ['order_id' => $quote->getReservedOrderId()]
+                ]);
 
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::REDIRECT_TO_CART] = true;
