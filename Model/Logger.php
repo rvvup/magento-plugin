@@ -41,7 +41,7 @@ class Logger extends BaseLogger
         GetEnvironmentVersions $getEnvironmentVersions,
         array $handlers = [],
         array $processors = []
-        ) {
+    ) {
         $this->modelFactory = $modelFactory;
         $this->resource = $resource;
         $this->storeManager = $storeManager;
