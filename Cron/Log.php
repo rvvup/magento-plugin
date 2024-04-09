@@ -79,7 +79,7 @@ class Log
         foreach ($collection->getItems() as $item) {
             $payload = $item->getData('payload');
             $data = $this->json->unserialize($payload);
-            $storeId = $data['metadata']['storeId'];
+            $storeId = $data['metadata']['magento']['storeId'];
 
             if (!isset($batch[$storeId])) {
                 $batch[$storeId] = [];
@@ -87,7 +87,7 @@ class Log
 
             $batch[$storeId][] = $data;
             $item->setData('is_processed', true);
-            $this->logResource->save($item);
+            $this->resource->save($item);
         }
         foreach ($batch as $key => $item) {
             $this->notifyRvvup((string) $key, $item);
