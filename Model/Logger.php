@@ -42,17 +42,18 @@ class Logger extends BaseLogger
         parent::__construct($name, $handlers, $processors);
     }
 
-    /**
-     * @param string $message
-     * @param array $context
-     * @return bool
-     */
-    public function addError($message, array $context = [])
-    {
+
+    public function addRvvupError(
+        string $message,
+        ?string $cause = null,
+        ?string $rvvupOrderId = null,
+        ?string $rvvupPaymentId = null,
+        ?string $magentoOrderId = null
+    ) {
         $result = $this->addRecord(static::ERROR, $message, $context);
 
         try {
-            $data = $this->prepareData($message, $context);
+            $data = $this->prepareData($message, $cause, $rvvupOrderId, $rvvupPaymentId, $magentoOrderId);
 
             /** @var LogModel $model */
             $model = $this->modelFactory->create();
@@ -72,20 +73,25 @@ class Logger extends BaseLogger
      * @return array
      * @throws NoSuchEntityException
      */
-    private function prepareData(string $message, array $context): array
-    {
-        $context['magento'] = [
-            'storeId' => $this->storeManager->getStore()->getId(),
-            'order_id' => $context['magento']['order_id'] ?? ''
-        ];
-
-        $cause = $context['cause'] ?? '';
-        unset($context['cause']);
+    private function prepareData(
+        string $message,
+        ?string $cause = null,
+        ?string $rvvupOrderId = null,
+        ?string $rvvupPaymentId = null,
+        ?string $magentoOrderId = null
+    ): array {
 
         $payload = json_encode([
             'message' => $message,
             'timestamp' => time(),
-            'metadata' => $context,
+            'metadata' => [
+                'rvvupPaymentId' => $rvvupPaymentId,
+                'rvvupOrderId' => $rvvupOrderId,
+                'magento' => [
+                    'storeId' => $this->storeManager->getStore()->getId(),
+                    'order_id' => $magentoOrderId
+                ]
+            ],
             'cause' => $cause
         ]);
 

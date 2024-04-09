@@ -115,17 +115,13 @@ class Processing implements ProcessorInterface
             );
             $processOrderResult->setRedirectPath(In::SUCCESS);
         } catch (Exception $e) {
-            $this->logger->addError(
+            $this->logger->addRvvupError(
                 'Error during order processing on ' . $rvvupData['payments'][0]['status']
                 . ' status: ',
-                [
-                    'cause' => $e->getMessage(),
-                    'rvvup_order_id' => $rvvupData['id'],
-                    'rvvup_payment_id' => $rvvupData['payments'][0]['id'],
-                    'magento' => [
-                        'order_id' => $order->getId()
-                    ]
-                ]
+                $e->getMessage(),
+                $rvvupData['id'],
+                $rvvupData['payments'][0]['id'],
+                $order->getId()
             );
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
