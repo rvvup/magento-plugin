@@ -61,8 +61,13 @@ class Comment implements ProcessorInterface
             $order->addCommentToStatusHistory($message);
             $this->orderRepository->save($order);
         } catch (Exception $e) {
-            $this->logger->error('Error during processing order comment on status: ' . $e->getMessage(), [
-                'order_id' => $order->getEntityId()
+            $this->logger->addError('Error during processing order comment on status:', [
+                'cause' => $e->getMessage(),
+                'rvvup_order_id' => $rvvupData['id'],
+                'rvvup_payment_id' => $rvvupData['payments'][0]['id'],
+                'magento' => [
+                    'order_id' => $order->getId()
+                ]
             ]);
         }
 

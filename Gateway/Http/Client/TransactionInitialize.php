@@ -99,8 +99,13 @@ class TransactionInitialize implements ClientInterface
 
             return $order;
         } catch (Exception $ex) {
-            $this->logger->error(
-                sprintf('Error placing payment request, original exception %s', $ex->getMessage())
+            $this->logger->addError(
+                'Error placing payment request',
+                [
+                    'cause' => $ex->getMessage(),
+                    'rvvup_order_id' => isset($transferObject->getBody()['id'])
+                        ? $transferObject->getBody()['id'] : '',
+                ]
             );
 
             throw new ClientException(__('Something went wrong'));

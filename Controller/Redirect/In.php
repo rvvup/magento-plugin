@@ -14,6 +14,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Result;
 
@@ -47,6 +48,9 @@ class In implements HttpGetActionInterface
     /** @var Result  */
     private $resultService;
 
+    /** @var Logger */
+    private $logger;
+
     /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
@@ -54,6 +58,7 @@ class In implements HttpGetActionInterface
      * @param ManagerInterface $messageManager
      * @param Capture $captureService
      * @param Result $resultService
+     * @param Logger $logger
      */
     public function __construct(
         RequestInterface $request,
@@ -61,7 +66,8 @@ class In implements HttpGetActionInterface
         SessionManagerInterface $checkoutSession,
         ManagerInterface $messageManager,
         Capture $captureService,
-        Result $resultService
+        Result $resultService,
+        Logger $logger
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -69,6 +75,7 @@ class In implements HttpGetActionInterface
         $this->messageManager = $messageManager;
         $this->captureService = $captureService;
         $this->resultService = $resultService;
+        $this->logger = $logger;
     }
 
     /**
@@ -150,6 +157,14 @@ class In implements HttpGetActionInterface
                     'An error occurred while capturing your order (ID %1). Please contact us.',
                     $rvvupId
                 )
+            );
+            $this->logger->addError('Error capturing Rvvup payment', [
+                'rvvup_payment_id' => $rvvupPaymentId,
+                'rvvup_order_id' => $rvvupId,
+                 'magento' => [
+                     'order_id' => $quote->getReservedOrderId()
+                 ]
+                ]
             );
             return $this->redirectToCart();
         }

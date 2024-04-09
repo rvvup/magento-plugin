@@ -92,7 +92,7 @@ class PaymentCreateExpress implements PaymentCreateExpressInterface
 
         // This should be Rvvup which always requires initialization (to create the Rvvup Payment), so fail if not.
         if (!$paymentMethod->isInitializeNeeded()) {
-            $this->logger->error('Initialization is required for Rvvup Payment methods', [
+            $this->logger->addError('Initialization is required for Rvvup Payment methods', [
                 'quote_id' => $quote->getId(),
                 'is_express' => true,
                 'payment_method' => $methodCode

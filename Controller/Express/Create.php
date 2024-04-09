@@ -168,7 +168,12 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
                 (string) $this->getRequestBody()['method_code']
             );
         } catch (PaymentValidationException|LocalizedException $ex) {
-            $this->logger->error('Error thrown on creating Express Payment', ['cart_id' => $cartId]);
+            $this->logger->addError('Error thrown on creating Express Payment',
+                [
+                    'cause' => $ex->getMessage(),
+                    'magento' => ['order_id' => $cartId]
+                ]
+            );
             return $this->returnFailedResponse();
         }
 

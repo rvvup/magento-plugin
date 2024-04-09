@@ -180,8 +180,9 @@ class Handler
             }
             return;
         } catch (\Exception $e) {
-            $this->logger->error('Queue handling exception:' . $e->getMessage(), [
-                'order_id' => $rvvupOrderId,
+            $this->logger->addError('Queue handling exception:' . $e->getMessage(), [
+                'rvvup_order_id' => $rvvupOrderId ?? '',
+                'rvvup_payment_id' => $rvvupPaymentId ?? '',
             ]);
         }
     }
@@ -205,7 +206,7 @@ class Handler
 
         $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
         if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
-            $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
+            $this->logger->addError('Webhook error. Rvvup order data could not be fetched.', [
                     'rvvup_order_id' => $rvvupOrderId
                 ]);
             return;

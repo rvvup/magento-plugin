@@ -129,9 +129,14 @@ class Complete implements ProcessorInterface
             $processOrderResult->setRedirectPath(In::FAILURE);
             $processOrderResult->setCustomerMessage($e->getMessage());
         } catch (Exception $e) {
-            $this->logger->error('Error during processing order complete on SUCCESS status: ' . $e->getMessage(), [
-                'order_id' => $order->getEntityId()
-            ]);
+            $this->logger->addError('Error during processing order complete on SUCCESS status', [
+                'cause' => $e->getMessage(),
+                'rvvup_order_id' => $rvvupData['id'],
+                'rvvup_payment_id' => $rvvupData['payments'][0]['id'],
+                'magento' => [
+                    'order_id' => $order->getId()
+                ]]
+            );
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
             $processOrderResult->setCustomerMessage(

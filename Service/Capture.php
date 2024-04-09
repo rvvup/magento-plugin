@@ -244,13 +244,13 @@ class Capture
                     ]
                 );
             }
-            $this->logger->error(
+            $this->logger->addError(
                 'Order placement within rvvup payment failed',
                 [
                     'payment_id' => $payment->getEntityId(),
                     'last_transaction_id' => $lastTransactionId,
                     'rvvup_order_id' => $rvvupId,
-                    'message' => $e->getMessage()
+                    'cause' => $e->getMessage()
                 ]
             );
             return $this->validationInterfaceFactory->create(
@@ -282,13 +282,13 @@ class Capture
                 $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
             }
         } catch (\Exception $e) {
-            $this->logger->error(
+            $this->logger->addError(
                 'Rvvup order capture failed during payment capture',
                 [
-                    'payment_id' => $payment->getEntityId(),
+                    'rvvup_payment_id' => $payment->getEntityId(),
                     'last_transaction_id' => $lastTransactionId,
                     'rvvup_order_id' => $rvvupId,
-                    'message' => $e->getMessage()
+                    'cause' => $e->getMessage()
                 ]
             );
             return false;

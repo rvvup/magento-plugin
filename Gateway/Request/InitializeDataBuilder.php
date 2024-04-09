@@ -51,7 +51,6 @@ class InitializeDataBuilder implements BuilderInterface
             return $result;
         }
 
-        // Log that we reached this stage and throw exception.
         $this->logger->error('There is no Rvvup Standard Payment for Order or Express Payment for Quote');
 
         throw new QuoteValidationException(__('Invalid Payment method'));

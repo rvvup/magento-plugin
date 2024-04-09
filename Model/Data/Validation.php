@@ -53,7 +53,15 @@ class Validation extends DataObject implements ValidationInterface
         // First validate we have a Rvvup Order ID, silently return to basket page.
         // A standard Rvvup return should always include `rvvup-order-id` param.
         if ($rvvupId === null) {
-            $this->logger->error('No Rvvup Order ID provided');
+            $this->logger->addError('No Rvvup Order ID provided',
+                [
+                    'cause' => '',
+                    'rvvup_order_id' => '',
+                    'rvvup_payment_id' => $lastTransactionId,
+                    'magento' => [
+                        'order_id' => $quote->getReservedOrderId()
+                    ]
+                ]);
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::REDIRECT_TO_CART] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
@@ -80,7 +88,15 @@ class Validation extends DataObject implements ValidationInterface
         }
 
         if (empty($quote->getId())) {
-            $this->logger->error('Missing quote for Rvvup payment', [$rvvupId, $lastTransactionId]);
+            $this->logger->addError('Missing quote for Rvvup payment',
+                [
+                    'rvvup_order_id' => $rvvupId,
+                    'rvvup_payment_id' => $lastTransactionId,
+                    'magento' => [
+                        'order_id' => $quote->getReservedOrderId()
+                    ]
+                ]
+            );
             $message = __(
                 'An error occurred while processing your payment (ID %1). Please contact us. ',
                 $errorId
@@ -97,13 +113,16 @@ class Validation extends DataObject implements ValidationInterface
         $quote->collectTotals();
         $savedHash = $this->hashService->getHashForData($quote);
         if ($hash !== $savedHash) {
-            $this->logger->error(
+            $this->logger->addError(
                 'Payment hash is invalid during Rvvup Checkout',
                 [
                     'payment_id' => $quote->getPayment()->getEntityId(),
                     'quote_id' => $quote->getId(),
-                    'last_transaction_id' => $lastTransactionId,
-                    'rvvup_order_id' => $rvvupId
+                    'rvvup_payment_id' => $lastTransactionId,
+                    'rvvup_order_id' => $rvvupId,
+                    'magento' => [
+                        'order_id' => $quote->getReservedOrderId()
+                    ]
                 ]
             );
 
@@ -119,12 +138,15 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
         if ($rvvupId !== $lastTransactionId) {
-            $this->logger->error(
+            $this->logger->addError(
                 'Payment transaction id is invalid during Rvvup Checkout',
                 [
                     'payment_id' => $quote->getPayment()->getEntityId(),
                     'quote_id' => $quote->getId(),
-                    'last_transaction_id' => $lastTransactionId,
+                    'magento' => [
+                        'order_id' => $quote->getReservedOrderId()
+                    ],
+                    'rvvup_payment_id' => $lastTransactionId,
                     'rvvup_order_id' => $rvvupId
                 ]
             );

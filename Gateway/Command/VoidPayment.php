@@ -102,7 +102,16 @@ class VoidPayment implements CommandInterface
 
             $this->disableOnlineRefunds($order);
         } catch (Exception $e) {
-            $this->logger->error($e->getMessage());
+            $this->logger->addError($e->getMessage(),
+                [
+                    'cause' => $e->getMessage(),
+                    'rvvup_order_id' => $rvvupOrderId ?? '',
+                    'rvvup_payment_id' => $paymentId ?? '',
+                    'magento' => [
+                        'order_id' => isset($order) ? $order->getId() : ''
+                    ]
+                ]
+            );
             throw new LocalizedException(__('Something went wrong when trying to void a Rvvup payment'));
         }
     }

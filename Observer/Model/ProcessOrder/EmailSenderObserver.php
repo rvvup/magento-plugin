@@ -102,10 +102,11 @@ class EmailSenderObserver implements ObserverInterface
             $this->orderSender->send($order);
         } catch (Throwable $t) {
             // General catch of errors not caught by orderSender
-            $this->logger->error(
-                'Error thrown on sending Rvvup order confirmation email with message: ' . $t->getMessage(),
+            $this->logger->addError(
+                'Error thrown on sending Rvvup order confirmation email with message: ',
                 [
-                    'order_id' => $orderId,
+                    'magento' => ['order_id' => $orderId],
+                    'cause' => $t->getMessage()
                 ]
             );
         }
@@ -128,10 +129,11 @@ class EmailSenderObserver implements ObserverInterface
             $this->invoiceSender->send($invoice);
         } catch (Throwable $t) {
             // General catch of errors not caught by orderSender
-            $this->logger->error(
-                'Error thrown on sending Rvvup order Invoice email with message: ' . $t->getMessage(),
+            $this->logger->addError(
+                'Error thrown on sending Rvvup order Invoice email with message: ',
                 [
                     'invoice_id' => $invoiceId,
+                    'cause' => $t->getMessage()
                 ]
             );
         }
