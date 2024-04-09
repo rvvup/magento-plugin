@@ -19,16 +19,16 @@
         }
     },
     "rvvup_log": {
-      "column": {
-        "log_id": true,
-        "payload": true,
-        "is_processed": true  
-      },
-      "index": {
-        "RVVUP_LOG_LOG_ID": true
-      },
-      "constraint": {
-        "PRIMARY": true
-      }
+        "column": {
+            "log_id": true,
+            "payload": true,
+            "is_processed": true
+        },
+        "index": {
+            "RVVUP_LOG_LOG_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
     }
 }

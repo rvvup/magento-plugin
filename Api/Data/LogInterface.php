@@ -1,5 +1,4 @@
-<?php 
-declare(strict_types=1);
+<?php
 
 namespace Rvvup\Payments\Api\Data;
 
@@ -10,22 +9,23 @@ interface LogInterface
      */
     public const LOG_ID = "log_id";
     public const PAYLOAD = "payload";
+    public const IS_PROCESSED = "is_processed";
 
     /**
-     * Getter for Id.
+     * Getter for LogId.
      *
      * @return int|null
      */
-    public function getId();
+    public function getLogId(): ?int;
 
     /**
-     * Setter for Id.
+     * Setter for LogId.
      *
-     * @param int|null $id
+     * @param int|null $logId
      *
      * @return void
      */
-    public function setId($id);
+    public function setLogId(?int $logId): void;
 
     /**
      * Getter for Payload.
@@ -42,4 +42,20 @@ interface LogInterface
      * @return void
      */
     public function setPayload(?string $payload): void;
+
+    /**
+     * Getter for IsProcessed.
+     *
+     * @return bool|null
+     */
+    public function getIsProcessed(): ?bool;
+
+    /**
+     * Setter for IsProcessed.
+     *
+     * @param bool|null $isProcessed
+     *
+     * @return void
+     */
+    public function setIsProcessed(?bool $isProcessed): void;
 }

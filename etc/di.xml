@@ -39,13 +39,8 @@
                 type="Rvvup\Payments\Model\Payment\PaymentCreateExpress"/>
     <preference for="Rvvup\Payments\Model\Payment\PaymentDataGetInterface"
                 type="Rvvup\Payments\Model\Payment\PaymentDataGet"/>
-    
-    <preference for="Rvvup\Payments\Api\Data\LogInterface"
-                type="Rvvup\Payments\Model\Data\LogData"/>
-    <preference for="Rvvup\Payments\Api\LogRepositoryInterface"
-                type="Rvvup\Payments\Model\LoggerRepository"/>
-        
-                           
+
+
     <!-- Checks -->
     <preference for="Rvvup\Payments\Model\Checks\HasCartExpressPaymentInterface"
                 type="Rvvup\Payments\Model\Checks\HasCartExpressPayment"/>
@@ -492,4 +487,5 @@
                 sortOrder="1"/>
     </type>
     <preference for="Rvvup\Payments\Api\Data\ValidationInterface" type="Rvvup\Payments\Model\Data\Validation"/>
+    <preference for="Rvvup\Payments\Api\Data\LogInterface" type="Rvvup\Payments\Model\Data\LogData"/>
 </config>

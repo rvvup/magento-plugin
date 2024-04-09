@@ -1,6 +1,18 @@
 <?xml version="1.0"?>
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="rvvup_log" resource="default" engine="innodb" comment="Log">
+        <column xsi:type="int" name="log_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Log Id Column"/>
+        <column xsi:type="varchar" name="payload" nullable="false" length="255" comment="Payload Column"/>
+        <column xsi:type="boolean" name="is_processed" nullable="false" comment="Is Processed Column"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="log_id"/>
+        </constraint>
+        <index referenceId="RVVUP_LOG_LOG_ID" indexType="btree">
+            <column name="log_id"/>
+        </index>
+    </table>
     <table name="rvvup_webhook" resource="default" engine="innodb" comment="Webhook">
         <column xsi:type="int" name="webhook_id" padding="10" unsigned="true" nullable="false" identity="true"
                 comment="Webhook Id Column"/>
@@ -14,20 +26,6 @@
         </constraint>
         <index referenceId="RVVUP_WEBHOOK_WEBHOOK_ID" indexType="btree">
             <column name="webhook_id"/>
-        </index>
-    </table>
-
-<table name="rvvup_log" resource="default" engine="innodb" comment="Webhook">
-        <column xsi:type="int" name="log_id" padding="10" unsigned="true" nullable="false" identity="true"
-                comment="Log Id Column"/>
-        <column xsi:type="varchar" name="payload" nullable="false" length="255" comment="Payload Column"/>
-        <column xsi:type="boolean" name="is_processed"
-                nullable="false" default="false" comment="Is Processed"/>
-        <constraint xsi:type="primary" referenceId="PRIMARY">
-            <column name="log_id"/>
-        </constraint>
-        <index referenceId="RVVUP_LOG_LOG_ID" indexType="btree">
-            <column name="log_id"/>
         </index>
     </table>
 

@@ -1,9 +1,9 @@
-<?php declare(strict_types=1);
+<?php
 
 namespace Rvvup\Payments\Model;
 
-use Rvvup\Payments\Model\ResourceModel\LogResource;
 use Magento\Framework\Model\AbstractModel;
+use Rvvup\Payments\Model\ResourceModel\LogResource;
 
 class LogModel extends AbstractModel
 {

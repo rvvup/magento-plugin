@@ -1,9 +1,9 @@
-<?php declare(strict_types=1);
+<?php
 
 namespace Rvvup\Payments\Model\ResourceModel;
 
-use Rvvup\Payments\Api\Data\LogInterface;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Rvvup\Payments\Api\Data\LogInterface;
 
 class LogResource extends AbstractDb
 {

@@ -199,7 +199,6 @@ class Capture
         $this->quoteResource->beginTransaction();
         $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
         $payment = $quote->getPayment();
-        $this->logger->addError('testmsg',['testdata1'=>'1235','testData25'=>false]);
 
         try {
             if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {

@@ -1,10 +1,10 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace Rvvup\Payments\Model\ResourceModel\WebhookModel;
+namespace Rvvup\Payments\Model\ResourceModel\LogModel;
 
-use Rvvup\Payments\Model\ResourceModel\LogResource;
-use Rvvup\Payments\Model\LogModel;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Rvvup\Payments\Model\LogModel;
+use Rvvup\Payments\Model\ResourceModel\LogResource;
 
 class LogCollection extends AbstractCollection
 {

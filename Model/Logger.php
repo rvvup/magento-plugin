@@ -5,10 +5,14 @@ namespace Rvvup\Payments\Model;
 
 use Magento\Framework\App\ScopeInterface;
 use Monolog\Logger as BaseLogger;
-use Rvvup\Payments\Model\LoggerRepository;
+use Rvvup\Payments\Api\Data\LogInterface;
+use Rvvup\Payments\Model\LogModelFactory;
+use Rvvup\Payments\Model\ResourceModel\LogResource;
 
 class Logger extends BaseLogger
 {
+    private LogModelFactory $modelFactory;
+    private LogResource $resource;
 
     /**
      * {@inheritDoc}
@@ -18,9 +22,11 @@ class Logger extends BaseLogger
         $name,
         array $handlers = [],
         array $processors = [],
-        LoggerRepository $loggerRepository
+        LogModelFactory $modelFactory,
+        LogResource     $resource
         ) {
-        $this->loggerRepository = $loggerRepository;
+        $this->modelFactory = $modelFactory;
+        $this->resource = $resource;
         parent::__construct($name,$handlers,$processors);
     }
 
@@ -34,7 +40,7 @@ class Logger extends BaseLogger
     {
         $result = $this->addRecord(static::ERROR, $message, $context);
 
-       // try {
+        try {
 
             $payload = json_encode([
                 'message' => $message,
@@ -46,17 +52,25 @@ class Logger extends BaseLogger
                 'payload' => $payload
             ];
 
-            $this->loggerRepository->create($data);
-        //$baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
-        //$baseUrl = str_replace('graphql', 'plugin/log', $baseUrl);
+            /** @var LogModel $model */
+            $model = $this->modelFactory->create();
+            $model->addData($data);
+            $model->setHasDataChanges(true);
 
-        //$request = $this->curl->request(Request::METHOD_POST, $baseUrl, $params);
+            if (!$model->getData(LogInterface::LOG_ID)) {
+                $model->isObjectNew(true);
+            }
+            $this->resource->save($model);
+            //$baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
+            //$baseUrl = str_replace('graphql', 'plugin/log', $baseUrl);
+            
+            //$request = $this->curl->request(Request::METHOD_POST, $baseUrl, $params);
 
 
             // add to cron
-//         } catch (\Exception $e) {
-//             $this->addRecord(static::ERROR, $e->getMessage());
-//         }
+        } catch (\Exception $e) {
+            $this->addRecord(static::ERROR, $e->getMessage());
+        }
 
         return $result;
     }
