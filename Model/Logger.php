@@ -6,7 +6,6 @@ namespace Rvvup\Payments\Model;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Monolog\Logger as BaseLogger;
-use Rvvup\Payments\Model\Environment\GetEnvironmentVersions;
 use Rvvup\Payments\Model\LogModelFactory;
 use Rvvup\Payments\Model\ResourceModel\LogResource;
 
@@ -21,15 +20,11 @@ class Logger extends BaseLogger
     /** @var StoreManagerInterface */
     private $storeManager;
 
-    /** @var GetEnvironmentVersions */
-    private $getEnvironmentVersions;
-
     /**
      * @param string $name
      * @param LogModelFactory $modelFactory
      * @param LogResource $resource
      * @param StoreManagerInterface $storeManager
-     * @param GetEnvironmentVersions $getEnvironmentVersions
      * @param array $handlers
      * @param array $processors
      */
@@ -38,14 +33,12 @@ class Logger extends BaseLogger
         LogModelFactory $modelFactory,
         LogResource     $resource,
         StoreManagerInterface $storeManager,
-        GetEnvironmentVersions $getEnvironmentVersions,
         array $handlers = [],
         array $processors = []
     ) {
         $this->modelFactory = $modelFactory;
         $this->resource = $resource;
         $this->storeManager = $storeManager;
-        $this->getEnvironmentVersions = $getEnvironmentVersions;
         parent::__construct($name, $handlers, $processors);
     }
 
@@ -83,7 +76,6 @@ class Logger extends BaseLogger
     {
         $context['magento'] = [
             'storeId' => $this->storeManager->getStore()->getId(),
-            'version' => $this->getEnvironmentVersions->getRvvupModuleVersion(),
             'order_id' => $context['magento']['order_id'] ?? ''
         ];
 

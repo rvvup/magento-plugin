@@ -17,7 +17,7 @@ class LogResource extends AbstractDb
      */
     protected function _construct()
     {
-        $this->_init('log', LogInterface::ENTITY_ID);
+        $this->_init('rvvup_log', LogInterface::ENTITY_ID);
         $this->_useIsObjectNew = true;
     }
 }

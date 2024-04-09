@@ -24,7 +24,7 @@ class Complete implements ProcessorInterface
     public const TYPE = 'complete';
 
     /**
-     * @var \Magento\Framework\Event\ManagerInterface|EventManager
+     * @var EventManager
      */
     private $eventManager;
 
@@ -52,7 +52,7 @@ class Complete implements ProcessorInterface
     private $orderRepository;
 
     /**
-     * @param EventManager|EventManager $eventManager
+     * @param EventManager $eventManager
      * @param InvoiceOrderInterface $invoiceOrder
      * @param ProcessOrderResultInterfaceFactory $processOrderResultFactory
      * @param OrderConfig $config

@@ -19,7 +19,7 @@
             "rvvup_pending_refund_data": true
         }
     },
-    "log": {
+    "rvvup_log": {
         "column": {
             "entity_id": true,
             "payload": true,
