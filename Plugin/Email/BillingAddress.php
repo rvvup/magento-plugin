@@ -9,7 +9,6 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Model\BillingAddressManagement;
 use Magento\Quote\Model\ShippingAddressAssignment;
-use Psr\Log\LoggerInterface as Logger;
 
 class BillingAddress
 {
@@ -19,21 +18,15 @@ class BillingAddress
     /** @var CartRepositoryInterface */
     private $quoteRepository;
 
-    /** @var Logger */
-    private $logger;
-
     /**
      * @param CartRepositoryInterface $quoteRepository
      * @param ShippingAddressAssignment $shippingAddressAssignment
-     * @param Logger $logger
      */
     public function __construct(
         CartRepositoryInterface   $quoteRepository,
-        ShippingAddressAssignment $shippingAddressAssignment,
-        Logger                    $logger
+        ShippingAddressAssignment $shippingAddressAssignment
     ) {
         $this->shippingAddressAssignment = $shippingAddressAssignment;
-        $this->logger = $logger;
         $this->quoteRepository = $quoteRepository;
     }
 
