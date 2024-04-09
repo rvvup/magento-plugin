@@ -102,8 +102,8 @@ class VoidPayment implements CommandInterface
 
             $this->disableOnlineRefunds($order);
         } catch (Exception $e) {
-            $this->logger->addError($e->getMessage(),
-                [
+            $this->logger->addError(
+                $e->getMessage(), [
                     'cause' => $e->getMessage(),
                     'rvvup_order_id' => $rvvupOrderId ?? '',
                     'rvvup_payment_id' => $paymentId ?? '',

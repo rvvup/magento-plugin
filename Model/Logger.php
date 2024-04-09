@@ -49,9 +49,8 @@ class Logger extends BaseLogger
         parent::__construct($name, $handlers, $processors);
     }
 
-
     /**
-     * @param $message
+     * @param string $message
      * @param array $context
      * @return bool
      */
@@ -82,12 +81,12 @@ class Logger extends BaseLogger
      */
     private function prepareData(string $message, array $context): array
     {
-        $context['magento'][] = [
-            'storeId' => $this->storeManager->getStore()->getId()
+        $context['magento'] = [
+            'storeId' => $this->storeManager->getStore()->getId(),
+            'version' => $this->getEnvironmentVersions->getRvvupModuleVersion(),
+            'order_id' => $context['magento']['order_id'] ?? ''
         ];
-        $context['magento'][] = [
-            'version' => $this->getEnvironmentVersions->getRvvupModuleVersion()
-        ];
+
         $cause = $context['cause'] ?? '';
         unset($context['cause']);
 

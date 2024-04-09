@@ -32,7 +32,7 @@ class RemoveExpressPaymentInfoOnMethodChange
     public function __construct(
         CartExpressPaymentRemove $cartExpressPaymentRemove,
         LoggerInterface $logger
-        ) {
+    ) {
         $this->cartExpressPaymentRemove = $cartExpressPaymentRemove;
         $this->logger = $logger;
     }

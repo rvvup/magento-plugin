@@ -53,7 +53,8 @@ class Validation extends DataObject implements ValidationInterface
         // First validate we have a Rvvup Order ID, silently return to basket page.
         // A standard Rvvup return should always include `rvvup-order-id` param.
         if ($rvvupId === null) {
-            $this->logger->addError('No Rvvup Order ID provided',
+            $this->logger->addError(
+                'No Rvvup Order ID provided',
                 [
                     'cause' => '',
                     'rvvup_order_id' => '',
@@ -88,7 +89,8 @@ class Validation extends DataObject implements ValidationInterface
         }
 
         if (empty($quote->getId())) {
-            $this->logger->addError('Missing quote for Rvvup payment',
+            $this->logger->addError(
+                'Missing quote for Rvvup payment',
                 [
                     'rvvup_order_id' => $rvvupId,
                     'rvvup_payment_id' => $lastTransactionId,

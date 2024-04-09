@@ -135,8 +135,7 @@ class Complete implements ProcessorInterface
                 'rvvup_payment_id' => $rvvupData['payments'][0]['id'],
                 'magento' => [
                     'order_id' => $order->getId()
-                ]]
-            );
+                ]]);
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
             $processOrderResult->setCustomerMessage(

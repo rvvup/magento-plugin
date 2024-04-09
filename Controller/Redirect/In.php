@@ -163,9 +163,7 @@ class In implements HttpGetActionInterface
                 'rvvup_order_id' => $rvvupId,
                  'magento' => [
                      'order_id' => $quote->getReservedOrderId()
-                 ]
-                ]
-            );
+                 ]]);
             return $this->redirectToCart();
         }
 

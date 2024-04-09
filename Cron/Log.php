@@ -92,7 +92,6 @@ class Log
         foreach ($batch as $key => $item) {
             $this->notifyRvvup((string) $key, $item);
         }
-
     }
 
     /**
@@ -101,7 +100,8 @@ class Log
      * @return void
      * @throws NoSuchEntityException
      */
-    private function notifyRvvup(string $storeId, array $data) {
+    private function notifyRvvup(string $storeId, array $data): void
+    {
             $token = $this->config->getJwtConfig(ScopeInterface::SCOPE_STORE, $storeId);
             $headers = [
                 'Content-Type: application/json',
