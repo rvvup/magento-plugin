@@ -42,7 +42,6 @@ class Logger extends BaseLogger
         parent::__construct($name, $handlers, $processors);
     }
 
-
     /**
      * @param string $message
      * @param string|null $cause
@@ -58,7 +57,11 @@ class Logger extends BaseLogger
         ?string $rvvupPaymentId = null,
         ?string $magentoOrderId = null
     ) {
-        $result = $this->addRecord(static::ERROR, $message, $context);
+        $result = $this->addRecord(
+            static::ERROR,
+            $message,
+            [$cause, $rvvupOrderId, $rvvupPaymentId, $magentoOrderId]
+        );
 
         try {
             $data = $this->prepareData($message, $cause, $rvvupOrderId, $rvvupPaymentId, $magentoOrderId);

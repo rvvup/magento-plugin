@@ -129,7 +129,8 @@ class Complete implements ProcessorInterface
             $processOrderResult->setRedirectPath(In::FAILURE);
             $processOrderResult->setCustomerMessage($e->getMessage());
         } catch (Exception $e) {
-            $this->logger->addRvvupError('Error during processing order complete on SUCCESS status',
+            $this->logger->addRvvupError(
+                'Error during processing order complete on SUCCESS status',
                 $e->getMessage(),
                 $rvvupData['id'],
                 $rvvupData['payments'][0]['id'],
