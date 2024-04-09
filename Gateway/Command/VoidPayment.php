@@ -4,19 +4,20 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Gateway\Command;
 
 use Exception;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Payment\Gateway\CommandInterface;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Config as OrderConfig;
-use Magento\Sales\Model\Order\InvoiceRepository;
-use Magento\Sales\Model\Order\Payment;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\RvvupConfigProvider;
-use Rvvup\Payments\Model\SdkProxy;
+use Magento\Sales\Model\Order;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Service\Cache;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\SdkProxy;
+use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Payment\Gateway\CommandInterface;
+use Rvvup\Payments\Model\RvvupConfigProvider;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order\InvoiceRepository;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order\Config as OrderConfig;
 
 class VoidPayment implements CommandInterface
 {
@@ -27,7 +28,7 @@ class VoidPayment implements CommandInterface
     private $invoiceRepository;
 
     /**
-     * @var LoggerInterface|RvvupLog
+     * @var LoggerInterface|Logger
      */
     private $logger;
 

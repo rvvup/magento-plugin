@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model;
 
 use Exception;
+use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Gateway\Method;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\PaymentMethodManagementInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
-use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\CartExpressPaymentRemoveInterface;
-use Rvvup\Payments\Gateway\Method;
 
 class CartExpressPaymentRemove implements CartExpressPaymentRemoveInterface
 {
@@ -27,7 +28,7 @@ class CartExpressPaymentRemove implements CartExpressPaymentRemoveInterface
     /**
      * Set via etc/di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

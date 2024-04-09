@@ -11,6 +11,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\SdkProxy;
 
@@ -36,7 +37,7 @@ class ConfigSaveObserver implements ObserverInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

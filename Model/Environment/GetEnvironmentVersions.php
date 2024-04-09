@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\Environment;
 
 use Exception;
+use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
+use Rvvup\Payments\Model\Logger;
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Filesystem\Io\IoInterface;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Composer\ComposerInformation;
-use Magento\Framework\Filesystem\Io\IoInterface;
 use Magento\Framework\Serialize\SerializerInterface;
-use Psr\Log\LoggerInterface;
 
 class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
 {
@@ -45,7 +46,7 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

@@ -3,29 +3,30 @@
 namespace Rvvup\Payments\Gateway\Http\Client;
 
 use Exception;
-use Magento\Framework\Exception\NoSuchEntityException;
+use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\SdkProxy;
 use Magento\Framework\UrlInterface;
+use Rvvup\Payments\Model\OrderDataBuilder;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use Magento\Store\Model\StoreManagerInterface;
-use Psr\Log\LoggerInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Rvvup\Payments\Exception\QuoteValidationException;
-use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\OrderDataBuilder;
-use Rvvup\Payments\Model\SdkProxy;
 
 class TransactionInitialize implements ClientInterface
 {
     /**
-     * @var \Rvvup\Payments\Model\SdkProxy
+     * @var SdkProxy
      */
     private $sdkProxy;
 
     /**
      * Set via di.xml
      *
-     * @var LoggerInterface|RvvupLog
+     * @var LoggerInterface|Logger
      */
     private $logger;
 

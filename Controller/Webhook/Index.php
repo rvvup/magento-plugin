@@ -4,24 +4,25 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Controller\Webhook;
 
 use Exception;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\App\Request\Http;
-use Magento\Framework\App\Request\InvalidRequestException;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Store\Api\StoreRepositoryInterface;
-use Magento\Store\App\Request\StorePathInfoValidator;
-use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Gateway\Method;
+use Magento\Framework\App\Request\Http;
 use Rvvup\Payments\Model\ConfigInterface;
-use Rvvup\Payments\Model\ProcessRefund\Complete;
-use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
+use Magento\Framework\App\RequestInterface;
 use Rvvup\Payments\Model\WebhookRepository;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Store\Api\StoreRepositoryInterface;
+use Rvvup\Payments\Model\ProcessRefund\Complete;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Store\App\Request\StorePathInfoValidator;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 
 /**
  * The purpose of this controller is to accept incoming webhooks from Rvvup to update the status of payments
@@ -49,7 +50,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /**
      * Set via di.xml
      *
-     * @var LoggerInterface|RvvupLog
+     * @var LoggerInterface|Logger
      */
     private $logger;
 

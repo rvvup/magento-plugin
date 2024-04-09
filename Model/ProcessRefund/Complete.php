@@ -5,20 +5,21 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\ProcessRefund;
 
 use Exception;
-use Magento\Framework\Serialize\Serializer\Json;
+use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Service\Capture;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
-use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
-use Rvvup\Payments\Service\Capture;
 
 class Complete implements ProcessorInterface
 {
     public const TYPE = 'REFUND_COMPLETED';
 
     /**
-     * @var LoggerInterface|RvvupLog
+     * @var LoggerInterface|Logger
      */
     private $logger;
 

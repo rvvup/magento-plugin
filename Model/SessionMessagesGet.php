@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model;
 
 use LogicException;
-use Magento\Framework\Message\ManagerInterface;
-use Magento\Framework\View\Element\Message\InterpretationStrategyInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
+use Magento\Framework\Message\ManagerInterface;
+use Rvvup\Payments\Api\SessionMessagesGetInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterfaceFactory;
-use Rvvup\Payments\Api\SessionMessagesGetInterface;
+use Magento\Framework\View\Element\Message\InterpretationStrategyInterface;
 
 class SessionMessagesGet implements SessionMessagesGetInterface
 {
@@ -37,7 +38,7 @@ class SessionMessagesGet implements SessionMessagesGetInterface
     /**
      * Set via di.xml
      *
-     * @var LoggerInterface|RvvupLog
+     * @var LoggerInterface|Logger
      */
     private $logger;
 

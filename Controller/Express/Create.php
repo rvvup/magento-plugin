@@ -2,26 +2,27 @@
 
 namespace Rvvup\Payments\Controller\Express;
 
+use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\App\Request\InvalidRequestException;
+use Rvvup\Payments\Model\Logger;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Data\Form\FormKey\Validator;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\NotFoundException;
-use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
-use Psr\Log\LoggerInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 use Rvvup\Payments\Api\ExpressPaymentCreateInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
+use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
 
 class Create implements HttpPostActionInterface, CsrfAwareActionInterface
 {
@@ -82,7 +83,7 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
     /**
      * Set via etc/frontend/di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

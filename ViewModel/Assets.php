@@ -14,6 +14,7 @@ use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
 use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
+use Rvvup\Payments\Model\Logger;
 
 class Assets implements ArgumentInterface
 {
@@ -45,7 +46,7 @@ class Assets implements ArgumentInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 
@@ -70,7 +71,7 @@ class Assets implements ArgumentInterface
      * @param \Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
      * @param \Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Psr\Log\LoggerInterface|RvvupLog $logger
+     * @param \Psr\Log\LoggerInterface|Logger $logger
      * @return void
      */
     public function __construct(

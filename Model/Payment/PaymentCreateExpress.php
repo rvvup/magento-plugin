@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model\Payment;
 
-use Magento\Framework\DataObjectFactory;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Payment\Model\MethodInterface;
-use Magento\Quote\Api\CartTotalRepositoryInterface;
-use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Api\Data\PaymentInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Exception\PaymentValidationException;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Gateway\Method;
+use Magento\Framework\DataObjectFactory;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Payment\Model\MethodInterface;
+use Magento\Quote\Api\Data\PaymentInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Quote\Api\CartTotalRepositoryInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
+use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Model\IsPaymentMethodAvailableInterface;
 
 class PaymentCreateExpress implements PaymentCreateExpressInterface
@@ -41,7 +42,7 @@ class PaymentCreateExpress implements PaymentCreateExpressInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

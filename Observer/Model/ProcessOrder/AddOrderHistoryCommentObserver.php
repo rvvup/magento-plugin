@@ -11,6 +11,7 @@ use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
 
 class AddOrderHistoryCommentObserver implements ObserverInterface
 {
@@ -32,7 +33,7 @@ class AddOrderHistoryCommentObserver implements ObserverInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

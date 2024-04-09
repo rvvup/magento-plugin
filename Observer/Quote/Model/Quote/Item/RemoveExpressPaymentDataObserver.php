@@ -9,6 +9,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote\Item;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\CartExpressPaymentRemoveInterface;
+use Rvvup\Payments\Model\Logger;
 use Throwable;
 
 class RemoveExpressPaymentDataObserver implements ObserverInterface
@@ -21,7 +22,7 @@ class RemoveExpressPaymentDataObserver implements ObserverInterface
     /**
      * Set via etc/di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

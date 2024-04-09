@@ -14,6 +14,7 @@ use Rvvup\Payments\Model\Clearpay\Config;
 use Rvvup\Payments\Model\ComplexProductTypePool;
 use Rvvup\Payments\Model\ThresholdProvider;
 use Magento\Store\Model\StoreManagerInterface;
+use Rvvup\Payments\Model\Logger as RvvupLogger;
 
 class Clearpay implements ArgumentInterface
 {
@@ -33,7 +34,7 @@ class Clearpay implements ArgumentInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|RvvupLogger
      */
     private $logger;
 
@@ -54,7 +55,7 @@ class Clearpay implements ArgumentInterface
      * @param Session $session
      * @param StoreManagerInterface $storeManager
      * @param ComplexProductTypePool $productTypePool
-     * @param LoggerInterface|RvvupLog $logger
+     * @param LoggerInterface|RvvupLogger $logger
      * @param Price $priceViewModel
      */
     public function __construct(

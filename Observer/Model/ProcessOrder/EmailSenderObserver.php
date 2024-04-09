@@ -11,6 +11,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
 use Throwable;
 
 class EmailSenderObserver implements ObserverInterface
@@ -38,7 +39,7 @@ class EmailSenderObserver implements ObserverInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

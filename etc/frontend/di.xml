@@ -26,13 +26,13 @@
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
             <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Rvvup\Payments\Controller\Redirect\Cancel">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Rvvup\Payments\Controller\Redirect\In">
@@ -68,7 +68,7 @@
     <type name="Rvvup\Payments\Observer\Model\Payment\ExpressCreateReplaceSessionQuoteObserver">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Rvvup\Payments\Observer\Restore">
@@ -89,12 +89,12 @@
     </type>
     <type name="Rvvup\Payments\ViewModel\PayPal">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Rvvup\Payments\ViewModel\CheckoutConfig">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Magento\Payment\Helper\Data">

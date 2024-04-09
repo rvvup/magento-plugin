@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\ApiSettingsProvider;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\IsPaymentMethodAvailableInterface;
+use Rvvup\Payments\Model\Logger;
 
 class PayPal implements ArgumentInterface
 {
@@ -31,7 +32,7 @@ class PayPal implements ArgumentInterface
     private $storeManager;
 
     /**
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 
@@ -42,7 +43,7 @@ class PayPal implements ArgumentInterface
      * @param ConfigInterface $config
      * @param IsPaymentMethodAvailableInterface $isPaymentMethodAvailable
      * @param StoreManagerInterface $storeManager
-     * @param LoggerInterface|RvvupLog $logger
+     * @param LoggerInterface|Logger $logger
      * @param ApiSettingsProvider $apiSettingsProvider
      */
     public function __construct(

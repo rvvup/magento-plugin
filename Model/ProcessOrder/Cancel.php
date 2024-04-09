@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model\ProcessOrder;
 
-use Magento\Framework\Event\ManagerInterface as EventManager;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderManagementInterface;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
-use Rvvup\Payments\Controller\Redirect\In;
-use Rvvup\Payments\Exception\PaymentValidationException;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\RvvupConfigProvider;
+use Magento\Sales\Api\Data\OrderInterface;
+use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Traits\HasRvvupDataTrait;
+use Rvvup\Payments\Model\RvvupConfigProvider;
+use Magento\Sales\Api\OrderManagementInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
+use Rvvup\Payments\Exception\PaymentValidationException;
+use Magento\Framework\Event\ManagerInterface as EventManager;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
 
 class Cancel implements ProcessorInterface
 {
@@ -40,7 +41,7 @@ class Cancel implements ProcessorInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

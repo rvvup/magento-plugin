@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
 
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NotFoundException;
-use Magento\Payment\Gateway\Command\CommandException;
-use Magento\Payment\Gateway\Command\CommandPoolInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\PaymentInterface;
-use Magento\Quote\Api\PaymentMethodManagementInterface;
-use Magento\Quote\Model\Quote;
-use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Api\CartPaymentActionsGetInterface;
-use Rvvup\Payments\Api\Data\PaymentActionInterface;
-use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
-use Rvvup\Payments\Gateway\Method;
 use Throwable;
+use Psr\Log\LoggerInterface;
+use Magento\Quote\Model\Quote;
+use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Gateway\Method;
+use Magento\Quote\Api\Data\PaymentInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Framework\Exception\NotFoundException;
+use Magento\Framework\Exception\LocalizedException;
+use Rvvup\Payments\Api\Data\PaymentActionInterface;
+use Magento\Payment\Gateway\Command\CommandException;
+use Rvvup\Payments\Api\CartPaymentActionsGetInterface;
+use Magento\Quote\Api\PaymentMethodManagementInterface;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
 
 class CartPaymentActionsGet implements CartPaymentActionsGetInterface
 {
@@ -34,7 +35,7 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

@@ -2,18 +2,19 @@
 
 namespace Rvvup\Payments\Gateway;
 
-use Magento\Framework\Event\ManagerInterface;
+use Throwable;
+use Psr\Log\LoggerInterface;
 use Magento\Payment\Block\Form;
-use Magento\Payment\Gateway\Command\CommandManagerInterface;
+use Rvvup\Payments\Model\Logger;
+use Magento\Payment\Model\Method\Adapter;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
-use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
+use Magento\Payment\Gateway\Command\CommandManagerInterface;
+use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
-use Magento\Payment\Model\Method\Adapter;
-use Magento\Store\Model\StoreManagerInterface;
-use Psr\Log\LoggerInterface;
-use Throwable;
 
 class Method extends Adapter
 {
@@ -80,7 +81,7 @@ class Method extends Adapter
     private $storeManager;
 
     /**
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 
@@ -93,7 +94,7 @@ class Method extends Adapter
      * @param string $formBlockType
      * @param string $infoBlockType
      * @param StoreManagerInterface $storeManager
-     * @param LoggerInterface|RvvupLog $logger // Set via di.xml
+     * @param LoggerInterface|Logger $logger // Set via di.xml
      * @param string $captureType
      * @param CommandPoolInterface|null $commandPool
      * @param ValidatorPoolInterface|null $validatorPool

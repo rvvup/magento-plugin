@@ -9,7 +9,7 @@
     </type>
     <type name="Rvvup\Payments\Observer\ConfigSaveObserver">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Rvvup\Payments\Controller\Adminhtml\Credential\Validate">
@@ -45,7 +45,7 @@
     </type>
     <type name="Rvvup\Payments\Model\Checks\HasCartRestrictedProduct">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 </config>

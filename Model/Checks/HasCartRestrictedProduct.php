@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\Checks;
 
 use Exception;
+use Psr\Log\LoggerInterface;
+use Magento\Quote\Model\Quote;
+use Rvvup\Payments\Model\Logger;
 use Magento\Bundle\Model\Product\Type;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Payment\Model\MethodInterface;
+use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\Checks\SpecificationInterface;
-use Magento\Payment\Model\MethodInterface;
-use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Api\Data\CartItemInterface;
-use Magento\Quote\Model\Quote;
-use Psr\Log\LoggerInterface;
 
 /**
  * Payment Method Specification Check for Restricted Product.
@@ -32,7 +33,7 @@ class HasCartRestrictedProduct implements SpecificationInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 

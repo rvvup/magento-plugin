@@ -9,6 +9,7 @@ use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Quote\Api\PaymentMethodManagementInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\CartExpressPaymentRemove;
+use Rvvup\Payments\Model\Logger;
 
 class RemoveExpressPaymentInfoOnMethodChange
 {
@@ -20,7 +21,7 @@ class RemoveExpressPaymentInfoOnMethodChange
     /**
      * Set via etc/webapi_rest/di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 
@@ -28,8 +29,10 @@ class RemoveExpressPaymentInfoOnMethodChange
      * @param \Rvvup\Payments\Model\CartExpressPaymentRemove $cartExpressPaymentRemove
      * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(CartExpressPaymentRemove $cartExpressPaymentRemove, LoggerInterface $logger)
-    {
+    public function __construct(
+        CartExpressPaymentRemove $cartExpressPaymentRemove,
+        LoggerInterface $logger
+        ) {
         $this->cartExpressPaymentRemove = $cartExpressPaymentRemove;
         $this->logger = $logger;
     }

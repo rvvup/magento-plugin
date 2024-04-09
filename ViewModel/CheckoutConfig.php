@@ -9,6 +9,7 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
 
 class CheckoutConfig implements ArgumentInterface
 {
@@ -25,14 +26,14 @@ class CheckoutConfig implements ArgumentInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 
     /**
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Psr\Log\LoggerInterface|RvvupLog $logger
+     * @param \Psr\Log\LoggerInterface|Logger $logger
      * @return void
      */
     public function __construct(

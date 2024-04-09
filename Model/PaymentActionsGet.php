@@ -4,22 +4,23 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
 
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NotFoundException;
-use Magento\Payment\Gateway\Command\CommandException;
-use Magento\Payment\Gateway\Command\CommandPoolInterface;
-use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Api\Data\PaymentInterface as PaymentInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
-use Magento\Quote\Model\QuoteRepository;
-use Magento\Sales\Api\Data\OrderInterface;
-use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Api\Data\PaymentActionInterface;
-use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
-use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Service\Hash;
 use Throwable;
+use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Service\Hash;
+use Rvvup\Payments\Gateway\Method;
+use Magento\Quote\Model\QuoteRepository;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Framework\Exception\NotFoundException;
+use Magento\Framework\Exception\LocalizedException;
+use Rvvup\Payments\Api\Data\PaymentActionInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
+use Magento\Payment\Gateway\Command\CommandException;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
+use Magento\Quote\Api\Data\PaymentInterface as PaymentInterface;
 
 class PaymentActionsGet implements PaymentActionsGetInterface
 {
@@ -31,7 +32,7 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     /**
      * Set via di.xml
      *
-     * @var LoggerInterface|RvvupLog
+     * @var LoggerInterface|Logger
      */
     private $logger;
 

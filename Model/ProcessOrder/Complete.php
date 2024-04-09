@@ -3,20 +3,21 @@
 namespace Rvvup\Payments\Model\ProcessOrder;
 
 use Exception;
-use Magento\Framework\Event\ManagerInterface as EventManager;
-use Magento\Payment\Gateway\Command\CommandException;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\InvoiceOrderInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Config as OrderConfig;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
-use Rvvup\Payments\Controller\Redirect\In;
-use Rvvup\Payments\Exception\PaymentValidationException;
+use Magento\Sales\Model\Order;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Gateway\Method;
+use Magento\Sales\Api\Data\OrderInterface;
+use Rvvup\Payments\Controller\Redirect\In;
+use Magento\Sales\Api\InvoiceOrderInterface;
 use Rvvup\Payments\Model\RvvupConfigProvider;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order\Config as OrderConfig;
+use Magento\Payment\Gateway\Command\CommandException;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
+use Rvvup\Payments\Exception\PaymentValidationException;
+use Magento\Framework\Event\ManagerInterface as EventManager;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
 
 class Complete implements ProcessorInterface
 {
@@ -40,7 +41,7 @@ class Complete implements ProcessorInterface
     /**
      * Set via di.xml
      *
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 
@@ -51,7 +52,7 @@ class Complete implements ProcessorInterface
     private $orderRepository;
 
     /**
-     * @param ManagerInterface|EventManager $eventManager
+     * @param EventManager|EventManager $eventManager
      * @param InvoiceOrderInterface $invoiceOrder
      * @param ProcessOrderResultInterfaceFactory $processOrderResultFactory
      * @param OrderConfig $config

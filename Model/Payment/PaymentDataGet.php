@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model\Payment;
 
-use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Model\SdkProxy;
 use Throwable;
+use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Model\SdkProxy;
 
 class PaymentDataGet implements PaymentDataGetInterface
 {
@@ -16,7 +17,7 @@ class PaymentDataGet implements PaymentDataGetInterface
     private $sdkProxy;
 
     /**
-     * @var \Psr\Log\LoggerInterface|RvvupLog
+     * @var \Psr\Log\LoggerInterface|Logger
      */
     private $logger;
 
