@@ -43,6 +43,14 @@ class Logger extends BaseLogger
     }
 
 
+    /**
+     * @param string $message
+     * @param string|null $cause
+     * @param string|null $rvvupOrderId
+     * @param string|null $rvvupPaymentId
+     * @param string|null $magentoOrderId
+     * @return bool
+     */
     public function addRvvupError(
         string $message,
         ?string $cause = null,
@@ -69,7 +77,10 @@ class Logger extends BaseLogger
 
     /**
      * @param string $message
-     * @param array $context
+     * @param string|null $cause
+     * @param string|null $rvvupOrderId
+     * @param string|null $rvvupPaymentId
+     * @param string|null $magentoOrderId
      * @return array
      * @throws NoSuchEntityException
      */
