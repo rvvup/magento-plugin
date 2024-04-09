@@ -5,5 +5,8 @@
         <job name="rvvup_payments_webhooks" instance="Rvvup\Payments\Cron\Webhook" method="execute">
             <schedule>* * * * *</schedule>
         </job>
+        <job name="rvvup_logs" instance="Rvvup\Payments\Cron\Log" method="execute">
+            <schedule>*/15 * * * *</schedule>
+        </job>
     </group>
 </config>
