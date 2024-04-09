@@ -18,5 +18,18 @@
         "column": {
             "rvvup_pending_refund_data": true
         }
+    },
+    "log": {
+        "column": {
+            "entity_id": true,
+            "payload": true,
+            "is_processed": true
+        },
+        "index": {
+            "LOG_ENTITY_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
     }
 }
