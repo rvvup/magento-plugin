@@ -103,7 +103,7 @@ class Logger extends BaseLogger
                 'rvvupOrderId' => $rvvupOrderId,
                 'magento' => [
                     'storeId' => $this->storeManager->getStore()->getId(),
-                    'order_id' => $magentoOrderId
+                    'orderId' => $magentoOrderId
                 ]
             ],
             'cause' => $cause
