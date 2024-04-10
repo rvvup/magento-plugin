@@ -205,8 +205,8 @@ class Capture
                 return $this->validationInterfaceFactory->create(
                     [
                         'data' => [
-                        ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
-                        ValidationInterface::ALREADY_EXISTS => true]
+                            ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
+                            ValidationInterface::ALREADY_EXISTS => true]
                     ]
                 );
             }
@@ -216,8 +216,8 @@ class Capture
             return $this->validationInterfaceFactory->create(
                 [
                     'data' => [
-                    ValidationInterface::ORDER_ID => $orderId,
-                    ValidationInterface::ALREADY_EXISTS => false
+                        ValidationInterface::ORDER_ID => $orderId,
+                        ValidationInterface::ALREADY_EXISTS => false
                     ]
                 ]
             );
@@ -226,10 +226,10 @@ class Capture
             return $this->validationInterfaceFactory->create(
                 [
                     'data' =>
-                    [
-                        ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
-                        ValidationInterface::ALREADY_EXISTS => true
-                    ]
+                        [
+                            ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
+                            ValidationInterface::ALREADY_EXISTS => true
+                        ]
                 ]
             );
         } catch (\Exception $e) {
@@ -244,21 +244,19 @@ class Capture
                     ]
                 );
             }
-            $this->logger->error(
+            $this->logger->addRvvupError(
                 'Order placement within rvvup payment failed',
-                [
-                    'payment_id' => $payment->getEntityId(),
-                    'last_transaction_id' => $lastTransactionId,
-                    'rvvup_order_id' => $rvvupId,
-                    'message' => $e->getMessage()
-                ]
+                $e->getMessage(),
+                $rvvupId,
+                null,
+                $quote->getReservedOrderId(),
             );
             return $this->validationInterfaceFactory->create(
                 [
                     'data' => [
-                            ValidationInterface::ORDER_ID => false,
-                            ValidationInterface::ALREADY_EXISTS => false
-                        ]
+                        ValidationInterface::ORDER_ID => false,
+                        ValidationInterface::ALREADY_EXISTS => false
+                    ]
                 ]
             );
         }
@@ -282,14 +280,11 @@ class Capture
                 $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
             }
         } catch (\Exception $e) {
-            $this->logger->error(
+            $this->logger->addRvvupError(
                 'Rvvup order capture failed during payment capture',
-                [
-                    'payment_id' => $payment->getEntityId(),
-                    'last_transaction_id' => $lastTransactionId,
-                    'rvvup_order_id' => $rvvupId,
-                    'message' => $e->getMessage()
-                ]
+                $e->getMessage(),
+                $rvvupId,
+                $rvvupPaymentId
             );
             return false;
         }

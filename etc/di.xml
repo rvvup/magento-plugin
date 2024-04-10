@@ -39,6 +39,8 @@
                 type="Rvvup\Payments\Model\Payment\PaymentCreateExpress"/>
     <preference for="Rvvup\Payments\Model\Payment\PaymentDataGetInterface"
                 type="Rvvup\Payments\Model\Payment\PaymentDataGet"/>
+
+
     <!-- Checks -->
     <preference for="Rvvup\Payments\Model\Checks\HasCartExpressPaymentInterface"
                 type="Rvvup\Payments\Model\Checks\HasCartExpressPayment"/>
@@ -50,14 +52,14 @@
             <argument name="fileName" xsi:type="string">/var/log/rvvup.log</argument>
         </arguments>
     </virtualType>
-    <virtualType name="RvvupLog" type="Monolog\Logger">
+    <type name="Rvvup\Payments\Model\Logger">
         <arguments>
             <argument name="name" xsi:type="string">Rvvup</argument>
             <argument name="handlers" xsi:type="array">
                 <item name="system" xsi:type="object">RvvupLogHandler</item>
             </argument>
         </arguments>
-    </virtualType>
+    </type>
 
     <!-- Payment Method Facade configuration -->
     <virtualType name="RvvupFacade" type="Rvvup\Payments\Gateway\Method">
@@ -136,7 +138,7 @@
             <argument name="validator"
                       xsi:type="object">Rvvup\Payments\Gateway\Validator\InitializeResponseValidator
             </argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </virtualType>
 
@@ -150,33 +152,33 @@
 
     <type name="Rvvup\Payments\Gateway\Request\InitializeDataBuilder">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <!-- End of Initialize command -->
 
     <type name="Rvvup\Payments\Model\CartPaymentActionsGet">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
             <argument name="commandPool" xsi:type="object">RvvupCommandPool</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\SdkProxy">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\Checks\HasCartRestrictedProduct">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\Checks\HasCartExpressPayment">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
@@ -196,74 +198,74 @@
 
     <type name="Rvvup\Payments\Controller\Webhook\Index">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Service\Capture">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\Queue\Handler\Handler">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Service\Result">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\Data\Validation">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="\Rvvup\Payments\Controller\CardPayments\Cancel">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\ViewModel\Clearpay">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\CartExpressPaymentRemove">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\PaymentMethodsAssetsGet">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\IsPaymentMethodAvailable">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\PaymentMethodsAvailableGet">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\ViewModel\Assets">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
@@ -292,7 +294,7 @@
     <type name="Rvvup\Payments\Plugin\LoadMethodInstances">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
@@ -347,38 +349,38 @@
     <type name="Rvvup\Payments\Model\Environment\GetEnvironmentVersions">
         <arguments>
             <argument name="fileIo" xsi:type="object">Magento\Framework\Filesystem\Io\File</argument>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\PaymentActionsGet">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
             <argument name="commandPool" xsi:type="object">RvvupCommandPool</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\ProcessOrder\Comment">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\Payment\PaymentCreateExpress">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\Payment\PaymentDataGet">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Gateway\Command\VoidPayment">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
             <argument name="cancelStatuses" xsi:type="array">
                 <item name="0" xsi:type="const">\Magento\Sales\Model\Order::STATE_COMPLETE</item>
                 <item name="1" xsi:type="const">\Magento\Sales\Model\Order::STATE_PROCESSING</item>
@@ -388,67 +390,67 @@
 
     <type name="Rvvup\Payments\Model\ProcessOrder\Cancel">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\ProcessOrder\Complete">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\ProcessOrder\Processing">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\ProcessRefund\Complete">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Model\Quote\QuoteMaskedQuoteIdGet">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Observer\Model\ProcessOrder\EmailSenderObserver">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Observer\Model\ProcessOrder\CardsMetadata">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Observer\Quote\Model\Quote\Item\RemoveExpressPaymentDataObserver">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Plugin\Quote\Api\PaymentMethodManagement\RemoveExpressPaymentInfoOnMethodChange">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
     <type name="Rvvup\Payments\Gateway\Http\Client\TransactionInitialize">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
@@ -485,4 +487,5 @@
                 sortOrder="1"/>
     </type>
     <preference for="Rvvup\Payments\Api\Data\ValidationInterface" type="Rvvup\Payments\Model\Data\Validation"/>
+    <preference for="Rvvup\Payments\Api\Data\LogInterface" type="Rvvup\Payments\Model\Data\LogData"/>
 </config>

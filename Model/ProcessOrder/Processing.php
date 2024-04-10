@@ -3,18 +3,19 @@
 namespace Rvvup\Payments\Model\ProcessOrder;
 
 use Exception;
-use Magento\Framework\Event\ManagerInterface as EventManager;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
-use Rvvup\Payments\Controller\Redirect\In;
-use Rvvup\Payments\Exception\PaymentValidationException;
+use Magento\Sales\Model\Order;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Gateway\Method;
-use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Sales\Api\Data\OrderInterface;
+use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Model\RvvupConfigProvider;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
+use Rvvup\Payments\Exception\PaymentValidationException;
+use Magento\Framework\Event\ManagerInterface as EventManager;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
 
 class Processing implements ProcessorInterface
 {
@@ -26,7 +27,8 @@ class Processing implements ProcessorInterface
     private $orderRepository;
     /** @var ProcessOrderResultInterfaceFactory */
     private $processOrderResultFactory;
-    /** @var LoggerInterface|RvvupLog */
+
+    /** @var LoggerInterface|Logger */
     private $logger;
 
     /** @var DateTime  */
@@ -113,12 +115,13 @@ class Processing implements ProcessorInterface
             );
             $processOrderResult->setRedirectPath(In::SUCCESS);
         } catch (Exception $e) {
-            $this->logger->error(
+            $this->logger->addRvvupError(
                 'Error during order processing on ' . $rvvupData['payments'][0]['status']
-                . ' status: ' . $e->getMessage(),
-                [
-                    'order_id' => $order->getEntityId()
-                ]
+                . ' status: ',
+                $e->getMessage(),
+                $rvvupData['id'],
+                $rvvupData['payments'][0]['id'],
+                $order->getId()
             );
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);

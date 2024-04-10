@@ -31,7 +31,7 @@
     <!-- DI -->
     <type name="Rvvup\Payments\Model\SessionMessagesGet">
         <arguments>
-            <argument name="logger" xsi:type="object">RvvupLog</argument>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Magento\Payment\Helper\Data">
@@ -41,5 +41,10 @@
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
+    </type>
+    <type name="Magento\Quote\Api\BillingAddressManagementInterface">
+        <plugin name="setBillingAddressEmail"
+                type="Rvvup\Payments\Plugin\Email\BillingAddress"
+                sortOrder="1"/>
     </type>
 </config>
