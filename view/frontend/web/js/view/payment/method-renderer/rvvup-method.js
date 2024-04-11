@@ -17,6 +17,10 @@ define([
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
         'Rvvup_Payments/js/method/paypal/cancel',
         'cardPayment',
+        'Magento_Checkout/js/model/shipping-save-processor/default',
+        'Magento_Checkout/js/model/url-builder',
+        'Magento_Customer/js/model/customer',
+        'Magento_Checkout/js/model/place-order',
         'mage/url',
         'Magento_Ui/js/model/messageList',
         'domReady!'
@@ -39,6 +43,10 @@ define([
         rvvupMethodProperties,
         cancel,
         cardPayment,
+        defaultShippingAddress,
+        urlBuilder,
+        customer,
+        placeOrderService,
         url,
         messageList
     ) {
@@ -55,11 +63,11 @@ define([
                     rvvupPaypalPayLaterTemplate: 'Rvvup_Payments/payment/paypal-pay-later',
                     rvvupIframeModalTemplate: 'Rvvup_Payments/payment/iframe-modal',
                     rvvupIframeSrcTemplate: 'Rvvup_Payments/payment/iframe-src',
-                    rvvupPaymentTitleTemplate:'Rvvup_Payments/payment/payment-title',
+                    rvvupPaymentTitleTemplate: 'Rvvup_Payments/payment/payment-title',
                 },
                 redirectAfterPlaceOrder: false
             },
-            getCustomTemplate: function(name) {
+            getCustomTemplate: function (name) {
                 return this.templates[name] || '';
             },
 
@@ -113,7 +121,7 @@ define([
                             break;
                         case "rvvup-info-widget|resize":
                             let url = event.data.hasOwnProperty('url') ? event.data.url : '';
-                            $('.rvvup-summary[src="' + url + '"]').css({ width, height });
+                            $('.rvvup-summary[src="' + url + '"]').css({width, height});
                             break;
                         case "rvvup-payment-modal|prevent-close":
                             this.modal._destroyOverlay();
@@ -234,13 +242,13 @@ define([
                     window.rvvup_card_rendered = true;
                     $('body').trigger("processStop");
                 } else {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         context.render(context);
                     }, 250);
                 }
             },
 
-            confirmCardAuthorization: function(submitData, context, remainingRetries = 5) {
+            confirmCardAuthorization: function (submitData, context, remainingRetries = 5) {
                 $.ajax({
                     type: "POST",
                     url: url.build('rvvup/cardpayments/confirm'),
@@ -357,17 +365,24 @@ define([
                     createOrder: function () {
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
-                            return $.when(getOrderPaymentActions(self.messageContainer))
-                                .done(function () {
-                                    return resolve();
-                                }).fail(function () {
-                                    return reject();
-                                });
+
+                            defaultShippingAddress.saveShippingInformation().done(function () {
+                                self.setPaymentInformation().done(function () {
+                                    return $.when(getOrderPaymentActions(self.messageContainer))
+                                        .done(function () {
+                                            return resolve();
+                                        }).fail(function () {
+                                            return reject();
+                                        });
+
+                                })
+                            })
                         }).then(() => {
                             loader.stopLoader();
                             return orderPaymentAction.getPaymentToken();
                         });
                     },
+
                     /**
                      * On PayPal approved, show modal with capture URL.
                      *
@@ -453,7 +468,7 @@ define([
             },
 
             getCancelButtonOnClick() {
-                $(document).on('click', '#' + this.getCancelExpressPaymentLinkId(), function(){
+                $(document).on('click', '#' + this.getCancelExpressPaymentLinkId(), function () {
                     cancel.cancelPayment();
                 });
             },
@@ -618,25 +633,46 @@ define([
                 if (self.shouldDisplayPayPalButton()) {
                     return;
                 }
+                defaultShippingAddress.saveShippingInformation().done(function () {
+                        self.setPaymentInformation().done(function () {
+                            let code = self.getCode();
+                            $.when(getOrderPaymentActions(self.messageContainer)).done(function () {
+                                if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
+                                    window.SecureTrading.updateJWT(orderPaymentAction.getPaymentToken());
+                                    $("#tp_place_order").trigger("click");
+                                    return;
+                                }
+                                if (code === 'rvvup_APPLE_PAY' && orderPaymentAction.getRedirectUrl() !== null) {
+                                    window.location.replace(orderPaymentAction.getRedirectUrl());
+                                    return;
+                                }
 
-                let code = this.getCode();
+                                if (orderPaymentAction.getRedirectUrl() !== null) {
+                                    self.showRvvupModal(orderPaymentAction.getRedirectUrl());
+                                }
+                            })
+                        })
+                    }
+                );
+            },
 
-                $.when(getOrderPaymentActions(self.messageContainer))
-                    .done(function () {
-                        if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
-                            window.SecureTrading.updateJWT(orderPaymentAction.getPaymentToken());
-                            $("#tp_place_order").trigger("click");
-                            return;
-                        }
-                        if (code === 'rvvup_APPLE_PAY' && orderPaymentAction.getRedirectUrl() !== null) {
-                            window.location.replace(orderPaymentAction.getRedirectUrl());
-                            return;
-                        }
 
-                        if (orderPaymentAction.getRedirectUrl() !== null) {
-                            self.showRvvupModal(orderPaymentAction.getRedirectUrl());
-                        }
+            setPaymentInformation: function () {
+                var serviceUrl, payload;
+                payload = {
+                    cartId: quote.getQuoteId(),
+                    paymentMethod: this.getData()
+                };
+
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl('/carts/mine/set-payment-information', {});
+                } else {
+                    serviceUrl = urlBuilder.createUrl('/guest-carts/:quoteId/set-payment-information', {
+                        quoteId: quote.getQuoteId()
                     });
+                    payload.email = quote.guestEmail;
+                }
+                return placeOrderService(serviceUrl, payload, null);
             },
 
             /**
