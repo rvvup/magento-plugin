@@ -672,7 +672,7 @@ define([
                     });
                     payload.email = quote.guestEmail;
                 }
-                return placeOrderService(serviceUrl, payload, null);
+                return placeOrderService(serviceUrl, payload, self.messageContainer);
             },
 
             /**

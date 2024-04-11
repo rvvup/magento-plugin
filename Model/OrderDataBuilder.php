@@ -84,8 +84,6 @@ class OrderDataBuilder
      */
     public function build(CartInterface $quote, bool $express = false): array
     {
-        /* Load cart from database in order to eliminate */
-        $quote = $this->cartRepository->get($quote->getId());
         $billingAddress = $quote->getBillingAddress();
 
         // Validate that billing address exists if this is NOT a request to build express payment data.
