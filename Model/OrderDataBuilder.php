@@ -294,7 +294,7 @@ class OrderDataBuilder
                 'givenName' => $billingAddress->getFirstname() ?? '',
                 'surname' => $billingAddress->getLastname() ?? '',
                 'phoneNumber' => $billingAddress->getTelephone() ?? '',
-                'email' => $billingAddress->getEmail() ?? '',,
+                'email' => $billingAddress->getEmail() ?? '',
             ];
         }
 
