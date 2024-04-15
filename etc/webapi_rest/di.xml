@@ -42,4 +42,9 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
+    <type name="Magento\Quote\Api\BillingAddressManagementInterface">
+        <plugin name="setBillingAddressEmail"
+                type="Rvvup\Payments\Plugin\Email\BillingAddress"
+                sortOrder="1"/>
+    </type>
 </config>

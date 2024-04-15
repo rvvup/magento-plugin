@@ -17,7 +17,6 @@ define([
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
         'Rvvup_Payments/js/method/paypal/cancel',
         'cardPayment',
-        'Magento_Checkout/js/model/shipping-save-processor/default',
         'Magento_Checkout/js/model/url-builder',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/place-order',
@@ -43,7 +42,6 @@ define([
         rvvupMethodProperties,
         cancel,
         cardPayment,
-        defaultShippingAddress,
         urlBuilder,
         customer,
         placeOrderService,
@@ -365,18 +363,14 @@ define([
                     createOrder: function () {
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
-
-                            defaultShippingAddress.saveShippingInformation().done(function () {
-                                self.setPaymentInformation().done(function () {
-                                    return $.when(getOrderPaymentActions(self.messageContainer))
-                                        .done(function () {
-                                            return resolve();
-                                        }).fail(function () {
-                                            return reject();
-                                        });
-
+                            self.setPaymentInformation().done(function () {
+                                return $.when(getOrderPaymentActions(self.messageContainer))
+                                    .done(function () {
+                                        return resolve();
+                                    }).fail(function () {
+                                        return reject();
+                                    });
                                 })
-                            })
                         }).then(() => {
                             loader.stopLoader();
                             return orderPaymentAction.getPaymentToken();
@@ -633,27 +627,24 @@ define([
                 if (self.shouldDisplayPayPalButton()) {
                     return;
                 }
-                defaultShippingAddress.saveShippingInformation().done(function () {
-                        self.setPaymentInformation().done(function () {
-                            let code = self.getCode();
-                            $.when(getOrderPaymentActions(self.messageContainer)).done(function () {
-                                if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
-                                    window.SecureTrading.updateJWT(orderPaymentAction.getPaymentToken());
-                                    $("#tp_place_order").trigger("click");
-                                    return;
-                                }
-                                if (code === 'rvvup_APPLE_PAY' && orderPaymentAction.getRedirectUrl() !== null) {
-                                    window.location.replace(orderPaymentAction.getRedirectUrl());
-                                    return;
-                                }
+                self.setPaymentInformation().done(function () {
+                    let code = self.getCode();
+                    $.when(getOrderPaymentActions(self.messageContainer)).done(function () {
+                        if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
+                            window.SecureTrading.updateJWT(orderPaymentAction.getPaymentToken());
+                            $("#tp_place_order").trigger("click");
+                            return;
+                        }
+                        if (code === 'rvvup_APPLE_PAY' && orderPaymentAction.getRedirectUrl() !== null) {
+                            window.location.replace(orderPaymentAction.getRedirectUrl());
+                            return;
+                        }
 
-                                if (orderPaymentAction.getRedirectUrl() !== null) {
-                                    self.showRvvupModal(orderPaymentAction.getRedirectUrl());
-                                }
-                            })
-                        })
-                    }
-                );
+                        if (orderPaymentAction.getRedirectUrl() !== null) {
+                            self.showRvvupModal(orderPaymentAction.getRedirectUrl());
+                        }
+                    })
+                });
             },
 
 
