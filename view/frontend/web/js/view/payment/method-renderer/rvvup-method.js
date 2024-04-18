@@ -359,7 +359,7 @@ define([
                     createOrder: function () {
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
-                            setPaymentInformation(self.messageContainer, self.getData(), true).done(function () {
+                            setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
                                     .done(function () {
                                         return resolve();
@@ -623,7 +623,7 @@ define([
                 if (self.shouldDisplayPayPalButton()) {
                     return;
                 }
-                setPaymentInformation(self.messageContainer, self.getData(), true).done(function () {
+                setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                     let code = self.getCode();
                     $.when(getOrderPaymentActions(self.messageContainer)).done(function () {
                         if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
