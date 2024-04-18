@@ -98,7 +98,8 @@ class PaymentLink
                     if (!isset($order['account']) || !isset($order['send_confirmation'])) {
                         return $result;
                     }
-                    if ($order->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+
+                    if ($quote->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
                         list($id, $message) =
                             $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
                         if ($id && $message) {
@@ -129,7 +130,7 @@ class PaymentLink
         $order = $this->request->getPost('order');
         if (!(isset($order['send_confirmation']) && $order['send_confirmation'])) {
             if (!$subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_id')) {
-                if ($subject->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                if ($result->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
                     list($id, $message) = $this->createRvvupPayByLink(
                         (string)$result->getStoreId(),
                         $result->getGrandTotal(),
