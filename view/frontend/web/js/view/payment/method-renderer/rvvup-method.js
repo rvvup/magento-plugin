@@ -366,7 +366,10 @@ define([
                                     }).fail(function () {
                                         return reject();
                                     });
-                                })
+                                }).fail(function () {
+                                loader.stopLoader();
+                                return reject();
+                            })
                         }).then(() => {
                             loader.stopLoader();
                             return orderPaymentAction.getPaymentToken();
@@ -640,6 +643,8 @@ define([
                             self.showRvvupModal(orderPaymentAction.getRedirectUrl());
                         }
                     })
+                }).fail(function () {
+                     loader.stopLoader();
                 });
             },
 
