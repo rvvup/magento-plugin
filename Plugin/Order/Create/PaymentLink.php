@@ -98,15 +98,19 @@ class PaymentLink
                     if (!isset($order['account']) || !isset($order['send_confirmation'])) {
                         return $result;
                     }
-                    list($id, $message) =
-                        $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
-                    if ($id && $message) {
-                        $this->savePaymentLink($subject, $id, $message);
+                    if ($order->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                        list($id, $message) =
+                            $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
+                        if ($id && $message) {
+                            $this->savePaymentLink($subject, $id, $message);
+                        }
                     }
                 } else {
                     $quote = $subject->getQuote();
-                    $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
-                    $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
+                    if ($quote->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                        $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
+                        $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
+                    }
                 }
             }
         }
@@ -125,16 +129,18 @@ class PaymentLink
         $order = $this->request->getPost('order');
         if (!(isset($order['send_confirmation']) && $order['send_confirmation'])) {
             if (!$subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_id')) {
-                list($id, $message) = $this->createRvvupPayByLink(
-                    (string)$result->getStoreId(),
-                    $result->getGrandTotal(),
-                    $result->getId(),
-                    $result->getOrderCurrencyCode(),
-                    $subject,
-                    ['status' => $result->getStatus()]
-                );
-                if ($id && $message) {
-                    $this->savePaymentLink($subject, $id, $message);
+                if ($subject->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                    list($id, $message) = $this->createRvvupPayByLink(
+                        (string)$result->getStoreId(),
+                        $result->getGrandTotal(),
+                        $result->getId(),
+                        $result->getOrderCurrencyCode(),
+                        $subject,
+                        ['status' => $result->getStatus()]
+                    );
+                    if ($id && $message) {
+                        $this->savePaymentLink($subject, $id, $message);
+                    }
                 }
             }
         }
@@ -168,7 +174,7 @@ class PaymentLink
      * @param string $currencyCode
      * @param Create $subject
      * @param array $data
-     * @return string|null
+     * @return array|null
      */
     private function createRvvupPayByLink(
         string $storeId,
@@ -234,7 +240,7 @@ class PaymentLink
         return null;
     }
 
-    /**
+    /** @todo move to rest api sdk
      * @param string $storeId
      * @return string
      * @throws NoSuchEntityException

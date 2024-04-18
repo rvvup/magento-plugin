@@ -17,10 +17,8 @@ define([
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
         'Rvvup_Payments/js/method/paypal/cancel',
         'cardPayment',
-        'Magento_Checkout/js/model/url-builder',
-        'Magento_Customer/js/model/customer',
-        'Magento_Checkout/js/model/place-order',
         'mage/url',
+        'Magento_Checkout/js/action/set-payment-information-extended',
         'Magento_Ui/js/model/messageList',
         'domReady!'
     ], function (
@@ -42,10 +40,8 @@ define([
         rvvupMethodProperties,
         cancel,
         cardPayment,
-        urlBuilder,
-        customer,
-        placeOrderService,
         url,
+        setPaymentInformation,
         messageList
     ) {
         'use strict';
@@ -363,7 +359,7 @@ define([
                     createOrder: function () {
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
-                            self.setPaymentInformation().done(function () {
+                            setPaymentInformation(self.messageContainer, self.getData(), true).done(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
                                     .done(function () {
                                         return resolve();
@@ -627,7 +623,7 @@ define([
                 if (self.shouldDisplayPayPalButton()) {
                     return;
                 }
-                self.setPaymentInformation().done(function () {
+                setPaymentInformation(self.messageContainer, self.getData(), true).done(function () {
                     let code = self.getCode();
                     $.when(getOrderPaymentActions(self.messageContainer)).done(function () {
                         if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
@@ -645,25 +641,6 @@ define([
                         }
                     })
                 });
-            },
-
-
-            setPaymentInformation: function () {
-                var serviceUrl, payload;
-                payload = {
-                    cartId: quote.getQuoteId(),
-                    paymentMethod: this.getData()
-                };
-
-                if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/carts/mine/set-payment-information', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/guest-carts/:quoteId/set-payment-information', {
-                        quoteId: quote.getQuoteId()
-                    });
-                    payload.email = quote.guestEmail;
-                }
-                return placeOrderService(serviceUrl, payload, self.messageContainer);
             },
 
             /**
