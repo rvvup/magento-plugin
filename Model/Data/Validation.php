@@ -81,6 +81,16 @@ class Validation extends DataObject implements ValidationInterface
         if (!$quote->getIsActive()) {
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
+            $message = __('Payment was already completed');
+            $data[ValidationInterface::MESSAGE] = $message;
+            $this->logger->addRvvupError(
+                'The quote is not active',
+                $message,
+                $rvvupId,
+                $lastTransactionId,
+                $quote->getReservedOrderId() ?? null
+            );
+
             $this->setValidationData($data);
             return $this;
         }
