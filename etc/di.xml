@@ -66,7 +66,7 @@
         <arguments>
             <argument name="code" xsi:type="string">rvvup</argument>
             <argument name="title" xsi:type="string">Rvvup</argument>
-            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form\Cc</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupValueHandlerPool</argument>
             <argument name="commandPool" xsi:type="object">\Rvvup\Payments\Gateway\CommandPool</argument>

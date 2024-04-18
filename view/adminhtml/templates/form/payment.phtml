@@ -1,0 +1,54 @@
+<?php
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Payment\Block\Form;
+
+/**
+ * @var Escaper $escaper
+ * @var Form $block
+ */
+$code = $block->getMethodCode();
+?>
+<fieldset class="admin__fieldset payment-method"
+          id="payment_form_<?= $escaper->escapeHtmlAttr($code) ?>"
+          style="display:none;">
+    <div class="admin__field _required">
+        <label class="label admin__field-label">
+            <div style="width: 150%; white-space: normal">
+                <input type="radio"
+                       id="<?= $escaper->escapeHtmlAttr($code) ?>_create_payment_link"
+                       name="moto"
+                       value="payment_link"
+                />
+                <label for="<?= $escaper->escapeHtmlAttr($code) ?>_create_payment_link">
+                    <?= $escaper->escapeHtml(__('Create a Rvvup Payment Link')) ?>
+                    <br>
+                    <?= $escaper->escapeHtml(__('and share with customer using')) ?>
+                    <br>
+                    <?= $escaper->escapeHtml(__('order confirmation email')) ?>
+                </label>
+            </div>
+            <br>
+            <div style="width: 150%; white-space: normal">
+                <input type="radio"
+                       id="<?= $escaper->escapeHtmlAttr($code) ?>_create_virtual_terminal"
+                       name="moto"
+                       value="virtual_terminal"
+                />
+                <label for="<?= $escaper->escapeHtmlAttr($code) ?>_create_virtual_terminal">
+                    <?= $escaper->escapeHtml(__('Create a Rvvup Payment using')) ?>
+                    <br>
+                    <?= $escaper->escapeHtml(__('virtual terminal')) ?>
+                </label>
+            </div>
+            <br>
+        </label>
+        <br>
+        <label class="label">
+            <span>
+                <?= $escaper->escapeHtml(__('Rvvup Virtual Terminal will be available to launch once order placed')) ?>
+            </span>
+        </label>
+    </div>
+</fieldset>

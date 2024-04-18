@@ -106,6 +106,7 @@ class Result
 
             $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
             $result = $processor->execute($order, $rvvupData);
+            // @todo redirect back to admin
             if (get_class($processor) == Cancel::class) {
                 return $this->processResultPage($result, true);
             }

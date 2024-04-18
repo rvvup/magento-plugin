@@ -82,13 +82,15 @@ class LoadMethodInstances
                 return $instance;
             }
         } elseif (0 === strpos($code, 'rvvup')) {
-            return $this->methodFactory->create(
-                'RvvupFacade',
-                [
+            if ($this->config->isActive()) {
+                return $this->methodFactory->create(
+                    'RvvupFacade',
+                    [
                     'code' => $code,
-                    'title' => 'Rvvup Payment Link'
+                    'title' => 'Rvvup Payments'
                 ]
-            );
+                );
+            }
         }
 
         return $proceed($code);

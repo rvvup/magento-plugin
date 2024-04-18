@@ -325,18 +325,19 @@ class Capture
     }
 
     /**
-     * @param string $paymentLinkId
+     * @param string $field
+     * @param string $value
      * @param string $storeId
      * @return Quote|null
      */
-    public function getOrderByRvvupPaymentLinkId(string $paymentLinkId, string $storeId): ?OrderInterface
+    public function getOrderByPaymentField(string $field, string $value, string $storeId): ?OrderInterface
     {
         /** @var Collection $collection */
         $collection = $this->collectionFactory->create();
         $collection->addFieldToFilter(
             'additional_information',
             [
-                'like' => "%\"rvvup_payment_link_id\":\"$paymentLinkId\"%"
+                'like' => "%\"$field\":\"$value\"%"
             ]
         );
         $collection->clear();

@@ -111,6 +111,7 @@ class Handler
             $rvvupOrderId = $payload['order_id'];
             $rvvupPaymentId = $payload['payment_id'];
             $storeId = $payload['store_id'] ?? false;
+            $checkoutId = $payload['checkout_id'] ?? false;
 
             if (!$storeId) {
                 return;
@@ -119,7 +120,24 @@ class Handler
             $this->emulation->startEnvironmentEmulation((int) $storeId);
 
             if ($paymentLinkId = $payload['payment_link_id']) {
-                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $storeId);
+                $order = $this->captureService->getOrderByPaymentField(
+                    'rvvup_payment_link_id',
+                    $paymentLinkId,
+                    $storeId
+                );
+                if ($order && $order->getId()) {
+                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+                    return;
+                }
+                return;
+            }
+
+            if ($checkoutId) {
+                $order = $this->captureService->getOrderByPaymentField(
+                    'rvvup_moto_id',
+                    $checkoutId,
+                    $storeId
+                );
                 if ($order && $order->getId()) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
                     return;
