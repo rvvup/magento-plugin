@@ -88,6 +88,9 @@ class TransactionInitialize implements ClientInterface
                 UrlInterface::URL_TYPE_WEB,
                 true
             );
+            if (isset($input['id'])) {
+                unset($input['id']);
+            }
             $input['metadata']['domain'] = $secureBaseUrl;
 
             $order = $this->sdkProxy->createOrder(['input' => $input]);
