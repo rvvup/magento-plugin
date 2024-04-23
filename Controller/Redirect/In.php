@@ -86,8 +86,7 @@ class In implements HttpGetActionInterface
     {
         $rvvupId = $this->request->getParam('rvvup-order-id');
         $paymentStatus = $this->request->getParam('payment-status');
-
-        $quote = $this->checkoutSession->getQuote();
+        $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
         $checkoutId = $this->request->getParam('checkout_id');
         $storeId = $this->request->getParam('store_id');
 

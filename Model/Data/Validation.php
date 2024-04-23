@@ -53,7 +53,13 @@ class Validation extends DataObject implements ValidationInterface
         // First validate we have a Rvvup Order ID, silently return to basket page.
         // A standard Rvvup return should always include `rvvup-order-id` param.
         if ($rvvupId === null) {
-            $this->logger->error('No Rvvup Order ID provided');
+            $this->logger->addRvvupError(
+                'No Rvvup Order ID provided',
+                null,
+                null,
+                $lastTransactionId
+            );
+
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::REDIRECT_TO_CART] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
@@ -75,16 +81,32 @@ class Validation extends DataObject implements ValidationInterface
         if (!$quote->getIsActive()) {
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
+            $message = __('Payment was already completed');
+            $data[ValidationInterface::MESSAGE] = $message;
+            $this->logger->addRvvupError(
+                'The quote is not active',
+                $message,
+                $rvvupId,
+                $lastTransactionId,
+                $quote->getReservedOrderId() ?? null
+            );
+
             $this->setValidationData($data);
             return $this;
         }
 
         if (empty($quote->getId())) {
-            $this->logger->error('Missing quote for Rvvup payment', [$rvvupId, $lastTransactionId]);
             $message = __(
                 'An error occurred while processing your payment (ID %1). Please contact us. ',
                 $errorId
             );
+            $this->logger->addRvvupError(
+                'Missing quote for Rvvup payment',
+                $message,
+                $rvvupId,
+                $lastTransactionId
+            );
+
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::REDIRECT_TO_CART] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
@@ -97,14 +119,12 @@ class Validation extends DataObject implements ValidationInterface
         $quote->collectTotals();
         $savedHash = $this->hashService->getHashForData($quote);
         if ($hash !== $savedHash) {
-            $this->logger->error(
+            $this->logger->addRvvupError(
                 'Payment hash is invalid during Rvvup Checkout',
-                [
-                    'payment_id' => $quote->getPayment()->getEntityId(),
-                    'quote_id' => $quote->getId(),
-                    'last_transaction_id' => $lastTransactionId,
-                    'rvvup_order_id' => $rvvupId
-                ]
+                null,
+                $rvvupId,
+                $lastTransactionId,
+                $quote->getReservedOrderId() ?? null
             );
 
             $message = __(
@@ -119,14 +139,12 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
         if ($rvvupId !== $lastTransactionId) {
-            $this->logger->error(
+            $this->logger->addRvvupError(
                 'Payment transaction id is invalid during Rvvup Checkout',
-                [
-                    'payment_id' => $quote->getPayment()->getEntityId(),
-                    'quote_id' => $quote->getId(),
-                    'last_transaction_id' => $lastTransactionId,
-                    'rvvup_order_id' => $rvvupId
-                ]
+                null,
+                $rvvupId,
+                $lastTransactionId,
+                $quote->getReservedOrderId() ?? null
             );
             $message = __(
                 'This checkout cannot complete, a new cart was opened in another tab. ' . $errorId

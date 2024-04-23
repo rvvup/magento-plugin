@@ -110,7 +110,6 @@ class Log
      * @param string $storeId
      * @param array $data
      * @return void
-     * @throws NoSuchEntityException
      */
     private function notifyRvvup(string $storeId, array $data): void
     {
