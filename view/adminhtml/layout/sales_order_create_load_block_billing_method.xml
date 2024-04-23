@@ -6,9 +6,6 @@
                 <argument name="method" xsi:type="string">rvvup</argument>
                 <argument name="template" xsi:type="string">Rvvup_Payments::form/payment.phtml</argument>
             </action>
-            <action method="addJs">
-                <script>Rvvup_Payments::js/virtual-terminal.js</script>
-            </action>
         </referenceBlock>
     </body>
 </page>

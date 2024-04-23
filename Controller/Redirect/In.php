@@ -16,6 +16,7 @@ use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Result;
+use Rvvup\Payments\Service\VirtualCheckout;
 
 class In implements HttpGetActionInterface
 {
@@ -47,6 +48,9 @@ class In implements HttpGetActionInterface
     /** @var Result  */
     private $resultService;
 
+    /** @var VirtualCheckout */
+    private $virtualCheckoutService;
+
     /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
@@ -54,6 +58,7 @@ class In implements HttpGetActionInterface
      * @param ManagerInterface $messageManager
      * @param Capture $captureService
      * @param Result $resultService
+     * @param VirtualCheckout $virtualCheckoutService
      */
     public function __construct(
         RequestInterface $request,
@@ -61,7 +66,8 @@ class In implements HttpGetActionInterface
         SessionManagerInterface $checkoutSession,
         ManagerInterface $messageManager,
         Capture $captureService,
-        Result $resultService
+        Result $resultService,
+        VirtualCheckout $virtualCheckoutService
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -69,6 +75,7 @@ class In implements HttpGetActionInterface
         $this->messageManager = $messageManager;
         $this->captureService = $captureService;
         $this->resultService = $resultService;
+        $this->virtualCheckoutService = $virtualCheckoutService;
     }
 
     /**
@@ -86,7 +93,13 @@ class In implements HttpGetActionInterface
 
         if ($checkoutId && $storeId) {
             $order = $this->captureService->getOrderByPaymentField('rvvup_moto_id', $checkoutId, $storeId);
-            return $this->resultService->processOrderResult((string)$order->getId(), $rvvupId);
+
+            if (!$rvvupId) {
+                $rvvupId = $this->virtualCheckoutService->getRvvupIdByMotoId($checkoutId, $storeId, $order);
+            }
+
+            $redirectUrl = $this->virtualCheckoutService->getOrderViewUrl((int)$order->getId());
+            return $this->resultService->processOrderResult((string)$order->getId(), $rvvupId, false, $redirectUrl);
         }
 
         if (!$quote->getId()) {

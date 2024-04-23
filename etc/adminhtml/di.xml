@@ -48,4 +48,29 @@
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
+    <type name="Rvvup\Payments\Plugin\Order\Create\PaymentLink">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Service\PaymentLink">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Service\VirtualCheckout">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Controller\Adminhtml\Create\PaymentLink">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Controller\Adminhtml\Create\VirtualTerminal">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
 </config>

@@ -8,7 +8,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
-use Rvvup\Payments\Model\Config;
+use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Model\ResourceModel\LogModel\LogCollection;
 use Rvvup\Payments\Model\ResourceModel\LogModel\LogCollectionFactory;
@@ -26,7 +26,7 @@ class Log
     /** @var Curl */
     private $curl;
 
-    /** @var Config */
+    /** @var ConfigInterface */
     private $config;
 
     /** @var LogResource */
@@ -39,7 +39,7 @@ class Log
      * @param LogCollectionFactory $logCollectionFactory
      * @param Json $json
      * @param Curl $curl
-     * @param Config $config
+     * @param ConfigInterface $config
      * @param Logger $logger
      * @param LogResource $resource
      */
@@ -47,7 +47,7 @@ class Log
         LogCollectionFactory $logCollectionFactory,
         Json                 $json,
         Curl                 $curl,
-        Config               $config,
+        ConfigInterface               $config,
         Logger               $logger,
         LogResource          $resource
     ) {

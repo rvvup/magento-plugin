@@ -18,8 +18,9 @@ $code = $block->getMethodCode();
             <div style="width: 150%; white-space: normal">
                 <input type="radio"
                        id="<?= $escaper->escapeHtmlAttr($code) ?>_create_payment_link"
-                       name="moto"
+                       name="payment[moto]"
                        value="payment_link"
+                    <?= $block->getInfoData('moto') =='payment_link' ? 'checked' :'' ?>
                 />
                 <label for="<?= $escaper->escapeHtmlAttr($code) ?>_create_payment_link">
                     <?= $escaper->escapeHtml(__('Create a Rvvup Payment Link')) ?>
@@ -33,8 +34,9 @@ $code = $block->getMethodCode();
             <div style="width: 150%; white-space: normal">
                 <input type="radio"
                        id="<?= $escaper->escapeHtmlAttr($code) ?>_create_virtual_terminal"
-                       name="moto"
+                       name="payment[moto]"
                        value="virtual_terminal"
+                    <?= $block->getInfoData('moto') =='virtual_terminal' ? 'checked' :'' ?>
                 />
                 <label for="<?= $escaper->escapeHtmlAttr($code) ?>_create_virtual_terminal">
                     <?= $escaper->escapeHtml(__('Create a Rvvup Payment using')) ?>

@@ -73,15 +73,19 @@ class Result
         $this->logger = $logger;
     }
 
-    /** @todo refactor
-     * Update Magento Order based on Rvuup Order and payment statuses
+    /**
      * @param string|null $orderId
      * @param string $rvvupId
      * @param bool $reservedOrderId
+     * @param string|null $redirectUrl
      * @return Redirect
      */
-    public function processOrderResult(?string $orderId, string $rvvupId, bool $reservedOrderId = false): Redirect
-    {
+    public function processOrderResult(
+        ?string $orderId,
+        string $rvvupId,
+        bool $reservedOrderId = false,
+        string $redirectUrl = null
+    ): Redirect {
         if (!$orderId) {
             return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
                 In::SUCCESS,
@@ -106,7 +110,11 @@ class Result
 
             $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
             $result = $processor->execute($order, $rvvupData);
-            // @todo redirect back to admin
+
+            if ($redirectUrl) {
+                $result->setRedirectPath($redirectUrl);
+            }
+
             if (get_class($processor) == Cancel::class) {
                 return $this->processResultPage($result, true);
             }

@@ -1,0 +1,36 @@
+define(['jquery'], function($) {
+    'use strict';
+
+    return {
+        createPaymentLink: function (url, amount, store_id, currency_code, order_id) {
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    'amount' : amount,
+                    'store_id' : store_id,
+                    'currency_code' : currency_code,
+                    'order_id' : order_id,
+                },
+                success: function (data, status, xhr) {
+                    document.getElementById('rvvup-payment-link').disabled = false;
+                    if (data.success !== true) {
+                        document.getElementById('rvvup-payment-link').disabled = false;
+                        if (data.message) {
+                            alert(data.message);
+                        } else {
+                            alert('Failed to create payment link, please check logs')
+                        }
+                        return;
+                    }
+                    alert('Successfully created and sent via email!');
+                    window.location.reload();
+                },
+                error: function () {
+                    document.getElementById('rvvup-payment-link').disabled = false;
+                    alert('Failed to create payment link, please check logs');
+                }
+            })
+        }
+    };
+});

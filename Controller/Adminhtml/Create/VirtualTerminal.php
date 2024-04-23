@@ -3,80 +3,40 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Controller\Adminhtml\Create;
 
-use Laminas\Http\Request;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\UrlInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
-use Magento\Sales\Api\OrderPaymentRepositoryInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Store\Model\ScopeInterface;
-use Rvvup\Payments\Model\Config;
-use Rvvup\Payments\Sdk\Curl;
+use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Service\VirtualCheckout;
 
 class VirtualTerminal extends Action implements HttpPostActionInterface
 {
-
     /** @var JsonFactory */
     private $resultJsonFactory;
 
-    /** @var SerializerInterface */
-    private $json;
+    /** @var VirtualCheckout */
+    private $virtualCheckoutService;
 
-    /** @var Curl */
-    private $curl;
-
-    /** @var Config */
-    private $config;
-
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
-
-    /** @var Payment */
-    private $paymentResource;
-
-    /** @var UrlInterface */
-    private $url;
-
-    /** @var CartRepositoryInterface */
-    private $cartRepository;
+    /** @var LoggerInterface */
+    private $logger;
 
     /**
      * @param Context $context
      * @param JsonFactory $resultJsonFactory
-     * @param Curl $curl
-     * @param Config $config
-     * @param SerializerInterface $json
-     * @param OrderRepositoryInterface $orderRepository
-     * @param CartRepositoryInterface $cartRepository
-     * @param Payment $paymentResource
-     * @param UrlInterface $url
+     * @param VirtualCheckout $virtualCheckoutService
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
-        Curl $curl,
-        Config $config,
-        SerializerInterface $json,
-        OrderRepositoryInterface $orderRepository,
-        CartRepositoryInterface $cartRepository,
-        Payment $paymentResource,
-        UrlInterface $url
+        VirtualCheckout $virtualCheckoutService,
+        LoggerInterface $logger
     ) {
-        parent::__construct($context);
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->json = $json;
-        $this->config = $config;
-        $this->orderRepository = $orderRepository;
-        $this->paymentResource = $paymentResource;
-        $this->curl = $curl;
-        $this->url = $url;
-        $this->cartRepository = $cartRepository;
+        $this->virtualCheckoutService = $virtualCheckoutService;
+        $this->logger = $logger;
+        parent::__construct($context);
     }
 
     /**
@@ -91,12 +51,9 @@ class VirtualTerminal extends Action implements HttpPostActionInterface
         $result = $this->resultJsonFactory->create();
 
         try {
-            $params = $this->getData($amount, $storeId, $orderId, $currencyCode);
-            $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
-            $body = $this->json->unserialize($request->body);
-            $this->processResponse($orderId, $body);
+            $body = $this->virtualCheckoutService->createVirtualCheckout($amount, $storeId, $orderId, $currencyCode);
         } catch (\Exception $e) {
-            /** @todo add logging */
+            $this->logger->error('Failed to create Rvvup virtual checkout', [$e->getMessage()]);
             $result->setData([
                 'success' => false
             ]);
@@ -109,64 +66,5 @@ class VirtualTerminal extends Action implements HttpPostActionInterface
         ]);
 
         return $result;
-    }
-
-    /**
-     * @param string $orderId
-     * @param array $body
-     * @return void
-     */
-    private function processResponse(string $orderId, array $body): void
-    {
-        $motoId = $body['id'];
-        try {
-            $order = $this->orderRepository->get($orderId);
-            $quoteId = $order->getQuoteId();
-            $quote = $this->cartRepository->get($quoteId);
-            $payment = $quote->getPayment();
-            $payment->setAdditionalInformation('rvvup_moto_id', $motoId);
-            $this->paymentResource->save($payment);
-        } catch (\Exception $e) {
-            //@todo add logging
-        }
-    }
-
-    /** @todo move to rest api sdk
-     * @param string $storeId
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    private function getApiUrl(string $storeId)
-    {
-        $merchantId = $this->config->getMerchantId(ScopeInterface::SCOPE_STORE, $storeId);
-        $baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
-        return str_replace('graphql', "api/2024-03-01/$merchantId/checkouts", $baseUrl);
-    }
-
-    private function getData(string $amount, string $storeId, string $orderId, string $currencyCode): array
-    {
-        $url = $this->url->getBaseUrl(['_scope' => $storeId])
-            . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
-
-        $postData = [
-            'amount' => ['amount' => $amount, 'currency' => $currencyCode],
-            'reference' => $orderId,
-            'source' => 'MAGENTO_MOTO',
-            'successUrl' => $url
-        ];
-
-        $token = $this->config->getJwtConfig(ScopeInterface::SCOPE_STORE, $storeId);
-
-        $headers = [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Idempotency-Key' => $orderId,
-            'Authorization: Bearer ' . $token
-        ];
-
-        return [
-            'headers' => $headers,
-            'json' => $postData
-        ];
     }
 }

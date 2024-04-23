@@ -1,8 +1,8 @@
-define(['jquery', 'mage/url'], function($) {
+define(['jquery'], function($) {
     'use strict';
 
     return {
-        insertPaymentLink: function (url, amount, store_id, currency_code, order_id) {
+        createVirtualTerminal: function (url, amount, store_id, currency_code, order_id) {
             $.ajax({
                 url: url,
                 type: 'POST',
@@ -20,10 +20,19 @@ define(['jquery', 'mage/url'], function($) {
                     }
 
                     if (data['iframe-url']) {
-                       var iframe = document.getElementById('rvvup_iframe');
-                       iframe.src = data['iframe-url'];
-                       iframe.style.display = 'block';
-                       iframe.scrollIntoView();
+                        let fetchCheckoutUrl = function () {
+                         return Promise.resolve(
+                             data['iframe-url']
+                         );
+                        }
+                        const rvvup = Rvvup();
+                        const checkout = rvvup.createEmbeddedCheckout({fetchCheckoutUrl})
+                            .then((checkout) => {
+                                checkout.mount()
+                            }
+                            ).finally(() => {
+                                document.getElementById('rvvup-virtual-terminal').disabled = false;
+                            });
                     } else {
                         alert('Failed to get terminal link, please check logs');
                     }
