@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Service;
 
 use Laminas\Http\Request;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
@@ -145,17 +146,17 @@ class PaymentLink
     }
 
     /**
-     * @param PaymentInterface $payment
+     * @param DataObject $payment
      * @param string $id
      * @param string $message
      * @return void
      */
-    public function savePaymentLink(PaymentInterface $payment, string $id, string $message): void
+    public function savePaymentLink(DataObject $payment, string $id, string $message): void
     {
         try {
             $payment->setAdditionalInformation('rvvup_payment_link_id', $id);
             $payment->setAdditionalInformation('rvvup_payment_link_message', $message);
-            $this->quotePaymentResource->save($payment);
+            $payment->save();
         } catch (\Exception $e) {
             $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
         }

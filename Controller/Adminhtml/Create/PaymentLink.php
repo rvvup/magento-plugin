@@ -15,7 +15,6 @@ use Magento\Framework\Controller\Result\JsonFactory;
 
 class PaymentLink extends Action implements HttpPostActionInterface
 {
-
     /** @var JsonFactory */
     private $resultJsonFactory;
 
@@ -27,7 +26,7 @@ class PaymentLink extends Action implements HttpPostActionInterface
 
     /** @var OrderRepositoryInterface */
     private $orderRepository;
-    
+
     /** @var LoggerInterface */
     private $logger;
 
@@ -67,12 +66,21 @@ class PaymentLink extends Action implements HttpPostActionInterface
         $currencyCode = $this->_request->getParam('currency_code');
         $result = $this->resultJsonFactory->create();
 
+        if (!$this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
+            $result->setData([
+                'success' => false,
+                'message' => 'Rvvup is disabled in that store view'
+            ]);
+            return $result;
+        }
+
         if ($amount > 0) {
             try {
                 $order = $this->orderRepository->get($orderId);
                 $body = $this->paymentLinkService->createPaymentLink($storeId, $amount, $orderId, $currencyCode);
                 $message = $this->config->getPayByLinkText(ScopeInterface::SCOPE_STORE, $storeId) . PHP_EOL . $body['url'];
                 $this->paymentLinkService->addCommentToOrder($order->getStatus(), $orderId, $message);
+                $this->paymentLinkService->savePaymentLink($order->getPayment(), $body['id'], $message);
             } catch (\Exception $e) {
                 $this->logger->error('Failed to create Rvvup payment link from order_view page', [
                     $amount,
@@ -81,7 +89,7 @@ class PaymentLink extends Action implements HttpPostActionInterface
                     $currencyCode,
                     $e->getMessage()
                 ]);
-                
+
                 $result->setData([
                     'success' => false
                 ]);

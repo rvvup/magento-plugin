@@ -235,6 +235,10 @@ class VirtualCheckout
 
             if ($payment->getAdditionalInformation('rvvup_payment_link_id')) {
                 $paymentLinkId = $payment->getAdditionalInformation('rvvup_payment_link_id');
+            } elseif ($order->getPayment()->getAdditionalInformation('rvvup_payment_link_id')) {
+                $paymentLinkId = $order->getPayment()->getAdditionalInformation('rvvup_payment_link_id');
+            }
+            if (isset($paymentLinkId)) {
                 $this->paymentLinkService->cancelPaymentLink((string)$order->getStoreId(), $paymentLinkId);
             }
 

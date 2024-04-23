@@ -58,7 +58,9 @@ class PaymentLink
     public function afterImportPostData(Create $subject, Create $result, array $data): Create
     {
         if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-            $createPaymentLink = $this->request->getPost('moto');
+            $createPaymentLink = $this->request->getPost('payment');
+            $createPaymentLink = isset($createPaymentLink['moto']) ? $createPaymentLink['moto'] : null;
+
             $payment = $subject->getQuote()->getPayment();
             $payment->setAdditionalInformation('create_rvvup_payment_link', $createPaymentLink);
 
@@ -104,8 +106,7 @@ class PaymentLink
      */
     public function afterCreateOrder(Create $subject, Order $result): Order
     {
-        $order = $this->request->getPost('moto');
-        if (!(isset($order['send_confirmation']) && $order['send_confirmation'])) {
+        if (!(isset($subject['send_confirmation']) && $subject['send_confirmation'])) {
             $payment = $subject->getQuote()->getPayment();
             $createPaymentLink = $payment->getAdditionalInformation('create_rvvup_payment_link');
             if (!$payment->getAdditionalInformation('rvvup_payment_link_id')
@@ -122,7 +123,7 @@ class PaymentLink
                             ['status' => $result->getStatus()]
                         );
                         if ($id && $message) {
-                            $payment = $subject->getQuote()->getPayment();
+                            $payment = $result->getPayment();
                             $this->paymentLinkService->savePaymentLink($payment, $id, $message);
                         }
                     }
