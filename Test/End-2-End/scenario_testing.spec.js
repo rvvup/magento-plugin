@@ -1,6 +1,7 @@
-import { test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import RvvupMethodCheckout from "./Components/RvvupMethodCheckout";
+import Cart from "./Components/Cart";
 
 test('Can place an order using different billing and shipping address', async ({ page, browser }) => {
     const visitCheckoutPayment = new VisitCheckoutPayment(page);
@@ -22,5 +23,26 @@ test('Can place an order using different billing and shipping address', async ({
     await billingForm.getByText("Liam Fox").isVisible();
     const rvvupMethodCheckout = new RvvupMethodCheckout(page);
     await rvvupMethodCheckout.checkout();
+});
+
+
+test('Changing qoute on a different tab for an in progress order makes the payment invalid', async ({ browser }) => {
+    const context = await browser.newContext();
+    const mainPage = await context.newPage();
+    const visitCheckoutPayment = new VisitCheckoutPayment(mainPage);
+    await visitCheckoutPayment.visit();
+    await mainPage.getByLabel('Rvvup Payment Method').click();
+    await mainPage.getByRole('button', {name: 'Place order'}).click();
+    const frame = mainPage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
+    await frame.getByRole('button', {name: 'Pay now'}).isVisible();
+
+    const duplicatePage = await context.newPage();
+    const cart = new Cart(duplicatePage);
+    await cart.addStandardItemToCart("Rvvup Crypto Future");
+
+    await frame.getByRole('button', {name: 'Pay now'}).click();
+
+    await mainPage.waitForURL("**/checkout/cart/");
+    await expect(mainPage.getByText("Your cart was modified after making payment request, please place order again.")).toBeVisible();
 });
 
