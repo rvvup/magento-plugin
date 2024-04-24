@@ -242,7 +242,8 @@ class Config implements ConfigInterface
     public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
     {
         $config = self::RVVUP_CONFIG . self::XML_PATH_EMAIL . self::XML_PATH_PAY_BY_LINK_TEXT;
-        $scopeCode = $scopeCode ?: ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
+        $scopeCode = $scopeCode ?:
+            ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
 
         return $this->scopeConfig->getValue($config, $scopeType, $scopeCode);
     }

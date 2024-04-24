@@ -4,6 +4,7 @@ namespace Rvvup\Payments\Plugin\Order\Create;
 
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Model\AdminOrder\Create;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
@@ -60,39 +61,9 @@ class PaymentLink
         if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
             $createPaymentLink = $this->request->getPost('payment');
             $createPaymentLink = isset($createPaymentLink['moto']) ? $createPaymentLink['moto'] : null;
-
             $payment = $subject->getQuote()->getPayment();
             $payment->setAdditionalInformation('create_rvvup_payment_link', $createPaymentLink);
-
-            if ($createPaymentLink == 'payment_link' && isset($data['comment'])) {
-                if (!$payment->getAdditionalInformation('rvvup_payment_link_id')) {
-                    $quote = $result->getQuote();
-                    $storeId = (string)$quote->getStore()->getId();
-                    $amount = (float)$quote->getGrandTotal();
-                    $orderId = $quote->reserveOrderId()->getReservedOrderId();
-                    $currencyCode = $quote->getQuoteCurrencyCode();
-                    $order = $this->request->getPost('order');
-                    if (!isset($order['account']) || !isset($order['send_confirmation'])) {
-                        return $result;
-                    }
-                    if ($result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-                        if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
-                            list($id, $message) =
-                                $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
-                            if ($id && $message) {
-                                $payment = $subject->getQuote()->getPayment();
-                                $this->paymentLinkService->savePaymentLink($payment, $id, $message);
-                            }
-                        }
-                    }
-                } else {
-                    $quote = $subject->getQuote();
-                    if ($quote->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-                        $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
-                        $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
-                    }
-                }
-            }
+            $this->createPaymentLink($createPaymentLink, $payment, $result, $subject, $data);
         }
         return $result;
     }
@@ -132,6 +103,60 @@ class PaymentLink
         }
 
         return $result;
+    }
+
+    /**
+     * @param string|null $createPaymentLink
+     * @param PaymentInterface $payment
+     * @param Create $result
+     * @param Create $subject
+     * @param array $data
+     * @return Create|void
+     * @throws NoSuchEntityException
+     */
+    private function createPaymentLink(
+        ?string $createPaymentLink,
+        PaymentInterface $payment,
+        Create $result,
+        Create $subject,
+        array $data
+    ) {
+        if ($createPaymentLink == 'payment_link' && isset($data['comment'])) {
+            if (!$payment->getAdditionalInformation('rvvup_payment_link_id')) {
+                $quote = $result->getQuote();
+                $storeId = (string)$quote->getStore()->getId();
+                $amount = (float)$quote->getGrandTotal();
+                $orderId = $quote->reserveOrderId()->getReservedOrderId();
+                $currencyCode = $quote->getQuoteCurrencyCode();
+                $order = $this->request->getPost('order');
+                if (!isset($order['account']) || !isset($order['send_confirmation'])) {
+                    return $result;
+                }
+                if ($result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                    if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
+                        list($id, $message) =
+                            $this->createRvvupPayByLink(
+                                $storeId,
+                                $amount,
+                                $orderId,
+                                $currencyCode,
+                                $subject,
+                                $data
+                            );
+                        if ($id && $message) {
+                            $payment = $subject->getQuote()->getPayment();
+                            $this->paymentLinkService->savePaymentLink($payment, $id, $message);
+                        }
+                    }
+                }
+            } else {
+                $quote = $subject->getQuote();
+                if ($quote->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                    $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
+                    $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
+                }
+            }
+        }
     }
 
     /**

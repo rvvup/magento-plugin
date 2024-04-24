@@ -36,8 +36,8 @@ class LoadMethodInstances
      */
     public function __construct(
         ConfigInterface $config,
-        SdkProxy $sdkProxy,
-        Factory $methodFactory
+        SdkProxy        $sdkProxy,
+        Factory         $methodFactory
     ) {
         $this->config = $config;
         $this->sdkProxy = $sdkProxy;
@@ -48,8 +48,8 @@ class LoadMethodInstances
      * Modify results of getMethodInstance() call to add in details about Klarna payment methods
      *
      * @param \Magento\Payment\Helper\Data $subject
-     * @param callable                     $proceed
-     * @param string                       $code
+     * @param callable $proceed
+     * @param string $code
      * @return MethodInterface
      * @throws LocalizedException
      * @SuppressWarnings(PMD.UnusedFormalParameter)
@@ -86,9 +86,9 @@ class LoadMethodInstances
                 return $this->methodFactory->create(
                     'RvvupFacade',
                     [
-                    'code' => $code,
-                    'title' => 'Rvvup Payments'
-                ]
+                        'code' => $code,
+                        'title' => 'Rvvup Payments'
+                    ]
                 );
             }
         }

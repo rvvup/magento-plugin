@@ -42,9 +42,9 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
             <?php $confirmationEmailStatusMessage = $order->getEmailSent() ? __('The order confirmation email was sent') : __('The order confirmation email is not sent'); ?>
             <div class="admin__page-section-item-title">
                 <span class="title">
-                    <?php if ($block->getNoUseOrderLink()) : ?>
+                    <?php if ($block->getNoUseOrderLink()): ?>
                         <?= $escaper->escapeHtml(__('Order # %1', $order->getRealOrderId())) ?> (<span><?= $escaper->escapeHtml($confirmationEmailStatusMessage) ?></span>)
-                    <?php else : ?>
+                    <?php else: ?>
                         <a href="<?= $escaper->escapeUrl($block->getViewUrl($order->getId())) ?>"><?= $escaper->escapeHtml(__('Order # %1', $order->getRealOrderId())) ?></a>
                         <span>(<?= $escaper->escapeHtml($confirmationEmailStatusMessage) ?>)</span>
                     <?php endif; ?>
@@ -56,7 +56,7 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                         <th><?= $escaper->escapeHtml(__('Order Date')) ?></th>
                         <td><?= $escaper->escapeHtml($orderAdminDate) ?></td>
                     </tr>
-                    <?php if ($orderAdminDate != $orderStoreDate) : ?>
+                    <?php if ($orderAdminDate != $orderStoreDate): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('Order Date (%1)', $block->getTimezoneForStore($order->getStore()))) ?></th>
                             <td><?= $escaper->escapeHtml($orderStoreDate) ?></td>
@@ -67,13 +67,13 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                         <td><span id="order_status"><?= $escaper->escapeHtml($order->getStatusLabel()) ?></span></td>
                     </tr>
                     <?= $block->getChildHtml() ?>
-                    <?php if ($block->isSingleStoreMode() == false) : ?>
+                    <?php if ($block->isSingleStoreMode() == false): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('Purchased From')) ?></th>
                             <td><?= $escaper->escapeHtml($block->getOrderStoreName(), ['br']) ?></td>
                         </tr>
                     <?php endif; ?>
-                    <?php if ($order->getRelationChildId()) : ?>
+                    <?php if ($order->getRelationChildId()): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('Link to the New Order')) ?></th>
                             <td>
@@ -83,7 +83,7 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                             </td>
                         </tr>
                     <?php endif; ?>
-                    <?php if ($order->getRelationParentId()) : ?>
+                    <?php if ($order->getRelationParentId()): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('Link to the Previous Order')) ?></th>
                             <td>
@@ -93,19 +93,19 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                             </td>
                         </tr>
                     <?php endif; ?>
-                    <?php if ($order->getRemoteIp() && $block->shouldDisplayCustomerIp()) : ?>
+                    <?php if ($order->getRemoteIp() && $block->shouldDisplayCustomerIp()): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('Placed from IP')) ?></th>
                             <td><?= $escaper->escapeHtml($order->getRemoteIp()); ?><?= $order->getXForwardedFor() ? ' (' . $escaper->escapeHtml($order->getXForwardedFor()) . ')' : ''; ?></td>
                         </tr>
                     <?php endif; ?>
-                    <?php if ($globalCurrencyCode !== $baseCurrencyCode) : ?>
+                    <?php if ($globalCurrencyCode !== $baseCurrencyCode): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('%1 / %2 rate:', $globalCurrencyCode, $baseCurrencyCode)) ?></th>
                             <td><?= $escaper->escapeHtml($order->getBaseToGlobalRate()) ?></td>
                         </tr>
                     <?php endif; ?>
-                    <?php if ($baseCurrencyCode !== $orderCurrencyCode && $globalCurrencyCode !== $orderCurrencyCode) : ?>
+                    <?php if ($baseCurrencyCode !== $orderCurrencyCode && $globalCurrencyCode !== $orderCurrencyCode): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('%1 / %2 rate:', $orderCurrencyCode, $baseCurrencyCode)) ?></th>
                             <td><?= $escaper->escapeHtml($order->getBaseToOrderRate()) ?></td>
@@ -120,7 +120,7 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
             <div class="admin__page-section-item-title">
                 <span class="title"><?= $escaper->escapeHtml(__('Account Information')) ?></span>
                 <div class="actions">
-                    <?php if ($customerUrl) : ?>
+                    <?php if ($customerUrl): ?>
                         <a href="<?= /* @noEscape */ $customerUrl ?>" target="_blank">
                             <?= $escaper->escapeHtml(__('Edit Customer')) ?>
                         </a>
@@ -132,11 +132,11 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                     <tr>
                         <th><?= $escaper->escapeHtml(__('Customer Name')) ?></th>
                         <td>
-                            <?php if ($customerUrl) : ?>
+                            <?php if ($customerUrl): ?>
                                 <a href="<?= $escaper->escapeUrl($customerUrl) ?>" target="_blank">
                                     <span><?= $escaper->escapeHtml($order->getCustomerName()) ?></span>
                                 </a>
-                            <?php else : ?>
+                            <?php else: ?>
                                 <?= $escaper->escapeHtml($order->getCustomerName()) ?>
                             <?php endif; ?>
                         </td>
@@ -145,13 +145,13 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                         <th><?= $escaper->escapeHtml(__('Email')) ?></th>
                         <td><a href="mailto:<?= $escaper->escapeHtmlAttr($order->getCustomerEmail()) ?>"><?= $escaper->escapeHtml($order->getCustomerEmail()) ?></a></td>
                     </tr>
-                    <?php if ($groupName = $block->getCustomerGroupName()) : ?>
+                    <?php if ($groupName = $block->getCustomerGroupName()): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml(__('Customer Group')) ?></th>
                             <td><?= $escaper->escapeHtml($groupName) ?></td>
                         </tr>
                     <?php endif; ?>
-                    <?php foreach ($block->getCustomerAccountData() as $data) : ?>
+                    <?php foreach ($block->getCustomerAccountData() as $data): ?>
                         <tr>
                             <th><?= $escaper->escapeHtml($data['label']) ?></th>
                             <td><?= $escaper->escapeHtml($data['value'], ['br']) ?></td>
@@ -166,7 +166,7 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
 
 <!-- Rvvup Modifications start -->
 <?php if ($block->shouldDisplayMoto()): ?>
-<script type="text/javascript" src="https://checkout.dev.rvvuptech.com/sdk/v1.js"></script>
+<script src="https://checkout.dev.rvvuptech.com/sdk/v1.js"></script>
 <section class="admin__page-section payment-link">
     <div class="admin__page-section-title">
         <span class="title"><?= $escaper->escapeHtml(__('Payment required via Rvvup')) ?></span>
@@ -222,11 +222,11 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                 function() {
                     terminalButton.disabled = true;
                     virtualTerminal.createVirtualTerminal(
-                        '<?= $virtualLinkUrl ?>',
-                        '<?= $amount ?>',
-                        '<?= $storeId ?>',
-                        '<?= $currencyCode ?>',
-                        '<?= $orderId ?>',
+                        '<?= $escaper->escapeUrl($virtualLinkUrl) ?>',
+                        '<?= $escaper->escapeJs($amount) ?>',
+                        '<?= $escaper->escapeJs($storeId) ?>',
+                        '<?= $escaper->escapeJs($currencyCode) ?>',
+                        '<?= $escaper->escapeJs($orderId) ?>',
                     );
                 }
         }
@@ -241,11 +241,11 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                 function() {
                     paymentLinkButton.disabled = true;
                     paymentLink.createPaymentLink(
-                        '<?= $paymentLinkUrl ?>',
-                        '<?= $amount ?>',
-                        '<?= $storeId ?>',
-                        '<?= $currencyCode ?>',
-                        '<?= $orderId ?>',
+                        '<?= $escaper->escapeJs($paymentLinkUrl) ?>',
+                        '<?= $escaper->escapeJs($amount) ?>',
+                        '<?= $escaper->escapeJs($storeId) ?>',
+                        '<?= $escaper->escapeJs($currencyCode) ?>',
+                        '<?= $escaper->escapeJs($orderId) ?>',
                     );
                 }
         }
@@ -267,7 +267,7 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
             </div>
             <address class="admin__page-section-item-content"><?= $escaper->escapeHtml($block->getFormattedAddress($order->getBillingAddress()), $allowedAddressHtmlTags); ?></address>
         </div>
-        <?php if (!$block->getOrder()->getIsVirtual()) : ?>
+        <?php if (!$block->getOrder()->getIsVirtual()): ?>
             <div class="admin__page-section-item order-shipping-address">
                 <?php /* Shipping Address */ ?>
                 <div class="admin__page-section-item-title">

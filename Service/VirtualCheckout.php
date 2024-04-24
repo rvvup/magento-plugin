@@ -304,8 +304,6 @@ class VirtualCheckout
     private function getHeaders(string $storeId, ?string $orderId = null)
     {
         $token = $this->config->getJwtConfig(ScopeInterface::SCOPE_STORE, $storeId);
-
-
         $result =  [
             'Content-Type: application/json',
             'Accept: application/json',

@@ -78,7 +78,8 @@ class PaymentLink extends Action implements HttpPostActionInterface
             try {
                 $order = $this->orderRepository->get($orderId);
                 $body = $this->paymentLinkService->createPaymentLink($storeId, $amount, $orderId, $currencyCode);
-                $message = $this->config->getPayByLinkText(ScopeInterface::SCOPE_STORE, $storeId) . PHP_EOL . $body['url'];
+                $message = $this->config->getPayByLinkText(ScopeInterface::SCOPE_STORE, $storeId);
+                $message .= PHP_EOL . $body['url'];
                 $this->paymentLinkService->addCommentToOrder($order->getStatus(), $orderId, $message);
                 $this->paymentLinkService->savePaymentLink($order->getPayment(), $body['id'], $message);
             } catch (\Exception $e) {
