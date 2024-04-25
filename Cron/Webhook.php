@@ -41,6 +41,7 @@ class Webhook
      * @param Json $json
      * @param WebhookRepository $webhookRepository
      * @param Capture $captureService
+     * @param LoggerInterface $logger
      */
     public function __construct(
         WebhookCollectionFactory $webhookCollectionFactory,
