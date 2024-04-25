@@ -454,6 +454,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Cron\Webhook">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+
     <preference for="Rvvup\Payments\Api\Data\WebhookInterface" type="Rvvup\Payments\Model\Data\WebhookData"/>
     <preference for="Rvvup\Payments\Api\WebhookRepositoryInterface" type="Rvvup\Payments\Model\WebhookRepository"/>
 
