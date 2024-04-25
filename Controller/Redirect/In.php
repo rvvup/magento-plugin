@@ -101,7 +101,7 @@ class In implements HttpGetActionInterface
             return $this->resultService->processOrderResult((string)$order->getId(), $rvvupId, false, $redirectUrl);
         }
 
-        if (!$quote->getId()) {
+        if (!$quote || !$quote->getId()) {
             $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
         }
 

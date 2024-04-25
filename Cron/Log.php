@@ -47,7 +47,7 @@ class Log
         LogCollectionFactory $logCollectionFactory,
         Json                 $json,
         Curl                 $curl,
-        ConfigInterface               $config,
+        ConfigInterface      $config,
         Logger               $logger,
         LogResource          $resource
     ) {
