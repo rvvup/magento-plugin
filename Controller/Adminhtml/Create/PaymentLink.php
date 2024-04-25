@@ -81,7 +81,8 @@ class PaymentLink extends Action implements HttpPostActionInterface
                 $message = $this->config->getPayByLinkText(ScopeInterface::SCOPE_STORE, $storeId);
                 $message .= PHP_EOL . $body['url'];
                 $this->paymentLinkService->addCommentToOrder($order->getStatus(), $orderId, $message);
-                $this->paymentLinkService->savePaymentLink($order->getPayment(), $body['id'], $message);
+                $payment = $this->paymentLinkService->getQuotePaymentByOrder($order);
+                $this->paymentLinkService->savePaymentLink($payment, $body['id'], $message);
             } catch (\Exception $e) {
                 $this->logger->error('Failed to create Rvvup payment link from order_view page', [
                     $amount,

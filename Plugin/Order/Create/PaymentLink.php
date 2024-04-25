@@ -94,7 +94,7 @@ class PaymentLink
                             ['status' => $result->getStatus()]
                         );
                         if ($id && $message) {
-                            $payment = $result->getPayment();
+                            $payment = $this->paymentLinkService->getQuotePaymentByOrder($result);
                             $this->paymentLinkService->savePaymentLink($payment, $id, $message);
                         }
                     }

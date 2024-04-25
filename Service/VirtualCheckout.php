@@ -9,7 +9,6 @@ use Magento\Framework\App\Area;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -40,9 +39,6 @@ class VirtualCheckout
     /** @var Payment */
     private $paymentResource;
 
-    /** @var CartRepositoryInterface */
-    private $cartRepository;
-
     /** @var Info */
     private $info;
 
@@ -61,7 +57,6 @@ class VirtualCheckout
     /**
      * @param Config $config
      * @param OrderRepositoryInterface $orderRepository
-     * @param CartRepositoryInterface $cartRepository
      * @param Payment $paymentResource
      * @param SerializerInterface $json
      * @param Curl $curl
@@ -74,7 +69,6 @@ class VirtualCheckout
     public function __construct(
         Config                   $config,
         OrderRepositoryInterface $orderRepository,
-        CartRepositoryInterface  $cartRepository,
         Payment                  $paymentResource,
         SerializerInterface      $json,
         Curl                     $curl,
@@ -87,7 +81,6 @@ class VirtualCheckout
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->paymentResource = $paymentResource;
-        $this->cartRepository = $cartRepository;
         $this->json = $json;
         $this->curl = $curl;
         $this->info = $info;
@@ -228,9 +221,7 @@ class VirtualCheckout
         $motoId = $body['id'];
         try {
             $order = $this->orderRepository->get($orderId);
-            $quoteId = $order->getQuoteId();
-            $quote = $this->cartRepository->get($quoteId);
-            $payment = $quote->getPayment();
+            $payment = $this->paymentLinkService->getQuotePaymentByOrder($order);
             $payment->setAdditionalInformation('rvvup_moto_id', $motoId);
 
             if ($payment->getAdditionalInformation('rvvup_payment_link_id')) {

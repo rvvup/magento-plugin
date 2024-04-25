@@ -3,12 +3,12 @@
 namespace Rvvup\Payments\Service;
 
 use Laminas\Http\Request;
-use Magento\Framework\DataObject;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Quote\Api\Data\PaymentInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Store\Model\ScopeInterface;
 use Rvvup\Payments\Model\Config;
@@ -39,8 +39,8 @@ class PaymentLink
      */
     private $logger;
 
-    /** @var Payment */
-    private $quotePaymentResource;
+    /** @var CartRepositoryInterface */
+    private $cartRepository;
 
     /**
      * @param Curl $curl
@@ -48,7 +48,7 @@ class PaymentLink
      * @param SerializerInterface $json
      * @param OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
      * @param OrderManagementInterface $orderManagement
-     * @param Payment $quotePaymentResource
+     * @param CartRepositoryInterface $cartRepository
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -57,7 +57,7 @@ class PaymentLink
         SerializerInterface                $json,
         OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
         OrderManagementInterface           $orderManagement,
-        Payment                            $quotePaymentResource,
+        CartRepositoryInterface            $cartRepository,
         LoggerInterface                    $logger
     ) {
         $this->curl = $curl;
@@ -65,7 +65,7 @@ class PaymentLink
         $this->json = $json;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->orderManagement = $orderManagement;
-        $this->quotePaymentResource = $quotePaymentResource;
+        $this->cartRepository = $cartRepository;
         $this->logger = $logger;
     }
 
@@ -146,12 +146,12 @@ class PaymentLink
     }
 
     /**
-     * @param DataObject $payment
+     * @param PaymentInterface $payment
      * @param string $id
      * @param string $message
      * @return void
      */
-    public function savePaymentLink(DataObject $payment, string $id, string $message): void
+    public function savePaymentLink(PaymentInterface $payment, string $id, string $message): void
     {
         try {
             $payment->setAdditionalInformation('rvvup_payment_link_id', $id);
@@ -160,6 +160,18 @@ class PaymentLink
         } catch (\Exception $e) {
             $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @return PaymentInterface
+     * @throws NoSuchEntityException
+     */
+    public function getQuotePaymentByOrder(OrderInterface $order): PaymentInterface
+    {
+        $quoteId = $order->getQuoteId();
+        $quote = $this->cartRepository->get($quoteId);
+        return $quote->getPayment();
     }
 
     /**

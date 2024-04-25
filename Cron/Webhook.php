@@ -82,8 +82,12 @@ class Webhook
                 $storeId = (int) $data['store_id'];
                 $orderId = $data['order_id'];
 
-                if ($data['payment_link_id']) {
+                if (isset($data['payment_link_id']) && $data['payment_link_id']) {
                     if (!$this->validatePaymentLink($storeId, $data, $webhookId)) {
+                        continue;
+                    }
+                } elseif (isset($data['checkout_id']) && $data['checkout_id']) {
+                    if (!$this->validateMoto($storeId, $data, $webhookId)) {
                         continue;
                     }
                 } elseif ($data['event_type'] == Index::PAYMENT_COMPLETED) {
@@ -165,6 +169,32 @@ class Webhook
             $this->webhookRepository->save($webhook);
             return false;
         }
+        return true;
+    }
+
+    /**
+     * @param int $storeId
+     * @param array $data
+     * @param int $webhookId
+     * @return bool
+     * @throws AlreadyExistsException
+     * @throws NoSuchEntityException
+     */
+    private function validateMoto(int $storeId, array $data, int $webhookId): bool
+    {
+        $order = $this->captureService->getOrderByPaymentField(
+            'rvvup_moto_id',
+            $data['checkout_id'],
+            (string)$storeId
+        );
+
+        if (!$order || !$order->getId()) {
+            $webhook = $this->webhookRepository->getById($webhookId);
+            $webhook->setData('is_processed', true);
+            $this->webhookRepository->save($webhook);
+            return false;
+        }
+
         return true;
     }
 
