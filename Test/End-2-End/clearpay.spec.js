@@ -10,7 +10,7 @@ test('Can place a Clearpay order', async ({ page, browser }) => {
     await page.getByRole('button', { name: 'Place order' }).click();
 
     const clearpayFrame = page.frameLocator('#rvvup_iframe-rvvup_CLEARPAY');
-    await frame.getByRole('button', { name: 'Accept All'}).click();
+    await clearpayFrame.getByRole('button', { name: 'Accept All'}).click();
 
     await clearpayFrame.getByTestId('login-password-input').fill('XHvZsaUWh6K-BPWgXY!NJBwG');
     await clearpayFrame.getByRole('button', { name: 'Continue'}).click();
