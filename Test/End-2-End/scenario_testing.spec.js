@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import RvvupMethodCheckout from "./Components/RvvupMethodCheckout";
 import Cart from "./Components/Cart";
+import PayByBankCheckout from './Components/PayByBankCheckout';
 
 test('Can place an order using different billing and shipping address', async ({ page, browser }) => {
     const visitCheckoutPayment = new VisitCheckoutPayment(page);
@@ -48,3 +49,28 @@ test('Changing qoute on a different tab for an in progress order makes the payme
     await expect(mainPage.getByText("Your cart was modified after making payment request, please place order again.")).toBeVisible();
 });
 
+test.describe('discounts', () => {
+    test('Can place an order using discount codes', async ({ page }) => {
+        const visitCheckoutPayment = new VisitCheckoutPayment(page);
+        await visitCheckoutPayment.visit();
+
+        await page.getByRole('heading', {name: 'Apply discount code'}).click();
+        await page.getByPlaceholder('Enter discount code').fill('100');
+        await page.getByRole('button', { name: 'Apply Discount' }).click();
+
+        const payByBankCheckout = new PayByBankCheckout(page);
+        await payByBankCheckout.checkout();
+    });
+
+    test('Cannot place order when discount is 100% and cart value is £0', async ({ page }) => {
+        const visitCheckoutPayment = new VisitCheckoutPayment(page);
+        await visitCheckoutPayment.visitWithoutShippingFee();
+
+        await page.getByRole('heading', {name: 'Apply discount code'}).click();
+        await page.getByPlaceholder('Enter discount code').fill('100');
+        await page.getByRole('button', { name: 'Apply Discount' }).click();
+        
+        await expect(page.getByText('No Payment Information Required')).toBeVisible();
+        await expect(page.getByLabel('Pay by Bank')).not.toBeVisible();
+    });
+})

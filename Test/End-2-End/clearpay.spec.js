@@ -71,3 +71,8 @@ test('Clearpay not available for products above price threshold', async ({ page 
 
     await expect(page.getByRole('button', { name: 'Clearpay logo - Opens a dialog'})).not.toBeVisible();
 });
+
+test('Clearpay shows correct instalment amounts on product page', async ({ page }) => {
+    await page.goto('./joust-duffle-bag.html');
+    await expect(page.getByText('or 4 interest-free payments of £7.08 with')).toBeVisible();
+});
