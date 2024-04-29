@@ -83,6 +83,42 @@ test('Can place a PayPal express order', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
 
+test('Can place a PayPal express order using debit or credit cards', async ({ page }) => {
+    page.goto('./demogento-enter-the-metaverse-2.html');
+
+    const paypalFrame = page.frameLocator("[title='PayPal']").first();
+    await paypalFrame.getByRole('link', { name: 'Debit or Credit Card' }).click();
+
+    // Fill in the form
+    const paypalCardForm = paypalFrame.frameLocator("[title='paypal_card_form']"); 
+    await paypalCardForm.getByLabel('Card number').fill('4698 4665 2050 8153')
+    await paypalCardForm.getByPlaceholder('Expires').fill('1125')
+    await paypalCardForm.getByPlaceholder('Security code').fill('141')
+
+    await paypalCardForm.getByPlaceholder('First name').fill('John');
+    await paypalCardForm.getByPlaceholder('Last name').fill('Doe');
+    await paypalCardForm.getByPlaceholder('Address line 1').fill('123 Main St');
+    await paypalCardForm.getByPlaceholder('Town/City').fill('London');
+    await paypalCardForm.getByPlaceholder('Postcode').fill('SW1A 1AA');
+    await paypalCardForm.getByPlaceholder('Mobile').fill('1234567890')
+    await paypalCardForm.getByPlaceholder('Email').fill('johndoe@example.com')
+
+    await paypalCardForm.getByRole('button', { name: 'Continue' }).click();
+
+    // Continue to shipping and checkout
+    await page.getByLabel('Phone number').fill('+441234567890');
+    await page.getByLabel('Free').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await expect(page.getByText('Payment Method', { exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Place order' }).click();
+    
+    await page.waitForURL("./default/checkout/onepage/success/");
+    
+    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+});
+
 test('Cannot place a PayPal express order if shipping cost is added later', async ({ page }) => {
     page.on('popup', async popup => {
         await popup.waitForLoadState();
@@ -96,7 +132,7 @@ test('Cannot place a PayPal express order if shipping cost is added later', asyn
     });
 
     // Product page
-    page.goto('./demogento-enter-the-metaverse-2.html');
+    await page.goto('./demogento-enter-the-metaverse-2.html');
 
     const paypalFrame = page.frameLocator("[title='PayPal']").first();
     await paypalFrame.getByRole('link', { name: 'PayPal' }).click();
