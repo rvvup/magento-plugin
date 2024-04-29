@@ -82,3 +82,18 @@ test.skip('Can place a modal pay by card order without 3DS challenge', async ({ 
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
+
+test('Cannot place pay by card order using invalid card details', async ({ page }) => {
+    const visitCheckoutPayment = new VisitCheckoutPayment(page);
+    await visitCheckoutPayment.visit();
+
+    await page.getByLabel('Pay by Card').click();
+
+    // Credit card form
+    await page.frameLocator('.st-card-number-iframe').getByLabel('Card Number').fill('4000 0000 0000 2537');
+    await page.frameLocator('.st-expiration-date-iframe').getByLabel('Expiration Date').fill('1233');
+    await page.frameLocator('.st-security-code-iframe').getByLabel('Security Code').fill('123');
+    await page.getByRole('button', { name: 'Place order' }).click();
+
+    await expect(page.getByText('3DSecure failed')).toBeVisible();
+});
