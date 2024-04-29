@@ -9,3 +9,11 @@ test('Can place an order using pay by bank', async ({ page }) => {
     const payByBankCheckout = new PayByBankCheckout(page);
     await payByBankCheckout.checkout();
 });
+
+test('The customer can decline the payment', async ({ page }) => {
+    const visitCheckoutPayment = new VisitCheckoutPayment(page);
+    await visitCheckoutPayment.visit();
+
+    const payByBankCheckout = new PayByBankCheckout(page);
+    await payByBankCheckout.decline();
+});
