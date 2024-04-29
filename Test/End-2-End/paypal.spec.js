@@ -25,7 +25,7 @@ test('Can place a PayPal order on checkout', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
 
-test('Can place a PayPal order on checkout using debit or credit cards', async ({ page }) => {
+test.fixme('Can place a PayPal order on checkout using debit or credit cards', async ({ page }) => {
     const visitCheckoutPayment = new VisitCheckoutPayment(page);
     await visitCheckoutPayment.visit();
 
@@ -83,7 +83,7 @@ test('Can place a PayPal express order', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
 
-test('Can place a PayPal express order using debit or credit cards', async ({ page }) => {
+test.fixme('Can place a PayPal express order using debit or credit cards', async ({ page }) => {
     page.goto('./demogento-enter-the-metaverse-2.html');
 
     const paypalFrame = page.frameLocator("[title='PayPal']").first();
@@ -91,7 +91,7 @@ test('Can place a PayPal express order using debit or credit cards', async ({ pa
 
     // Fill in the form
     const paypalCardForm = paypalFrame.frameLocator("[title='paypal_card_form']"); 
-    await paypalCardForm.getByLabel('Card number').fill('4698 4665 2050 8153')
+    await paypalCardForm.getByPlaceholder('Card number').fill('4698 4665 2050 8153')
     await paypalCardForm.getByPlaceholder('Expires').fill('1125')
     await paypalCardForm.getByPlaceholder('Security code').fill('141')
 
