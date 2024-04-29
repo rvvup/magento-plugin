@@ -17,6 +17,7 @@ use Magento\Store\Model\ScopeInterface;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\Service\PaymentLink;
 
 class Info extends MagentoInfo
 {
@@ -25,6 +26,9 @@ class Info extends MagentoInfo
 
     /** @var SdkProxy */
     private $sdkProxy;
+
+    /** @var PaymentLink */
+    private $paymentLinkService;
 
     /**
      * @param Context $context
@@ -36,6 +40,7 @@ class Info extends MagentoInfo
      * @param Renderer $addressRenderer
      * @param ConfigInterface $config
      * @param SdkProxy $sdkProxy
+     * @param PaymentLink $paymentLinkService
      * @param array $data
      */
     public function __construct(
@@ -48,10 +53,12 @@ class Info extends MagentoInfo
         Renderer $addressRenderer,
         ConfigInterface $config,
         SdkProxy $sdkProxy,
+        PaymentLink $paymentLinkService,
         array $data = []
     ) {
         $this->config = $config;
         $this->sdkProxy = $sdkProxy;
+        $this->paymentLinkService = $paymentLinkService;
         parent::__construct(
             $context,
             $registry,
@@ -108,7 +115,7 @@ class Info extends MagentoInfo
     public function getPaymentLink(): ?string
     {
         if ($this->shouldDisplayRvvup()) {
-            $payment = $this->getOrder()->getPayment();
+            $payment = $this->paymentLinkService->getQuotePaymentByOrder($this->getOrder());
             $message = $payment->getAdditionalInformation('rvvup_payment_link_message');
             if ($message && is_string($message)) {
                 return $message;
