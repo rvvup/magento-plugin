@@ -1,6 +1,7 @@
 define([
         'Magento_Checkout/js/view/payment/default',
         'jquery',
+        'ko',
         'mage/translate',
         'Magento_Ui/js/modal/modal',
         'text!Rvvup_Payments/template/modal.html',
@@ -24,6 +25,7 @@ define([
     ], function (
         Component,
         $,
+        ko,
         $t,
         modal,
         popupTpl,
@@ -67,6 +69,13 @@ define([
 
             initialize: function () {
                 this._super();
+                let self = this;
+                self.dynamicIframeUrl = ko.observable(null);
+
+                self.getIframe = ko.computed(() => {
+                    return self.dynamicIframeUrl() ||
+                        (window.checkoutConfig && window.checkoutConfig.payment[self.index] && window.checkoutConfig.payment[self.index].summary_url);
+                });
 
                 /* Set express payment Checkout flag on component initialization */
                 rvvupMethodProperties.setIsExpressPaymentCheckout(isExpressPayment());
@@ -136,6 +145,24 @@ define([
                             window.location.reload();
                         });
                 })
+                quote.totals.subscribe(function (newValue) {
+                    if (!self.index || !window.checkoutConfig.payment[self.index]) {
+                        return;
+                    }
+                    let url = window.checkoutConfig.payment[self.index].summary_url;
+                    if (!url) {
+                        return;
+                    }
+                    // If we have a url template without an amount query, then lets ignore it.
+                    if (url.indexOf("amount=") < 0) {
+                        return;
+                    }
+                    let urlWithAmount = url.replace(/amount=(\d+\.\d+)&/, 'amount=' + newValue.base_grand_total + '&');
+                    if (self.dynamicIframeUrl === urlWithAmount) {
+                        return;
+                    }
+                    self.dynamicIframeUrl(urlWithAmount);
+                });
             },
 
             cancelPayPalPayment: function () {
@@ -366,7 +393,7 @@ define([
                                     }).fail(function () {
                                         return reject();
                                     });
-                                }).fail(function () {
+                            }).fail(function () {
                                 loader.stopLoader();
                                 return reject();
                             })
@@ -482,17 +509,6 @@ define([
              */
             isPayPalComponent: function () {
                 return this.index === 'rvvup_PAYPAL';
-            },
-
-            /**
-             * Get the component's iframe with the related payment method summary_url.
-             *
-             * @return {string}
-             */
-            getIframe: function () {
-                let grandTotal = parseFloat(totals.getSegment('grand_total').value);
-                let url = window.checkoutConfig.payment[this.index].summary_url;
-                return url.replace(/amount=(\d+\.\d+)&/, 'amount=' + grandTotal + '&')
             },
 
             /**
@@ -644,7 +660,7 @@ define([
                         }
                     })
                 }).fail(function () {
-                     loader.stopLoader();
+                    loader.stopLoader();
                 });
             },
 
