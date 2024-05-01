@@ -28,6 +28,19 @@ test('Can place an order using different billing and shipping address', async ({
     await rvvupMethodCheckout.checkout();
 });
 
+test.fail('Cannot spam the place order button to create duplicate orders', async ({ page }) => {
+    const visitCheckoutPayment = new VisitCheckoutPayment(page);
+    await visitCheckoutPayment.visit();
+
+    await page.getByLabel('Rvvup Payment Method').click();
+    const button = page.getByRole('button', { name: 'Place order' });
+
+    // TODO: If you programmatically change the z-index of the checkout modal,
+    // you can bring the Place Order button into view and click it multiple times.
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(button).toBeDisabled();
+});
 
 test.describe('multiple tabs', () => {
     test('Changing quote on a different tab for an in progress order makes the payment invalid', async ({ browser }) => {
