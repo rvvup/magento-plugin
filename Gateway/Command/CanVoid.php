@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Gateway\Command;
 
 use Exception;
+use Magento\Framework\App\Area;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 use Magento\Store\Model\App\Emulation;
@@ -52,10 +53,16 @@ class CanVoid implements ValueHandlerInterface
     {
         try {
             if ($storeId) {
-                $this->emulation->startEnvironmentEmulation($storeId);
+                $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_ADMINHTML);
             }
 
             $payment = $subject['payment']->getPayment();
+            $disabledMethods = ['rvvup_payment-link','rvvup_virtual-terminal'];
+
+            if (in_array($payment->getMethod(), $disabledMethods)) {
+                return false;
+            }
+
             $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
 
             if (!$orderId) {
