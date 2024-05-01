@@ -149,3 +149,18 @@ test('Cannot place a PayPal express order if shipping cost is added later', asyn
 
     await expect(page.getByText('Payment Failed')).toBeVisible();
 });
+
+test('PayPal replaces the Place Order button with a PayPal button', async ({ page }) => {
+    const visitCheckoutPayment = new VisitCheckoutPayment(page);
+    await visitCheckoutPayment.visit();
+
+    await page.getByText('Pay by Bank', { exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Place Order' })).toBeVisible();
+    
+    await page.getByText('PayPal', { exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Place Order' })).not.toBeVisible();
+
+    await expect(
+        page.frameLocator("[title='PayPal']").first().getByRole('link', { name: 'PayPal' })
+    ).toBeVisible();
+})

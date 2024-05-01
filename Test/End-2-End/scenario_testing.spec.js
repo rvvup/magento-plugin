@@ -29,25 +29,87 @@ test('Can place an order using different billing and shipping address', async ({
 });
 
 
-test('Changing qoute on a different tab for an in progress order makes the payment invalid', async ({ browser }) => {
-    const context = await browser.newContext();
-    const mainPage = await context.newPage();
-    const visitCheckoutPayment = new VisitCheckoutPayment(mainPage);
-    await visitCheckoutPayment.visit();
-    await mainPage.getByLabel('Rvvup Payment Method').click();
-    await mainPage.getByRole('button', {name: 'Place order'}).click();
-    const frame = mainPage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
-    await frame.getByRole('button', {name: 'Pay now'}).isVisible();
+test.describe('multiple tabs', () => {
+    test('Changing quote on a different tab for an in progress order makes the payment invalid', async ({ browser }) => {
+        const context = await browser.newContext();
+        const mainPage = await context.newPage();
+        const visitCheckoutPayment = new VisitCheckoutPayment(mainPage);
+        await visitCheckoutPayment.visit();
+        await mainPage.getByLabel('Rvvup Payment Method').click();
+        await mainPage.getByRole('button', {name: 'Place order'}).click();
+        const frame = mainPage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
+        await frame.getByRole('button', {name: 'Pay now'}).isVisible();
+    
+        const duplicatePage = await context.newPage();
+        const cart = new Cart(duplicatePage);
+        await cart.addStandardItemToCart("Rvvup Crypto Future");
+    
+        await frame.getByRole('button', {name: 'Pay now'}).click();
+    
+        await mainPage.waitForURL("**/checkout/cart/");
+        await expect(mainPage.getByText("Your cart was modified after making payment request, please place order again.")).toBeVisible();
+    });
 
-    const duplicatePage = await context.newPage();
-    const cart = new Cart(duplicatePage);
-    await cart.addStandardItemToCart("Rvvup Crypto Future");
+    test('Cannot complete the same order in multiple tabs simultaneously', async ({ browser }) => {
+        const context = await browser.newContext();
 
-    await frame.getByRole('button', {name: 'Pay now'}).click();
+        // Start the checkout on the first tab
+        const mainPage = await context.newPage();
+        const mainCheckout = new VisitCheckoutPayment(mainPage);
+        await mainCheckout.visit();
 
-    await mainPage.waitForURL("**/checkout/cart/");
-    await expect(mainPage.getByText("Your cart was modified after making payment request, please place order again.")).toBeVisible();
-});
+        await mainPage.getByLabel('Rvvup Payment Method').click();
+        await mainPage.getByRole('button', { name: 'Place order' }).click();
+        const mainFrame = mainPage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
+        
+        // Start the checkout on the second tab
+        const duplicatePage = await context.newPage();
+        await duplicatePage.goto('./checkout');
+        await duplicatePage.getByRole('button', { name: 'Next' }).click();
+
+        await duplicatePage.getByLabel('Rvvup Payment Method').click();
+        await duplicatePage.getByRole('button', { name: 'Place order' }).click();
+        const duplicateFrame = duplicatePage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
+
+        // Complete order in the first tab, and then in the second tab shortly after
+        await mainFrame.getByRole('button', { name: 'Pay now' }).click();
+        await duplicateFrame.getByRole('button', { name: 'Pay now' }).click();
+    
+        await duplicatePage.waitForURL("./default/checkout/onepage/success/");
+        await expect(duplicatePage.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+
+        await expect(mainPage.getByText(/This checkout cannot complete, a new cart was opened in another tab.+/)).toBeVisible();
+    });
+
+    test('Cannot place order in one tab and then place the same order again in another tab', async ({ browser }) => {
+        const context = await browser.newContext();
+
+        // Start the checkout on the first tab
+        const mainPage = await context.newPage();
+        const mainCheckout = new VisitCheckoutPayment(mainPage);
+        await mainCheckout.visit();
+        await mainPage.getByLabel('Rvvup Payment Method').click();
+
+        // Open the checkout page on the second tab
+        const duplicatePage = await context.newPage();
+        await duplicatePage.goto('./checkout');
+        await duplicatePage.getByRole('button', { name: 'Next' }).click();
+        await expect(duplicatePage.getByText('Payment Method', { exact: true })).toBeVisible();
+        await duplicatePage.getByLabel('Rvvup Payment Method').click();
+
+        // Complete order in the first tab
+        await mainPage.getByRole('button', { name: 'Place order' }).click();
+        const mainFrame = mainPage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
+        await mainFrame.getByRole('button', { name: 'Pay now' }).click();
+
+        await mainPage.waitForURL("./default/checkout/onepage/success/");
+        await expect(mainPage.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+
+        // Complete order in the second tab
+        await duplicatePage.getByRole('button', { name: 'Place order' }).click();
+        await expect(duplicatePage.getByText('No such entity with cartId =')).toBeVisible();
+    });
+})
 
 test.describe('discounts', () => {
     test('Can place an order using discount codes', async ({ page }) => {
