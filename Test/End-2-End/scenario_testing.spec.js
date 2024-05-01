@@ -74,3 +74,20 @@ test.describe('discounts', () => {
         await expect(page.getByLabel('Pay by Bank')).not.toBeVisible();
     });
 })
+
+test.describe('rounding', () => {
+    test('No PayPal rounding errors when paying for 20% VAT products', async ({ page }) => {
+        const visitCheckoutPayment = new VisitCheckoutPayment(page);
+        await visitCheckoutPayment.visitCheckoutWithMultipleProducts();
+
+        await expect(page.getByRole('row', { name: 'Order Total £' }).locator('span').getByText('£6.00')).toBeVisible();
+        await expect(page.getByText('PayPal', { exact: true })).toBeEnabled();
+    });
+
+    test('No Clearpay rounding errors when paying for 20% VAT products', async ({ page }) => {
+        const visitCheckoutPayment = new VisitCheckoutPayment(page);
+        await visitCheckoutPayment.visitCartWithMultipleProducts();
+
+        await expect(page.getByText('or 4 interest-free payments of £1.50 with ⓘ')).toBeVisible();
+    });
+});
