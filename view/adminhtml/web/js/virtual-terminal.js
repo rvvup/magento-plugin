@@ -1,4 +1,4 @@
-define(['jquery'], function($) {
+define(['jquery', 'Magento_Ui/js/modal/alert'], function($, alert) {
     'use strict';
 
     return {
@@ -15,7 +15,9 @@ define(['jquery'], function($) {
                 success: function (data, status, xhr) {
                     document.getElementById('rvvup-virtual-terminal').disabled = false;
                     if (data.success !== true) {
-                        alert('Failed to get terminal link, please check logs')
+                        alert({
+                            content: 'Failed to get terminal link, please check logs'
+                        });
                         return;
                     }
 
@@ -34,12 +36,16 @@ define(['jquery'], function($) {
                                 document.getElementById('rvvup-virtual-terminal').disabled = false;
                             });
                     } else {
-                        alert('Failed to get terminal link, please check logs');
+                        alert({
+                            content: 'Failed to get terminal link, please check logs'
+                        });
                     }
                 },
                 error: function () {
                     document.getElementById('rvvup-virtual-terminal').disabled = false;
-                    alert('Failed to create terminal link, please check logs');
+                    alert({
+                        content: 'Failed to create terminal link, please check logs'
+                    });
                 }
             })
         }

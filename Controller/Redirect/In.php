@@ -98,7 +98,13 @@ class In implements HttpGetActionInterface
             }
 
             $redirectUrl = $this->virtualCheckoutService->getOrderViewUrl((int)$order->getId());
-            return $this->resultService->processOrderResult((string)$order->getId(), $rvvupId, false, $redirectUrl);
+            return $this->resultService->processOrderResult(
+                (string)$order->getId(),
+                $rvvupId,
+                (int)$storeId,
+                false,
+                $redirectUrl
+            );
         }
 
         if (!$quote || !$quote->getId()) {
@@ -133,9 +139,21 @@ class In implements HttpGetActionInterface
                     $this->checkoutSession->setLastQuoteId($quote->getId());
                     $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
                     $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
-                    return $this->resultService->processOrderResult(null, $rvvupId);
+                    return $this->resultService->processOrderResult(
+                        null,
+                        $rvvupId,
+                        $quote->getStoreId(),
+                        false,
+                        null
+                    );
                 }
-                return $this->resultService->processOrderResult((string)$quote->getReservedOrderId(), $rvvupId, true);
+                return $this->resultService->processOrderResult(
+                    (string)$quote->getReservedOrderId(),
+                    $rvvupId,
+                    $quote->getStoreId(),
+                    true,
+                    null
+                );
             }
         }
 
@@ -149,7 +167,13 @@ class In implements HttpGetActionInterface
             $this->checkoutSession->setLastQuoteId($quote->getId());
             $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
             $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
-            return $this->resultService->processOrderResult((string)$orderId, $rvvupId, true);
+            return $this->resultService->processOrderResult(
+                (string)$orderId,
+                $rvvupId,
+                $quote->getStoreId(),
+                true,
+                null
+            );
         }
 
         if (!$orderId) {
@@ -173,7 +197,13 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        return $this->resultService->processOrderResult((string)$orderId, $rvvupId);
+        return $this->resultService->processOrderResult(
+            (string)$orderId,
+            $rvvupId,
+            $quote->getStoreId(),
+            false,
+            null
+        );
     }
 
     /**

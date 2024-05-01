@@ -81,9 +81,11 @@ class Info extends MagentoInfo
             $order = $this->getOrder();
             if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $order->getStoreId())) {
                 $payment = $order->getPayment();
-                if ($payment && $payment->getMethod() == RvvupConfigProvider::CODE) {
-                    if ($order->getState() == Order::STATE_NEW) {
-                        return true;
+                if ($payment) {
+                    if (in_array($payment->getMethod(), ['rvvup_virtual-terminal','rvvup_payment-link'])) {
+                        if (sizeof($order->getInvoiceCollection()->getItems()) == 0) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -99,11 +101,25 @@ class Info extends MagentoInfo
     {
         $amount = $this->getOrder()->getGrandTotal();
         $currency = $this->getOrder()->getOrderCurrencyCode();
-        $methods = $this->sdkProxy->getMethods($amount, $currency);
-        foreach ($methods as $method) {
-            if (isset($method['settings']['motoEnabled']) && $method['settings']['motoEnabled']) {
-                return true;
+        if ($this->getOrder()->getPayment()->getMethod() == 'rvvup_virtual-terminal') {
+            $methods = $this->sdkProxy->getMethods($amount, $currency);
+            foreach ($methods as $method) {
+                if (isset($method['settings']['motoEnabled']) && $method['settings']['motoEnabled']) {
+                    return true;
+                }
             }
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     * @throws LocalizedException
+     */
+    public function isPaymentLinkOrder(): bool
+    {
+        if ($this->getOrder()->getPayment()->getMethod() == 'rvvup_payment-link') {
+            return true;
         }
         return false;
     }

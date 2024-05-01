@@ -233,7 +233,7 @@ class Handler
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
         $this->paymentResource->save($payment);
         $this->cacheService->clear($rvvupOrderId, $order->getState());
-        if ($order->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+        if ($order->getPayment()->getMethod() == 'rvvup_payment-link') {
             $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
                 $rvvupData

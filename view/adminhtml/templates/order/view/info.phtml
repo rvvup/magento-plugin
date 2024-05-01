@@ -172,6 +172,7 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
         <span class="title"><?= $escaper->escapeHtml(__('Payment required via Rvvup')) ?></span>
     </div>
     <div class="admin__page-section-content">
+        <?php if ($block->isPaymentLinkOrder()): ?>
         <div class="admin__page-section-item payment-link"
              style="width: calc( (100%) * 0.5 - 30px ); float: left">
             <?php if ($block->getPaymentLink()): ?>
@@ -190,9 +191,10 @@ $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub
                 </div>
             <?php endif; ?>
         </div>
+        <?php endif; ?>
         <?php if ($block->isMotoAvailable()): ?>
         <div class="admin__page-section-item virtual-terminal"
-             style="width: calc( (100%) * 0.5 - 30px ); float: right">
+             style="width: calc( (100%) * 0.5 - 30px ); ">
                 <div class="admin__page-section-item-title">
                     <span class="title"><?= $escaper->escapeHtml(__('Rvvup virtual terminal')) ?></span>
                 </div>

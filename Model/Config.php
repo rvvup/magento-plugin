@@ -175,22 +175,26 @@ class Config implements ConfigInterface
      */
     private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?stdClass
     {
-        if (!$this->jwt) {
+        if (!$scopeCode) {
+            $scopeCode = $this->storeManager->getStore()->getId();
+        }
+
+        if (!isset($this->jwt[$scopeCode])) {
             $jwt = $this->getJwtConfig($scopeType, $scopeCode);
 
             if ($jwt === null) {
-                $this->jwt = null;
+                $this->jwt[$scopeCode] = null;
 
-                return $this->jwt;
+                return $this->jwt[$scopeCode];
             }
 
             $parts = explode('.', $jwt);
             list($head, $body, $crypto) = $parts;
             // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-            $this->jwt = json_decode(base64_decode($body));
+            $this->jwt[$scopeCode] = json_decode(base64_decode($body));
         }
 
-        return $this->jwt;
+        return $this->jwt[$scopeCode];
     }
 
     /**

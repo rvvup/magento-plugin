@@ -13,6 +13,7 @@ use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
 use Psr\Log\LoggerInterface;
+use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\Cancel;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
@@ -46,6 +47,9 @@ class Result
     /** @var OrderInterface */
     private $order;
 
+    /** @var Emulation */
+    private $emulation;
+
     /**
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -53,6 +57,7 @@ class Result
      * @param ProcessorPool $processorPool
      * @param PaymentDataGetInterface $paymentDataGet
      * @param OrderInterface $order
+     * @param Emulation $emulation
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -62,6 +67,7 @@ class Result
         ProcessorPool $processorPool,
         PaymentDataGetInterface $paymentDataGet,
         OrderInterface $order,
+        Emulation $emulation,
         LoggerInterface $logger
     ) {
         $this->resultFactory = $resultFactory;
@@ -70,6 +76,7 @@ class Result
         $this->processorPool = $processorPool;
         $this->paymentDataGet = $paymentDataGet;
         $this->order = $order;
+        $this->emulation = $emulation;
         $this->logger = $logger;
     }
 
@@ -78,14 +85,18 @@ class Result
      * @param string $rvvupId
      * @param bool $reservedOrderId
      * @param string|null $redirectUrl
+     * @param int|null $storeId
      * @return Redirect
      */
     public function processOrderResult(
         ?string $orderId,
         string $rvvupId,
+        int $storeId,
         bool $reservedOrderId = false,
         string $redirectUrl = null
     ): Redirect {
+        $this->emulation->startEnvironmentEmulation($storeId);
+
         if (!$orderId) {
             return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
                 In::SUCCESS,
@@ -99,6 +110,7 @@ class Result
             } else {
                 $order = $this->orderRepository->get($orderId);
             }
+
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId);
 

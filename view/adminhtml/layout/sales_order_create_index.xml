@@ -3,8 +3,12 @@
     <body>
         <referenceBlock name="order_create_billing_form">
             <action method="setMethodFormTemplate">
-                <argument name="method" xsi:type="string">rvvup</argument>
-                <argument name="template" xsi:type="string">Rvvup_Payments::form/payment.phtml</argument>
+                <argument name="method" xsi:type="string">rvvup_payment-link</argument>
+                <argument name="template" xsi:type="string">Rvvup_Payments::form/payment-link.phtml</argument>
+            </action>
+            <action method="setMethodFormTemplate">
+                <argument name="method" xsi:type="string">rvvup_virtual-terminal</argument>
+                <argument name="template" xsi:type="string">Rvvup_Payments::form/virtual-terminal.phtml</argument>
             </action>
         </referenceBlock>
     </body>

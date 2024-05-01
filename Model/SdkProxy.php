@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Model;
 
 use GuzzleHttp\Client;
+use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
 use Rvvup\Sdk\Exceptions\NetworkException;
@@ -37,23 +38,29 @@ class SdkProxy
      */
     private $monetizedMethods = [];
 
+    /** @var StoreManagerInterface */
+    private $storeManager;
+
     /**
      * @param ConfigInterface $config
      * @param UserAgentBuilder $userAgent
      * @param GraphQlSdkFactory $sdkFactory
-     * @param \Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface $getEnvironmentVersions
+     * @param StoreManagerInterface $storeManager
+     * @param GetEnvironmentVersionsInterface $getEnvironmentVersions
      * @param LoggerInterface $logger
      */
     public function __construct(
         ConfigInterface $config,
         UserAgentBuilder $userAgent,
         GraphQlSdkFactory $sdkFactory,
+        StoreManagerInterface $storeManager,
         GetEnvironmentVersionsInterface $getEnvironmentVersions,
         LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->userAgent = $userAgent;
         $this->sdkFactory = $sdkFactory;
+        $this->storeManager = $storeManager;
         $this->getEnvironmentVersions = $getEnvironmentVersions;
         $this->logger = $logger;
     }
@@ -65,13 +72,14 @@ class SdkProxy
      */
     private function getSubject(): GraphQlSdk
     {
-        if (!$this->subject) {
+        $storeId = $this->storeManager->getStore()->getId();
+        if (!isset($this->subject[$storeId])) {
             $endpoint = $this->config->getEndpoint();
             $merchant = $this->config->getMerchantId();
             $authToken = $this->config->getAuthToken();
             $debugMode = $this->config->isDebugEnabled();
             /** @var GraphQlSdk instance */
-            $this->subject = $this->sdkFactory->create([
+            $this->subject[$storeId] = $this->sdkFactory->create([
                 'endpoint' => $endpoint,
                 'merchantId' => $merchant,
                 'authToken' => $authToken,
@@ -81,7 +89,7 @@ class SdkProxy
                 'logger' => $this->logger
             ]);
         }
-        return $this->subject;
+        return $this->subject[$storeId];
     }
 
     /**

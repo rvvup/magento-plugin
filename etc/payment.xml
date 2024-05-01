@@ -4,6 +4,9 @@
         <group id="rvvup_group">
             <label>Rvvup</label>
         </group>
+        <group id="rvvup_backend_group">
+            <label>Rvvup</label>
+        </group>
     </groups>
     <methods>
         <method name="rvvup">

@@ -58,12 +58,9 @@ class PaymentLink
      */
     public function afterImportPostData(Create $subject, Create $result, array $data): Create
     {
-        if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-            $createPaymentLink = $this->request->getPost('payment');
-            $createPaymentLink = isset($createPaymentLink['moto']) ? $createPaymentLink['moto'] : null;
+        if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == 'rvvup_payment-link') {
             $payment = $subject->getQuote()->getPayment();
-            $payment->setAdditionalInformation('create_rvvup_payment_link', $createPaymentLink);
-            $this->createPaymentLink($createPaymentLink, $payment, $result, $subject, $data);
+            $this->createPaymentLink($payment, $result, $subject, $data);
         }
         return $result;
     }
@@ -79,11 +76,8 @@ class PaymentLink
     {
         if (!(isset($subject['send_confirmation']) && $subject['send_confirmation'])) {
             $payment = $subject->getQuote()->getPayment();
-            $createPaymentLink = $payment->getAdditionalInformation('create_rvvup_payment_link');
-            if (!$payment->getAdditionalInformation('rvvup_payment_link_id')
-                && $createPaymentLink == 'payment_link'
-            ) {
-                if ($payment->getMethod() == RvvupConfigProvider::CODE) {
+            if (!$payment->getAdditionalInformation('rvvup_payment_link_id')) {
+                if ($payment->getMethod() == 'rvvup_payment-link') {
                     if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $result->getStoreId())) {
                         list($id, $message) = $this->createRvvupPayByLink(
                             (string)$result->getStoreId(),
@@ -106,7 +100,6 @@ class PaymentLink
     }
 
     /**
-     * @param string|null $createPaymentLink
      * @param PaymentInterface $payment
      * @param Create $result
      * @param Create $subject
@@ -115,13 +108,12 @@ class PaymentLink
      * @throws NoSuchEntityException
      */
     private function createPaymentLink(
-        ?string $createPaymentLink,
         PaymentInterface $payment,
         Create $result,
         Create $subject,
         array $data
     ) {
-        if ($createPaymentLink == 'payment_link' && isset($data['comment'])) {
+        if (isset($data['comment'])) {
             if (!$payment->getAdditionalInformation('rvvup_payment_link_id')) {
                 $quote = $result->getQuote();
                 $storeId = (string)$quote->getStore()->getId();
@@ -132,7 +124,7 @@ class PaymentLink
                 if (!isset($order['account']) || !isset($order['send_confirmation'])) {
                     return $result;
                 }
-                if ($result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                if ($result->getQuote()->getPayment()->getMethod() == 'rvvup_payment-link') {
                     if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
                         list($id, $message) =
                             $this->createRvvupPayByLink(
@@ -151,7 +143,7 @@ class PaymentLink
                 }
             } else {
                 $quote = $subject->getQuote();
-                if ($quote->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+                if ($quote->getPayment()->getMethod() == 'rvvup_payment-link') {
                     $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
                     $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
                 }
@@ -207,7 +199,7 @@ class PaymentLink
         array $data,
         string $orderId
     ): ?string {
-        if ($body['status'] == 'ACTIVE') {
+        if (isset($body['status']) && $body['status'] == 'ACTIVE') {
             if ($amount == $body['amount']['amount']) {
                 $message = $this->config->getPayByLinkText(
                     ScopeInterface::SCOPE_STORE,

@@ -47,14 +47,14 @@ class LoadMethodInstances
     /**
      * Modify results of getMethodInstance() call to add in details about Klarna payment methods
      *
-     * @param \Magento\Payment\Helper\Data $subject
+     * @param Data $subject
      * @param callable $proceed
      * @param string $code
      * @return MethodInterface
      * @throws LocalizedException
      * @SuppressWarnings(PMD.UnusedFormalParameter)
      */
-    public function aroundGetMethodInstance(\Magento\Payment\Helper\Data $subject, callable $proceed, $code)
+    public function aroundGetMethodInstance(Data $subject, callable $proceed, $code)
     {
         if (0 === strpos($code, 'rvvup_')) {
             if (isset($this->instances[$code])) {
@@ -80,16 +80,6 @@ class LoadMethodInstances
                     ]
                 );
                 return $instance;
-            }
-        } elseif (0 === strpos($code, 'rvvup')) {
-            if ($this->config->isActive()) {
-                return $this->methodFactory->create(
-                    'RvvupFacade',
-                    [
-                        'code' => $code,
-                        'title' => 'Rvvup Payments'
-                    ]
-                );
             }
         }
 

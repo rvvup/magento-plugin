@@ -1,4 +1,4 @@
-define(['jquery'], function($) {
+define(['jquery', 'Magento_Ui/js/modal/alert'], function($, alert) {
     'use strict';
 
     return {
@@ -17,18 +17,26 @@ define(['jquery'], function($) {
                     if (data.success !== true) {
                         document.getElementById('rvvup-payment-link').disabled = false;
                         if (data.message) {
-                            alert(data.message);
+                            alert({
+                                content: data.message
+                            });
                         } else {
-                            alert('Failed to create payment link, please check logs')
+                            alert({
+                                content: 'Failed to create payment link, please check logs'
+                            });
                         }
                         return;
                     }
-                    alert('Successfully created and sent via email!');
+                    alert({
+                        content: 'Successfully created and sent via email!'
+                    })
                     window.location.reload();
                 },
                 error: function () {
                     document.getElementById('rvvup-payment-link').disabled = false;
-                    alert('Failed to create payment link, please check logs');
+                    alert({
+                        content: 'Failed to create payment link, please check logs'
+                    });
                 }
             })
         }

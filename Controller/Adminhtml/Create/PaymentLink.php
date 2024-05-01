@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Controller\Adminhtml\Create;
 
+use Magento\Framework\Controller\ResultFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
@@ -11,13 +12,9 @@ use Rvvup\Payments\Service\PaymentLink as PaymentLinkService;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
 
 class PaymentLink extends Action implements HttpPostActionInterface
 {
-    /** @var JsonFactory */
-    private $resultJsonFactory;
-
     /** @var PaymentLinkService */
     private $paymentLinkService;
 
@@ -32,7 +29,6 @@ class PaymentLink extends Action implements HttpPostActionInterface
 
     /**
      * @param Context $context
-     * @param JsonFactory $resultJsonFactory
      * @param PaymentLinkService $paymentLinkService
      * @param ConfigInterface $config
      * @param OrderRepositoryInterface $orderRepository
@@ -40,13 +36,11 @@ class PaymentLink extends Action implements HttpPostActionInterface
      */
     public function __construct(
         Context $context,
-        JsonFactory $resultJsonFactory,
         PaymentLinkService $paymentLinkService,
         ConfigInterface $config,
         OrderRepositoryInterface $orderRepository,
         LoggerInterface $logger
     ) {
-        $this->resultJsonFactory = $resultJsonFactory;
         $this->paymentLinkService = $paymentLinkService;
         $this->config = $config;
         $this->orderRepository = $orderRepository;
@@ -64,7 +58,7 @@ class PaymentLink extends Action implements HttpPostActionInterface
         $storeId = $this->_request->getParam('store_id');
         $orderId = $this->_request->getParam('order_id');
         $currencyCode = $this->_request->getParam('currency_code');
-        $result = $this->resultJsonFactory->create();
+        $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
 
         if (!$this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
             $result->setData([

@@ -7,35 +7,38 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Service\VirtualCheckout;
 
 class VirtualTerminal extends Action implements HttpPostActionInterface
 {
-    /** @var JsonFactory */
-    private $resultJsonFactory;
-
     /** @var VirtualCheckout */
     private $virtualCheckoutService;
 
     /** @var LoggerInterface */
     private $logger;
 
+    /** @var ConfigInterface */
+    private $config;
+
     /**
      * @param Context $context
-     * @param JsonFactory $resultJsonFactory
      * @param VirtualCheckout $virtualCheckoutService
+     * @param ConfigInterface $config
      * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
-        JsonFactory $resultJsonFactory,
         VirtualCheckout $virtualCheckoutService,
+        ConfigInterface $config,
         LoggerInterface $logger
     ) {
-        $this->resultJsonFactory = $resultJsonFactory;
         $this->virtualCheckoutService = $virtualCheckoutService;
         $this->logger = $logger;
+        $this->config = $config;
         parent::__construct($context);
     }
 
@@ -48,7 +51,15 @@ class VirtualTerminal extends Action implements HttpPostActionInterface
         $storeId = $this->_request->getParam('store_id');
         $orderId = $this->_request->getParam('order_id');
         $currencyCode = $this->_request->getParam('currency_code');
-        $result = $this->resultJsonFactory->create();
+        $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+
+        if (!$this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
+            $result->setData([
+                'success' => false,
+                'message' => 'Rvvup is disabled in that store view'
+            ]);
+            return $result;
+        }
 
         try {
             $body = $this->virtualCheckoutService->createVirtualCheckout($amount, $storeId, $orderId, $currencyCode);

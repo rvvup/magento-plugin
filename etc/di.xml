@@ -73,6 +73,28 @@
         </arguments>
     </virtualType>
 
+    <!-- Payment Link Method Facade configuration -->
+    <virtualType name="RvvupPaymentLinkFacade" type="Rvvup\Payments\Gateway\Method">
+        <arguments>
+            <argument name="code" xsi:type="string">rvvup_payment-link</argument>
+            <argument name="title" xsi:type="string">Rvvup Payment Link</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">RvvupPaymentLinkValueHandlerPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Virtual Terminal Method Facade configuration -->
+    <virtualType name="RvvupVirtualTerminalFacade" type="Rvvup\Payments\Gateway\Method">
+        <arguments>
+            <argument name="code" xsi:type="string">rvvup_virtual-terminal</argument>
+            <argument name="title" xsi:type="string">Rvvup Virtual Terminal</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">RvvupVirtualTerminalValueHandlerPool</argument>
+        </arguments>
+    </virtualType>
+
     <type name="Rvvup\Payments\Block\Info">
         <arguments>
             <argument name="data" xsi:type="array">
@@ -91,15 +113,60 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="RvvupPaymentLinkValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">RvvupPaymentLinkConfigValueHandler</item>
+                <item name="can_refund" xsi:type="string">Rvvup\Payments\Gateway\Command\CanRefund</item>
+                <item name="can_void" xsi:type="string">Rvvup\Payments\Gateway\Command\CanVoid</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">RvvupVirtualTerminalConfigValueHandler</item>
+                <item name="can_refund" xsi:type="string">Rvvup\Payments\Gateway\Command\CanRefund</item>
+                <item name="can_void" xsi:type="string">Rvvup\Payments\Gateway\Command\CanVoid</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="RvvupConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
         <arguments>
             <argument name="configInterface" xsi:type="object">RvvupConfigValueHandlerConfig</argument>
         </arguments>
     </virtualType>
 
+    <virtualType name="RvvupPaymentLinkConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">RvvupPaymentLinkConfigValueHandlerConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">RvvupVirtualTerminalConfigValueHandlerConfig</argument>
+        </arguments>
+    </virtualType>
+
+
     <virtualType name="RvvupConfigValueHandlerConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">rvvup</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupPaymentLinkConfigValueHandlerConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">rvvup_payment-link</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalConfigValueHandlerConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">rvvup_virtual-terminal</argument>
         </arguments>
     </virtualType>
 
