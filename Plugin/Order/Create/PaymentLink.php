@@ -2,6 +2,7 @@
 
 namespace Rvvup\Payments\Plugin\Order\Create;
 
+use Magento\Backend\Model\Session\Quote;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -10,7 +11,6 @@ use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use Rvvup\Payments\Service\PaymentLink as PaymentLinkService;
 use Rvvup\Payments\Model\Config;
-use Rvvup\Payments\Model\RvvupConfigProvider;
 use Psr\Log\LoggerInterface;
 
 class PaymentLink
@@ -31,22 +31,28 @@ class PaymentLink
     /** @var PaymentLinkService */
     private $paymentLinkService;
 
+    /** @var Quote */
+    private $quoteSession;
+
     /**
      * @param Config $config
      * @param Http $request
      * @param LoggerInterface $logger
      * @param PaymentLinkService $paymentLinkService
+     * @param Quote $quoteSession
      */
     public function __construct(
         Config                             $config,
         Http                               $request,
         LoggerInterface                    $logger,
-        PaymentLinkService                 $paymentLinkService
+        PaymentLinkService                 $paymentLinkService,
+        Quote                              $quoteSession
     ) {
         $this->config = $config;
         $this->request = $request;
         $this->logger = $logger;
         $this->paymentLinkService = $paymentLinkService;
+        $this->quoteSession = $quoteSession;
     }
 
     /**
@@ -74,7 +80,8 @@ class PaymentLink
      */
     public function afterCreateOrder(Create $subject, Order $result): Order
     {
-        if (!(isset($subject['send_confirmation']) && $subject['send_confirmation'])) {
+        if (!(isset($subject['send_confirmation']) && $subject['send_confirmation']) ||
+            $this->quoteSession->getData('reordered')) {
             $payment = $subject->getQuote()->getPayment();
             if (!$payment->getAdditionalInformation('rvvup_payment_link_id')) {
                 if ($payment->getMethod() == 'rvvup_payment-link') {
@@ -85,7 +92,8 @@ class PaymentLink
                             $result->getId(),
                             $result->getOrderCurrencyCode(),
                             $subject,
-                            ['status' => $result->getStatus()]
+                            ['status' => $result->getStatus()],
+                            $result->getIncrementId()
                         );
                         if ($id && $message) {
                             $payment = $this->paymentLinkService->getQuotePaymentByOrder($result);
@@ -119,6 +127,10 @@ class PaymentLink
                 $storeId = (string)$quote->getStore()->getId();
                 $amount = (float)$quote->getGrandTotal();
                 $orderId = $quote->reserveOrderId()->getReservedOrderId();
+                if ($this->quoteSession->getData('reordered')) {
+                    return $result;
+                }
+
                 $currencyCode = $quote->getQuoteCurrencyCode();
                 $order = $this->request->getPost('order');
                 if (!isset($order['account']) || !isset($order['send_confirmation'])) {
@@ -159,6 +171,7 @@ class PaymentLink
      * @param string $currencyCode
      * @param Create $subject
      * @param array $data
+     * @param string|null $orderIncrementId
      * @return array|null
      */
     private function createRvvupPayByLink(
@@ -167,14 +180,15 @@ class PaymentLink
         string $orderId,
         string $currencyCode,
         Create $subject,
-        array $data
+        array $data,
+        string $orderIncrementId = null
     ): ?array {
         try {
             $amount = number_format($amount, 2, '.', '');
             if ($amount <= 0) {
                 return [null,null];
             }
-            $body = $this->paymentLinkService->createPaymentLink($storeId, $amount, $orderId, $currencyCode);
+            $body = $this->paymentLinkService->createPaymentLink($storeId, $amount, $orderIncrementId ?: $orderId, $currencyCode);
             $message = $this->processApiResponse($body, $amount, $subject, $data, $orderId);
             return [$body['id'], $message];
         } catch (\Exception $e) {
