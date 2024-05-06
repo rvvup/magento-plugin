@@ -70,5 +70,4 @@ class Cancel implements CommandInterface
             throw new LocalizedException(__('Something went wrong when trying to cancel a Rvvup payment'));
         }
     }
-
 }

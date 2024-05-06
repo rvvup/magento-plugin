@@ -84,7 +84,7 @@ class Info extends MagentoInfo
                 $payment = $order->getPayment();
                 if ($payment) {
                     if (in_array($payment->getMethod(), ['rvvup_virtual-terminal','rvvup_payment-link'])) {
-                        if (sizeof($order->getInvoiceCollection()->getItems()) == 0) {
+                        if (count($order->getInvoiceCollection()->getItems()) == 0) {
                             return true;
                         }
                     }

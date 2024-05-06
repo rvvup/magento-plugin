@@ -26,11 +26,11 @@ $url = $block->getUrl('rvvup/availability/index');
     <script>
         require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {
             var config = {
-                'method': '<?= $code ?>',
-                'amount': '<?= $amount ?>',
-                'currency_code': '<?= $currencyCode ?>',
-                'store_id': '<?= $storeId ?>',
-                'url': '<?= $url ?>',
+                'method': '<?= $escaper->escapeJs($code) ?>',
+                'amount': '<?= $escaper->escapeJs($amount) ?>',
+                'currency_code': '<?= $escaper->escapeJs($currencyCode) ?>',
+                'store_id': '<?= $escaper->escapeJs($storeId) ?>',
+                'url': '<?= $escaper->escapeJs($url) ?>',
             };
             availablePayment(config);
         });

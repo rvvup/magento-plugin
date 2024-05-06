@@ -20,7 +20,6 @@ use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 
 class Result
 {
-
     /** @var ResultFactory */
     private $resultFactory;
 
@@ -83,9 +82,9 @@ class Result
     /**
      * @param string|null $orderId
      * @param string $rvvupId
+     * @param int $storeId
      * @param bool $reservedOrderId
      * @param string|null $redirectUrl
-     * @param int|null $storeId
      * @return Redirect
      */
     public function processOrderResult(

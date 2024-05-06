@@ -73,8 +73,8 @@ class Refund implements CommandInterface
     {
         /** @var Payment $payment */
         $payment = $commandSubject['payment']->getPayment();
-        $idempotencyKey = $payment->getTransactionId() ?: $payment->getAdditionalInformation(Method::PAYMENT_ID) . '-' . time();
-
+        $transactionId = $payment->getTransactionId() ?: $payment->getAdditionalInformation(Method::PAYMENT_ID);
+        $idempotencyKey = $transactionId . '-' . time();
         $order = $payment->getOrder();
         $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $orderState = $payment->getOrder()->getState();

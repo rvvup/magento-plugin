@@ -189,7 +189,12 @@ class PaymentLink
             if ($amount <= 0) {
                 return [null,null];
             }
-            $body = $this->paymentLinkService->createPaymentLink($storeId, $amount, $orderIncrementId ?: $orderId, $currencyCode);
+            $body = $this->paymentLinkService->createPaymentLink(
+                $storeId,
+                $amount,
+                $orderIncrementId ?: $orderId,
+                $currencyCode
+            );
             $message = $this->processApiResponse($body, $amount, $subject, $data, $orderId);
             return [$body['id'], $message];
         } catch (\Exception $e) {
