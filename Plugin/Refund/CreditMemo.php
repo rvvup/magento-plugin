@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Plugin\Refund;
 
 use Magento\Sales\Model\Order\Creditmemo as BaseCreditmemo;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\PendingQty;
 
 class CreditMemo
@@ -30,6 +31,14 @@ class CreditMemo
      */
     public function afterCanRefund(BaseCreditmemo $subject, bool $result): bool
     {
-        return $this->pendingQtyService->isRefundApplicable($subject);
+        $method = $subject->getOrder()->getPayment()->getMethod();
+        if (strpos($method, Method::PAYMENT_TITLE_PREFIX) === 0) {
+            if (!$result) {
+                return false;
+            }
+            return $this->pendingQtyService->isRefundApplicable($subject);
+        }
+
+        return $result;
     }
 }

@@ -64,13 +64,6 @@ class CanRefund implements ValueHandlerInterface
             }
 
             $payment = $subject['payment']->getPayment();
-
-            $disabledMethods = ['rvvup_payment-link','rvvup_virtual-terminal'];
-
-            if (in_array($payment->getMethod(), $disabledMethods)) {
-                return false;
-            }
-
             $orderId = $payment->getAdditionalInformation(Method::ORDER_ID) ?: $payment->getParentId();
             if ($orderId) {
                 $invoiceCollection = $payment->getOrder()->getInvoiceCollection();

@@ -81,6 +81,7 @@
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupPaymentLinkValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">RvvupAdminPaymentPool</argument>
         </arguments>
     </virtualType>
 
@@ -92,6 +93,7 @@
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupVirtualTerminalValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">RvvupAdminPaymentPool</argument>
         </arguments>
     </virtualType>
 
@@ -180,7 +182,7 @@
         </arguments>
     </virtualType>
 
-    <type name="\Rvvup\Payments\Gateway\CommandPool">
+    <type name="Rvvup\Payments\Gateway\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
@@ -189,6 +191,15 @@
             </argument>
         </arguments>
     </type>
+
+    <virtualType name="RvvupAdminPaymentPool" type="Rvvup\Payments\Gateway\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
+            </argument>
+        </arguments>
+    </virtualType>
 
     <!-- Initialize Command -->
     <virtualType name="Rvvup\Payments\Gateway\Command\InitializeCommand"
