@@ -6,11 +6,13 @@ use Laminas\Http\Request;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Store\Model\ScopeInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Config;
 use Rvvup\Payments\Sdk\Curl;
 use Psr\Log\LoggerInterface;
@@ -42,6 +44,9 @@ class PaymentLink
     /** @var CartRepositoryInterface */
     private $cartRepository;
 
+    /** @var Payment */
+    private $paymentResource;
+
     /**
      * @param Curl $curl
      * @param Config $config
@@ -49,6 +54,7 @@ class PaymentLink
      * @param OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
      * @param OrderManagementInterface $orderManagement
      * @param CartRepositoryInterface $cartRepository
+     * @param Payment $paymentResource
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -58,6 +64,7 @@ class PaymentLink
         OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
         OrderManagementInterface           $orderManagement,
         CartRepositoryInterface            $cartRepository,
+        Payment                            $paymentResource,
         LoggerInterface                    $logger
     ) {
         $this->curl = $curl;
@@ -66,6 +73,7 @@ class PaymentLink
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->orderManagement = $orderManagement;
         $this->cartRepository = $cartRepository;
+        $this->paymentResource = $paymentResource;
         $this->logger = $logger;
     }
 
@@ -154,9 +162,9 @@ class PaymentLink
     public function savePaymentLink(PaymentInterface $payment, string $id, string $message): void
     {
         try {
-            $payment->setAdditionalInformation('rvvup_payment_link_id', $id);
-            $payment->setAdditionalInformation('rvvup_payment_link_message', $message);
-            $payment->save();
+            $payment->setAdditionalInformation(Method::PAYMENT_LINK_ID, $id);
+            $payment->setAdditionalInformation(Method::PAYMENT_LINK_MESSAGE, $message);
+            $this->paymentResource->save($payment);
         } catch (\Exception $e) {
             $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
         }

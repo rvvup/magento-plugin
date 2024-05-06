@@ -81,7 +81,7 @@
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupPaymentLinkValueHandlerPool</argument>
-            <argument name="commandPool" xsi:type="object">RvvupAdminPaymentPool</argument>
+            <argument name="commandPool" xsi:type="object">RvvupPaymentLinksPool</argument>
         </arguments>
     </virtualType>
 
@@ -93,7 +93,7 @@
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupVirtualTerminalValueHandlerPool</argument>
-            <argument name="commandPool" xsi:type="object">RvvupAdminPaymentPool</argument>
+            <argument name="commandPool" xsi:type="object">RvvupVirtualTerminalPool</argument>
         </arguments>
     </virtualType>
 
@@ -192,7 +192,17 @@
         </arguments>
     </type>
 
-    <virtualType name="RvvupAdminPaymentPool" type="Rvvup\Payments\Gateway\CommandPool">
+    <virtualType name="RvvupPaymentLinksPool" type="Rvvup\Payments\Gateway\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
+                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\Cancel</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalPool" type="Rvvup\Payments\Gateway\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
@@ -463,6 +473,12 @@
                 <item name="0" xsi:type="const">\Magento\Sales\Model\Order::STATE_COMPLETE</item>
                 <item name="1" xsi:type="const">\Magento\Sales\Model\Order::STATE_PROCESSING</item>
             </argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Gateway\Command\Cancel">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 

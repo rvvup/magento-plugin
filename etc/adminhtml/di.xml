@@ -37,6 +37,9 @@
         <plugin name="afterVoidCancelOrder"
                 type="Rvvup\Payments\Plugin\Cancel\Payment"
                 sortOrder="1"/>
+        <plugin name="cancelPaymentLinks"
+                type="Rvvup\Payments\Plugin\Payment\Cancel"
+                sortOrder="1"/>
     </type>
     <type name="Magento\Sales\Model\AdminOrder\Create">
         <plugin name="addRvvupPaymentLink"

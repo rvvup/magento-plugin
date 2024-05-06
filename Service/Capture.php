@@ -24,6 +24,7 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
 use Rvvup\Payments\Exception\PaymentValidationException;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
@@ -135,7 +136,7 @@ class Capture
         // We always expect 1 payment object for a Rvvup Order ID.
         if ($resultSet->getTotalCount() !== 1) {
             $this->logger->warning('Webhook error. Payment not found for order.', [
-                'rvvup_order_id' => $rvvupOrderId,
+                Method::ORDER_ID => $rvvupOrderId,
                 'payments_count' => $resultSet->getTotalCount()
             ]);
             throw new PaymentValidationException(__('Error finding order with rvvup_id ' . $rvvupOrderId));
@@ -148,7 +149,7 @@ class Capture
 
         if ($storeId && $order->getStoreId() !== $storeId) {
             $this->logger->warning('Webhook log. Payment not found for an order in specified store', [
-                'rvvup_order_id' => $rvvupOrderId,
+                Method::ORDER_ID => $rvvupOrderId,
                 'store_id' => $storeId,
                 'payments_count' => $resultSet->getTotalCount()
             ]);
@@ -197,7 +198,6 @@ class Capture
     public function createOrder(string $rvvupId, Quote $quote): ValidationInterface
     {
         $this->quoteResource->beginTransaction();
-        $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
         $payment = $quote->getPayment();
 
         try {

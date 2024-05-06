@@ -9,6 +9,7 @@ use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Model\AdminOrder\Create;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\PaymentLink as PaymentLinkService;
 use Rvvup\Payments\Model\Config;
 use Psr\Log\LoggerInterface;
@@ -83,7 +84,7 @@ class PaymentLink
         if (!(isset($subject['send_confirmation']) && $subject['send_confirmation']) ||
             $this->quoteSession->getData('reordered')) {
             $payment = $subject->getQuote()->getPayment();
-            if (!$payment->getAdditionalInformation('rvvup_payment_link_id')) {
+            if (!$payment->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
                 if ($payment->getMethod() == 'rvvup_payment-link') {
                     if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $result->getStoreId())) {
                         list($id, $message) = $this->createRvvupPayByLink(
@@ -122,7 +123,7 @@ class PaymentLink
         array $data
     ) {
         if (isset($data['comment'])) {
-            if (!$payment->getAdditionalInformation('rvvup_payment_link_id')) {
+            if (!$payment->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
                 $quote = $result->getQuote();
                 $storeId = (string)$quote->getStore()->getId();
                 $amount = (float)$quote->getGrandTotal();
@@ -156,7 +157,7 @@ class PaymentLink
             } else {
                 $quote = $subject->getQuote();
                 if ($quote->getPayment()->getMethod() == 'rvvup_payment-link') {
-                    $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
+                    $message = $quote->getPayment()->getAdditionalInformation(Method::PAYMENT_LINK_MESSAGE);
                     $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
                 }
             }

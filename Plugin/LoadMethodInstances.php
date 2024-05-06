@@ -56,7 +56,7 @@ class LoadMethodInstances
      */
     public function aroundGetMethodInstance(Data $subject, callable $proceed, $code)
     {
-        if (0 === strpos($code, 'rvvup_')) {
+        if (0 === strpos($code, Method::PAYMENT_TITLE_PREFIX)) {
             if (isset($this->instances[$code])) {
                 return $this->instances[$code];
             }

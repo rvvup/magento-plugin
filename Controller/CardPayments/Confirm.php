@@ -72,7 +72,7 @@ class Confirm implements HttpPostActionInterface, CsrfAwareActionInterface
 
         try {
             $quote = $this->checkoutSession->getQuote();
-            $rvvupOrderId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
+            $rvvupOrderId = (string)$quote->getPayment()->getAdditionalInformation(Method::TRANSACTION_ID);
             $rvvupPaymentId = $quote->getPayment()->getAdditionalInformation(Method::PAYMENT_ID);
 
             $authorizationResponse = $this->request->getParam('auth', false);

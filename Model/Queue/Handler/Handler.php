@@ -121,7 +121,7 @@ class Handler
 
             if ($paymentLinkId = $payload['payment_link_id']) {
                 $order = $this->captureService->getOrderByPaymentField(
-                    'rvvup_payment_link_id',
+                    Method::PAYMENT_LINK_ID,
                     $paymentLinkId,
                     $storeId
                 );
@@ -224,7 +224,7 @@ class Handler
         $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
         if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
             $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
-                    'rvvup_order_id' => $rvvupOrderId
+                    Method::ORDER_ID => $rvvupOrderId
                 ]);
             return;
         }

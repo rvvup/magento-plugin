@@ -2,6 +2,8 @@
 
 namespace Rvvup\Payments\Traits;
 
+use Rvvup\Payments\Gateway\Method;
+
 trait LoadMethods
 {
     /** @var array */
@@ -15,7 +17,7 @@ trait LoadMethods
         if (!$this->processed) {
             $processed = [];
             foreach ($methods as $method) {
-                $code = 'rvvup_' . $method['name'];
+                $code = Method::PAYMENT_TITLE_PREFIX . $method['name'];
                 $processed[$code] = $this->template;
                 $processed[$code]['title'] = $method['displayName'];
                 $processed[$code]['description'] = $method['description'];

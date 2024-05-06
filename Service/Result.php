@@ -133,7 +133,7 @@ class Result
             return $this->processResultPage($result, false);
         } catch (\Exception $e) {
             $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
-                'rvvup_order_id' => $rvvupId,
+                Method::ORDER_ID => $rvvupId,
                 'rvvup_order_status' => $rvvupData['payments'][0]['status'] ?? ''
             ]);
 

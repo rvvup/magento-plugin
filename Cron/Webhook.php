@@ -227,7 +227,7 @@ class Webhook
     private function validatePaymentLink(int $storeId, array $data, int $webhookId): bool
     {
         $order = $this->captureService->getOrderByPaymentField(
-            'rvvup_payment_link_id',
+            Method::PAYMENT_LINK_ID,
             $data['payment_link_id'],
             (string)$storeId
         );

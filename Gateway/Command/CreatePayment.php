@@ -45,7 +45,7 @@ class CreatePayment implements CommandInterface
         /** @var \Magento\Sales\Model\Order\Payment $payment */
         $payment = $commandSubject['payment'];
         $method = str_replace(Method::PAYMENT_TITLE_PREFIX, '', $payment->getMethod());
-        $orderId = $payment->getAdditionalInformation()['rvvup_order_id'];
+        $orderId = $payment->getAdditionalInformation()[Method::ORDER_ID];
         $type = 'STANDARD';
 
         if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {

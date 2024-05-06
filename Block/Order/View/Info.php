@@ -14,6 +14,7 @@ use Magento\Sales\Helper\Admin;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Address\Renderer;
 use Magento\Store\Model\ScopeInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\SdkProxy;
@@ -132,7 +133,7 @@ class Info extends MagentoInfo
     {
         if ($this->shouldDisplayRvvup()) {
             $payment = $this->paymentLinkService->getQuotePaymentByOrder($this->getOrder());
-            $message = $payment->getAdditionalInformation('rvvup_payment_link_message');
+            $message = $payment->getAdditionalInformation(Method::PAYMENT_LINK_MESSAGE);
             if ($message && is_string($message)) {
                 return $message;
             }

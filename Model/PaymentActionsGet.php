@@ -160,7 +160,7 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      */
     private function getExpressOrderPaymentActions(PaymentInterface $payment): array
     {
-        $id = $payment->getAdditionalInformation('rvvup_order_id');
+        $id = $payment->getAdditionalInformation(Method::ORDER_ID);
         $rvvupOrder = $this->sdkProxy->getOrder($id);
 
         if (!empty($rvvupOrder)) {
