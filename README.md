@@ -4,7 +4,7 @@
 
 If you would like to have a quick local installation of the plugin on a magento store (for testing), you can follow these steps:
 
-- Copy .env.example to .env and update the values as needed.
+- Copy .env.sample to .env and update the values as needed.
 - Run the following command to start the docker containers:
 ```
 docker-compose up -d --build

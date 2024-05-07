@@ -1,5 +1,6 @@
 #!/bin/bash
 echo "Running entrypoint.sh"
+#Start of Bitnami's Entrypoint script
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -22,5 +23,5 @@ info "** Starting Magento setup **"
 /opt/bitnami/scripts/magento/setup.sh
 /post-init.sh
 info "** Magento setup finished! **"
-
+# End of Bitnami's Entrypoint script, now we can add rvvup's setup
 /rvvup/scripts/setup.sh;
