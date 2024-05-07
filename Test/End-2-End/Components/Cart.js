@@ -6,7 +6,7 @@ export default class Cart {
     }
 
     async addStandardItemToCart() {
-        await this.page.goto('./demogento-enter-the-metaverse-2.html');
+        await this.page.goto('./affirm-water-bottle.html');
         await this.page.getByRole("button", {name: "Add to cart"}).click();
         await expect(this.page.getByText(/You added [A-Za-z0-9 ]+ to your shopping cart/i)).toBeVisible();
     }

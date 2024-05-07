@@ -11,7 +11,7 @@ test('Clearpay infographic updates when total changes on checkout page', async (
 
     const initialGrandTotal = await checkoutPage.getGrandTotalValue();
 
-    await checkoutPage.applyDiscountCode('100');
+    await checkoutPage.applyDiscountCode('H20');
 
     await expect(await checkoutPage.getGrandTotalElement()).not.toHaveText(initialGrandTotal);
 

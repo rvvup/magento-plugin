@@ -10,7 +10,9 @@ test('Can place an order using different billing and shipping address', async ({
     await page.locator('#billing-address-same-as-shipping-rvvup_FAKE_PAYMENT_METHOD').setChecked(false);
 
     const billingForm = page.locator('#payment_method_rvvup_FAKE_PAYMENT_METHOD');
-    await page.getByRole('button', { name: 'Edit', exact: true }).click();
+    if (await page.getByRole('button', {name: 'Edit', exact: true}).isVisible()) {
+        await page.getByRole('button', {name: 'Edit', exact: true}).click();
+    }
     await billingForm.getByLabel('First Name').fill('Liam');
     await billingForm.getByLabel('Last Name').fill('Fox');
     await billingForm.getByLabel('Street Address: Line 1').fill('123 Small St');
