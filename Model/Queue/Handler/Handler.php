@@ -197,8 +197,12 @@ class Handler
      * @throws AlreadyExistsException
      * @throws LocalizedException
      */
-    private function processOrder(OrderInterface $order, string $rvvupOrderId, string $rvvupPaymentId, string $origin): void
-    {
+    private function processOrder(
+        OrderInterface $order,
+        string $rvvupOrderId,
+        string $rvvupPaymentId,
+        string $origin
+    ): void {
         // if Payment method is not Rvvup, exit.
         if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
             if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
