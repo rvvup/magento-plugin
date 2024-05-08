@@ -4,6 +4,7 @@
  *
  * @var \Magento\Framework\View\Element\Template $block
  * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 /** Magento 2.3.5 backward compatibility fix */
 if (!isset($escaper)) {
@@ -19,16 +20,20 @@ if ($assetsViewModel === null) {
 ?>
 <?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets() as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
-        <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable ?>
+        <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable?>
         <?php if (!is_array($script)): ?>
             <?php continue; ?>
         <?php endif; ?>
-        <?php // phpcs:enable ?>
+        <?php // phpcs:enable?>
 
         <?php if ($method == 'rvvup_card'): ?>
-            <script>
-                window.rvvup_card_script ="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>";
-            </script>
+            <?= $secureRenderer->renderTag(
+                'script',
+                ['type' => 'text/javascript'],
+                "window.rvvup_card_script ='" . $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) . "';",
+                false
+            );
+            ?>
         <?php else: ?>
         <script id="<?= $escaper->escapeHtmlAttr($assetsViewModel->getScriptElementId($method, (string) $index)) ?>"
             <?php foreach ($assetsViewModel->getScriptDataAttributes($script) as $dataAttribute => $value): ?>
@@ -43,10 +48,11 @@ if ($assetsViewModel === null) {
     <?php endforeach; ?>
 <?php endforeach; ?>
 
-<script>
-    <?php // phpcs:disable Magento2.Security.XssTemplate.FoundUnescaped ?>
-    <?php // Disabling PHPCS to avoid warning. As per Magento docs. JSON inside script tag: no sanitization needed ?>
-    <?php // @see https://developer.adobe.com/commerce/php/development/security/cross-site-scripting/ ?>
-    const rvvup_parameters = JSON.parse('<?= $assetsViewModel->getRvvupParametersJsObject() ?>');
-    <?php // phpcs:enable Magento2.Security.XssTemplate.FoundUnescaped ?>
-</script>
+<?= $secureRenderer->renderTag(
+    'script',
+    ['type' => 'text/javascript'],
+    "const rvvup_parameters = JSON.parse('" .  $assetsViewModel->getRvvupParametersJsObject() . "');",
+    false
+);
+?>
+

@@ -10,6 +10,13 @@
                 <value id="rvvup-paypal-frame" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-frame" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-card-frame" type="host">cdn.eu.trustpayments.com</value>
+                <value id="rvvup-trustpayments-trustpayments" type="host">*.trustpayments.com</value>
+                <value id="rvvup-trustpayments-securetrading" type="host">*.securetrading.net</value>
+                <value id="rvvup-trustpayments-visa" type="host">*.secure.checkout.visa.com</value>
+                <value id="rvvup-trustpayments-cardinalcommerce" type="host">*.cardinalcommerce.com</value>
+                <value id="rvvup-trustpayments-google" type="host">pay.google.com</value>
+                <value id="rvvup-trustpayments-thm-visa" type="host">thm.visa.com</value>
+                <value id="rvvup-trustpayments-mastercard" type="host">*.mastercard.com</value>
             </values>
         </policy>
         <policy id="script-src">
@@ -18,17 +25,33 @@
                 <value id="rvvup-paypal-script" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-script" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-paypal-objects-script" type="host">www.paypalobjects.com</value>
+                <value id="rvvup-moto-script" type="host">checkout.dev.rvvuptech.com</value>
                 <value id="rvvup-card-objects-script" type="host">cdn.eu.trustpayments.com</value>
+                <value id="rvvup-trustpayments-securetrading" type="host">*.securetrading.net</value>
+                <value id="rvvup-trustpayments-google" type="host">pay.google.com</value>
+                <value id="rvvup-trustpayments-visa" type="host">*.secure.checkout.visa.com</value>
+                <value id="rvvup-trustpayments-cardinalcommerce" type="host">*.cardinalcommerce.com</value>
+                <value id="rvvup-trustpayments-mastercard" type="host">*.mastercard.com</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="rvvup-moto-script" type="host">checkout.dev.rvvuptech.com</value>
+                <value id="rvvup-trustpayments-googleapis" type="host">fonts.googleapis.com</value>
             </values>
         </policy>
         <policy id="img-src">
             <values>
                 <value id="rvvup-afterpay-img" type="host">*.afterpay.com</value>
-                <value id="rvvup-payment-img" type="host">assets.dev.rvvuptech.com</value>
+                <value id="rvvup-payment-dev-img" type="host">assets.dev.rvvuptech.com</value>
                 <value id="rvvup-payment-img" type="host">assets.rvvup.com</value>
                 <value id="rvvup-paypal-img" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-img" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-stats-paypal" type="host">*.stats.paypal.com</value>
+                <value id="rvvup-trustpayments-gstatic" type="host">*.gstatic.com</value>
+                <value id="rvvup-trustpayments-visa" type="host">*.vims.visa.com</value>
+                <value id="rvvup-trustpayments-secure-visa" type="host">*.secure.checkout.visa.com</value>
+                <value id="rvvup-trustpayments-mastercard" type="host">*.mastercard.com</value>
             </values>
         </policy>
         <policy id="child-src">
@@ -36,16 +59,27 @@
                 <value id="rvvup-paypal-child" type="host">*.paypal.com</value>
             </values>
         </policy>
+        <policy id="font-src">
+            <values>
+                <value id="rvvup-trustpayments-gstatic" type="host">*.gstatic.com</value>
+            </values>
+        </policy>
         <policy id="connect-src">
             <values>
                 <value id="rvvup-afterpay-connect" type="host">*.afterpay.com</value>
                 <value id="rvvup-paypal-connect" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-connect" type="host">*.sandbox.paypal.com</value>
+                <value id="rvvup-trustpayments-sentry" type="host">*.sentry.io</value>
+                <value id="rvvup-trustpayments-cardinalcommerce" type="host">*.cardinalcommerce.com</value>
+                <value id="rvvup-trustpayments-google" type="host">google.com</value>
             </values>
         </policy>
         <policy id="form-action">
             <values>
                 <value id="rvvup-paypal-form" type="host">*.paypal.com</value>
+                <value id="rvvup-trustpayments-cardinalcommerce" type="host">*.cardinalcommerce.com</value>
+                <value id="rvvup-trustpayments-securetrading" type="host">*.securetrading.net</value>
+                <value id="rvvup-trustpayments-paypal" type="host">*.paypal.com</value>
             </values>
         </policy>
     </policies>

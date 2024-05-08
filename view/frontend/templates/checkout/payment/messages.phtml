@@ -1,12 +1,17 @@
 <?php
 /**
  * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 ?>
-<script type="text/x-magento-init">
-    {
+<?= $secureRenderer->renderTag(
+    'script',
+    ['type' => 'text/x-magento-init'],
+    '{
         "*": {
             "Rvvup_Payments/js/view/payment/messages": {}
         }
-    }
-</script>
+    }',
+    false
+);
+?>
