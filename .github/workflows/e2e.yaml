@@ -1,0 +1,71 @@
+name: E2E Tests Workflow
+on:
+  pull_request:
+  schedule:
+    - cron:  '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      rvvupPluginVersion:
+        description: 'Rvvup Plugin Version'
+        required: true
+        default: 'dev-main'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  end-2-end-tests:
+    strategy:
+      matrix:
+        include:
+          - MAGENTO_VERSION: 2.4.5
+          - MAGENTO_VERSION: 2.4.6
+          - MAGENTO_VERSION: 2.4.7
+
+    env:
+      MAGENTO_VERSION: ${{ matrix.MAGENTO_VERSION }}
+      RVVUP_PLUGIN_VERSION: ${{ github.event.inputs.rvvupPluginVersion || format('dev-{0}', github.head_ref || github.ref_name) }}
+      MAGENTO_REPO_PUBLIC_KEY: ${{ secrets.REPO_PUB_KEY }}
+      MAGENTO_REPO_PRIVATE_KEY: ${{ secrets.REPO_SEC_KEY }}
+      RVVUP_API_KEY: ${{ secrets.RVVUP_API_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start Docker
+        run: |
+          docker compose up -d --build
+
+      - name: Install dependencies
+        run: npm install
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Wait for Magento Store
+        uses: emilioschepis/wait-for-endpoint@v1.0.3
+        with:
+          url: http://localhost/magento_version
+          method: GET
+          expected-status: 200
+          timeout: 300000
+          interval: 5000
+
+      - name: Run Playwright tests
+        run: TEST_BASE_URL=http://localhost npx playwright test
+
+      - name: Prepare logs
+        if: always()
+        run: |
+            mkdir -p logs
+            docker-compose logs > logs/container_logs.log
+            docker cp magento-plugin-magento-1:/bitnami/magento/var/log logs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-${{ github.head_ref || github.ref_name }}-${{ matrix.MAGENTO_VERSION }}-${{ github.run_number }}
+          path: |
+            playwright-report/
+            var/log/
+            magento.log
+            nginx-proxy.log
+
