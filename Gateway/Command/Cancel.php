@@ -63,7 +63,7 @@ class Cancel implements CommandInterface
             $storeId = $commandSubject['payment']->getOrder()->getStoreId();
             $this->paymentLinkService->cancelPaymentLink($storeId, $paymentLinkId);
             $message = __('Canceled Rvvup Payment Link online');
-            $orderPayment->getOrder()->addCommentToStatusHistory($message, false, true);
+            $orderPayment->getOrder()->addCommentToStatusHistory($message, false, false);
 
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
