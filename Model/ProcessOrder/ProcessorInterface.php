@@ -10,7 +10,8 @@ interface ProcessorInterface
     /**
      * @param OrderInterface $order
      * @param array $rvvupData
+     * @param string $origin
      * @return ProcessOrderResultInterface
      */
-    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface;
+    public function execute(OrderInterface $order, array $rvvupData, string $origin): ProcessOrderResultInterface;
 }

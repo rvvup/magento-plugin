@@ -178,23 +178,26 @@ class Capture
      * @param string $lastTransactionId
      * @param string|null $rvvupId
      * @param string|null $paymentStatus
+     * @param string|null $origin
      * @return ValidationInterface
      */
     public function validate(
         Quote &$quote,
         string &$lastTransactionId,
         string $rvvupId = null,
-        string $paymentStatus = null
+        string $paymentStatus = null,
+        string $origin = null
     ): ValidationInterface {
-        return $this->validationInterface->validate($quote, $lastTransactionId, $rvvupId, $paymentStatus);
+        return $this->validationInterface->validate($quote, $lastTransactionId, $rvvupId, $paymentStatus, $origin);
     }
 
     /**
      * @param string $rvvupId
      * @param Quote $quote
+     * @param string $origin
      * @return ValidationInterface
      */
-    public function createOrder(string $rvvupId, Quote $quote): ValidationInterface
+    public function createOrder(string $rvvupId, Quote $quote, string $origin): ValidationInterface
     {
         $this->quoteResource->beginTransaction();
         $lastTransactionId = (string)$quote->getPayment()->getAdditionalInformation('transaction_id');
@@ -250,6 +253,7 @@ class Capture
                 $rvvupId,
                 null,
                 $quote->getReservedOrderId(),
+                $origin
             );
             return $this->validationInterfaceFactory->create(
                 [
@@ -267,13 +271,15 @@ class Capture
      * @param string $lastTransactionId
      * @param string $rvvupPaymentId
      * @param string $rvvupId
+     * @param string $origin
      * @return bool
      */
     public function paymentCapture(
         Quote\Payment $payment,
         string $lastTransactionId,
         string $rvvupPaymentId,
-        string $rvvupId
+        string $rvvupId,
+        string $origin
     ): bool {
         try {
             if ($payment->getMethodInstance()->getCaptureType() !== 'MANUAL') {
@@ -284,7 +290,8 @@ class Capture
                 'Rvvup order capture failed during payment capture',
                 $e->getMessage(),
                 $rvvupId,
-                $rvvupPaymentId
+                $rvvupPaymentId,
+                $origin
             );
             return false;
         }

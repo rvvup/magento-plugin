@@ -73,15 +73,19 @@ class Result
         $this->logger = $logger;
     }
 
-    /** @todo refactor
-     * Update Magento Order based on Rvuup Order and payment statuses
-     * @param string|null $orderId
+    /** @param string|null $orderId
      * @param string $rvvupId
+     * @param string $origin
      * @param bool $reservedOrderId
      * @return Redirect
+     * Update Magento Order based on Rvuup Order and payment statuses
      */
-    public function processOrderResult(?string $orderId, string $rvvupId, bool $reservedOrderId = false): Redirect
-    {
+    public function processOrderResult(
+        ?string $orderId,
+        string $rvvupId,
+        string $origin,
+        bool $reservedOrderId = false
+    ): Redirect {
         if (!$orderId) {
             return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
                 In::SUCCESS,
@@ -100,12 +104,12 @@ class Result
 
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
                 if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {
-                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData, $origin);
                 }
             }
 
             $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
-            $result = $processor->execute($order, $rvvupData);
+            $result = $processor->execute($order, $rvvupData, $origin);
             if (get_class($processor) == Cancel::class) {
                 return $this->processResultPage($result, true);
             }

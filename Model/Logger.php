@@ -48,6 +48,7 @@ class Logger extends BaseLogger
      * @param string|null $rvvupOrderId
      * @param string|null $rvvupPaymentId
      * @param string|null $magentoOrderId
+     * @param string|null $origin
      * @return bool
      */
     public function addRvvupError(
@@ -55,12 +56,13 @@ class Logger extends BaseLogger
         ?string $cause = null,
         ?string $rvvupOrderId = null,
         ?string $rvvupPaymentId = null,
-        ?string $magentoOrderId = null
+        ?string $magentoOrderId = null,
+        ?string $origin = null
     ) {
         $result = $this->addRecord(
             static::ERROR,
             $message,
-            [$cause, $rvvupOrderId, $rvvupPaymentId, $magentoOrderId]
+            [$cause, $rvvupOrderId, $rvvupPaymentId, $magentoOrderId, $origin]
         );
 
         try {
@@ -84,6 +86,7 @@ class Logger extends BaseLogger
      * @param string|null $rvvupOrderId
      * @param string|null $rvvupPaymentId
      * @param string|null $magentoOrderId
+     * @param string|null $origin
      * @return array
      * @throws NoSuchEntityException
      */
@@ -92,7 +95,8 @@ class Logger extends BaseLogger
         ?string $cause = null,
         ?string $rvvupOrderId = null,
         ?string $rvvupPaymentId = null,
-        ?string $magentoOrderId = null
+        ?string $magentoOrderId = null,
+        ?string $origin = null
     ): array {
 
         $payload = json_encode([
@@ -103,7 +107,8 @@ class Logger extends BaseLogger
                 'rvvupOrderId' => $rvvupOrderId,
                 'magento' => [
                     'storeId' => $this->storeManager->getStore()->getId(),
-                    'orderId' => $magentoOrderId
+                    'orderId' => $magentoOrderId,
+                    'origin' => $origin
                 ]
             ],
             'cause' => $cause

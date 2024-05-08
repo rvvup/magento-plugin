@@ -78,10 +78,11 @@ class Complete implements ProcessorInterface
     /**
      * @param OrderInterface $order
      * @param array $rvvupData
+     * @param string $origin
      * @return ProcessOrderResultInterface
      * @throws PaymentValidationException
      */
-    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
+    public function execute(OrderInterface $order, array $rvvupData, string $origin): ProcessOrderResultInterface
     {
         if ($order->getPayment() === null
             || strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
@@ -134,7 +135,8 @@ class Complete implements ProcessorInterface
                 $e->getMessage(),
                 $rvvupData['id'],
                 $rvvupData['payments'][0]['id'],
-                $order->getId()
+                $order->getId(),
+                $origin
             );
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);

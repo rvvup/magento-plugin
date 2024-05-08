@@ -60,10 +60,11 @@ class Processing implements ProcessorInterface
      *
      * @param OrderInterface $order
      * @param array $rvvupData
+     * @param string $origin
      * @return ProcessOrderResultInterface
      * @throws PaymentValidationException
      */
-    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
+    public function execute(OrderInterface $order, array $rvvupData, string $origin): ProcessOrderResultInterface
     {
         /** @var \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult */
         $processOrderResult = $this->processOrderResultFactory->create();
@@ -121,7 +122,8 @@ class Processing implements ProcessorInterface
                 $e->getMessage(),
                 $rvvupData['id'],
                 $rvvupData['payments'][0]['id'],
-                $order->getId()
+                $order->getId(),
+                $origin
             );
 
             $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
