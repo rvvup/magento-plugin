@@ -80,6 +80,7 @@ class In implements HttpGetActionInterface
         $rvvupId = $this->request->getParam('rvvup-order-id');
         $paymentStatus = $this->request->getParam('payment-status');
         $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
+        $origin = 'customer-flow';
 
         if (!$quote) {
             $quote = $this->checkoutSession->getQuote();
@@ -89,7 +90,13 @@ class In implements HttpGetActionInterface
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
         $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
 
-        $validate = $this->captureService->validate($quote, $lastTransactionId, $rvvupId, $paymentStatus);
+        $validate = $this->captureService->validate(
+            $quote,
+            $lastTransactionId,
+            $rvvupId,
+            $paymentStatus,
+            $origin
+        );
 
         if (!$validate->getIsValid()) {
             if ($validate->getRestoreQuote()) {
@@ -113,14 +120,19 @@ class In implements HttpGetActionInterface
                     $this->checkoutSession->setLastQuoteId($quote->getId());
                     $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
                     $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
-                    return $this->resultService->processOrderResult(null, $rvvupId);
+                    return $this->resultService->processOrderResult(null, $rvvupId, $origin);
                 }
-                return $this->resultService->processOrderResult((string)$quote->getReservedOrderId(), $rvvupId, true);
+                return $this->resultService->processOrderResult(
+                    (string)$quote->getReservedOrderId(),
+                    $rvvupId,
+                    $origin,
+                    true
+                );
             }
         }
 
         $this->captureService->setCheckoutMethod($quote);
-        $validation = $this->captureService->createOrder($rvvupId, $quote);
+        $validation = $this->captureService->createOrder($rvvupId, $quote, $origin);
         $orderId = $validation->getOrderId();
         $alreadyExists = $validation->getAlreadyExists();
 
@@ -129,7 +141,12 @@ class In implements HttpGetActionInterface
             $this->checkoutSession->setLastQuoteId($quote->getId());
             $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
             $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
-            return $this->resultService->processOrderResult((string)$orderId, $rvvupId, true);
+            return $this->resultService->processOrderResult(
+                (string)$orderId,
+                $rvvupId,
+                $origin,
+                true
+            );
         }
 
         if (!$orderId) {
@@ -143,7 +160,13 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        if (!$this->captureService->paymentCapture($payment, $lastTransactionId, $rvvupPaymentId, $rvvupId)) {
+        if (!$this->captureService->paymentCapture(
+            $payment,
+            $lastTransactionId,
+            $rvvupPaymentId,
+            $rvvupId,
+            $origin
+        )) {
             $this->messageManager->addErrorMessage(
                 __(
                     'An error occurred while capturing your order (ID %1). Please contact us.',
@@ -153,7 +176,7 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        return $this->resultService->processOrderResult((string)$orderId, $rvvupId);
+        return $this->resultService->processOrderResult((string)$orderId, $rvvupId, $origin);
     }
 
     /**
