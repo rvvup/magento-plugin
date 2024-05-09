@@ -5,16 +5,15 @@
  * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 ?>
-<?= $escaper->escapeHtml(
-    $secureRenderer->renderTag(
-        'script',
-        ['type' => 'text/x-magento-init'],
-        '{
+<?=
+/* @noEscape */ $secureRenderer->renderTag(
+    'script',
+    ['type' => 'text/x-magento-init'],
+    '{
         "*": {
             "Rvvup_Payments/js/view/payment/messages": {}
         }
     }',
-        false
-    )
+    false
 );
 ?>

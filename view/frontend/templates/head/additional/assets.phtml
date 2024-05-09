@@ -27,14 +27,12 @@ if ($assetsViewModel === null) {
         <?php // phpcs:enable?>
 
         <?php if ($method == 'rvvup_card'): ?>
-            <?= $escaper->escapeHtml(
-                $secureRenderer->renderTag(
-                    'script',
-                    ['type' => 'text/javascript'],
-                    "window.rvvup_card_script ='" . $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) . "';",
-                    false
-                )
-            );
+            <?= /* @noEscape */ $secureRenderer->renderTag(
+                'script',
+                ['type' => 'text/javascript'],
+                "window.rvvup_card_script ='" . $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) . "';",
+                false
+            )
             ?>
         <?php else: ?>
         <script id="<?= $escaper->escapeHtmlAttr($assetsViewModel->getScriptElementId($method, (string) $index)) ?>"
@@ -50,13 +48,11 @@ if ($assetsViewModel === null) {
     <?php endforeach; ?>
 <?php endforeach; ?>
 
-<?= $escaper->escapeHtml(
-    $secureRenderer->renderTag(
-        'script',
-        ['type' => 'text/javascript'],
-        "const rvvup_parameters = JSON.parse('" .  $assetsViewModel->getRvvupParametersJsObject() . "');",
-        false
-    )
+<?= /* @noEscape */ $secureRenderer->renderTag(
+    'script',
+    ['type' => 'text/javascript'],
+    "const rvvup_parameters = JSON.parse('" .  $assetsViewModel->getRvvupParametersJsObject() . "');",
+    false
 );
 ?>
 
