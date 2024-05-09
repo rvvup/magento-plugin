@@ -302,7 +302,7 @@ class VirtualCheckout
         ];
 
         if ($orderId) {
-            $result['Idempotency-Key'] = $orderId;
+            $result[] = 'Idempotency-Key: ' . $orderId;
         }
 
         return $result;

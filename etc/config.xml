@@ -51,7 +51,7 @@
                 <allowspecific>0</allowspecific>
                 <can_use_internal>1</can_use_internal>
                 <can_use_checkout>0</can_use_checkout>
-                <can_initialize>0</can_initialize>
+                <can_initialize>1</can_initialize>
                 <can_capture>0</can_capture>
                 <can_cancel>1</can_cancel>
                 <can_void>1</can_void>
@@ -70,7 +70,7 @@
                 <allowspecific>0</allowspecific>
                 <can_use_internal>1</can_use_internal>
                 <can_use_checkout>0</can_use_checkout>
-                <can_initialize>0</can_initialize>
+                <can_initialize>1</can_initialize>
                 <can_capture>0</can_capture>
                 <can_void>1</can_void>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>

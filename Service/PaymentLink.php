@@ -204,7 +204,7 @@ class PaymentLink
         $headers = [
             'Content-Type: application/json',
             'Accept: application/json',
-            'Idempotency-Key' => $orderId,
+            'Idempotency-Key: ' . $orderId,
             'Authorization: Bearer ' . $token
         ];
 
