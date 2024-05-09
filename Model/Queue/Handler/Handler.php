@@ -127,7 +127,7 @@ class Handler
                     $storeId
                 );
                 if ($order && $order->getId()) {
-                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
                     return;
                 }
                 return;
