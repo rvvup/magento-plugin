@@ -8,7 +8,7 @@ export default class VisitCheckoutPayment {
 
     async visit() {
         const cart = new Cart(this.page);
-        await cart.addStandardItemToCart("Rvvup Crypto Future");
+        await cart.addStandardItemToCart();
 
         await this.page.goto('./checkout');
 
