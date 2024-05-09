@@ -66,7 +66,14 @@ class Logger extends BaseLogger
         );
 
         try {
-            $data = $this->prepareData($message, $cause, $rvvupOrderId, $rvvupPaymentId, $magentoOrderId);
+            $data = $this->prepareData(
+                $message,
+                $cause,
+                $rvvupOrderId,
+                $rvvupPaymentId,
+                $magentoOrderId,
+                $origin
+            );
 
             /** @var LogModel $model */
             $model = $this->modelFactory->create();
