@@ -26,6 +26,7 @@ services:
       - MAGENTO_USERNAME=admin
       - MAGENTO_PASSWORD=password1
       - MAGENTO_EMAIL=admin@test.com
+      - MAGENTO_HOST=local.dev.rvvuptech.com
       - RVVUP_API_KEY=$RVVUP_API_KEY
       - RVVUP_PLUGIN_VERSION=$RVVUP_PLUGIN_VERSION
       - MAGENTO_REPO_PUBLIC_KEY=$MAGENTO_REPO_PUBLIC_KEY
