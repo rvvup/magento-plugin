@@ -71,7 +71,12 @@ class PaymentLink extends Action implements HttpPostActionInterface
         if ($amount > 0) {
             try {
                 $order = $this->orderRepository->get($orderId);
-                $body = $this->paymentLinkService->createPaymentLink($storeId, $amount, $orderId, $currencyCode);
+                $body = $this->paymentLinkService->createPaymentLink(
+                    $storeId,
+                    $amount,
+                    $order->getIncrementId(),
+                    $currencyCode
+                );
                 $message = $this->config->getPayByLinkText(ScopeInterface::SCOPE_STORE, $storeId);
                 $message .= PHP_EOL . $body['url'];
                 $this->paymentLinkService->addCommentToOrder($order->getStatus(), $orderId, $message);
