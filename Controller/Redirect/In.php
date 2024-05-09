@@ -84,9 +84,9 @@ class In implements HttpGetActionInterface
      */
     public function execute()
     {
-        $rvvupId = $this->request->getParam(Method::ORDER_ID);
+        $rvvupId = (string) $this->request->getParam('rvvup-order-id');
         $paymentStatus = $this->request->getParam('payment-status');
-        $quote = $this->captureService->getQuoteByRvvupId((string) $rvvupId);
+        $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
         $checkoutId = $this->request->getParam('checkout_id');
         $storeId = $this->request->getParam('store_id');
         $origin = 'customer-flow';
