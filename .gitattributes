@@ -1,0 +1,7 @@
+Dockerfile export-ignore
+docker-compose.yml export-ignore
+.env.sample export-ignore
+run-e2e-tests.sh export-ignore
+playwright.config.js export-ignore
+Test/ export-ignore
+docker/ export-ignore
