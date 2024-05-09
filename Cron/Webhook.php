@@ -201,7 +201,7 @@ class Webhook
     private function validateMoto(int $storeId, array $data, int $webhookId): bool
     {
         $order = $this->captureService->getOrderByPaymentField(
-            'rvvup_moto_id',
+            Method::MOTO_ID,
             $data['checkout_id'],
             (string)$storeId
         );

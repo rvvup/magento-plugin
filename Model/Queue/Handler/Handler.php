@@ -134,7 +134,7 @@ class Handler
 
             if ($checkoutId) {
                 $order = $this->captureService->getOrderByPaymentField(
-                    'rvvup_moto_id',
+                    Method::MOTO_ID,
                     $checkoutId,
                     $storeId
                 );

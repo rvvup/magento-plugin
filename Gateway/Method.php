@@ -34,6 +34,8 @@ class Method extends Adapter
 
     public const PAYMENT_ID = 'rvvup_payment_id';
 
+    public const MOTO_ID = 'rvvup_moto_id';
+
     public const PAYMENT_LINK_ID = 'rvvup_payment_link_id';
 
     public const PAYMENT_LINK_MESSAGE = 'rvvup_payment_link_message';

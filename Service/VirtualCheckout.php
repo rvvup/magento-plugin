@@ -222,7 +222,7 @@ class VirtualCheckout
         try {
             $order = $this->orderRepository->get($orderId);
             $payment = $this->paymentLinkService->getQuotePaymentByOrder($order);
-            $payment->setAdditionalInformation('rvvup_moto_id', $motoId);
+            $payment->setAdditionalInformation(Method::MOTO_ID, $motoId);
 
             if ($payment->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
                 $paymentLinkId = $payment->getAdditionalInformation(Method::PAYMENT_LINK_ID);

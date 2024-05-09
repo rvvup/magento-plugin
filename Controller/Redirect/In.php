@@ -84,14 +84,14 @@ class In implements HttpGetActionInterface
      */
     public function execute()
     {
-        $rvvupId = $this->request->getParam('rvvup-order-id');
+        $rvvupId = $this->request->getParam(Method::ORDER_ID);
         $paymentStatus = $this->request->getParam('payment-status');
         $quote = $this->captureService->getQuoteByRvvupId((string) $rvvupId);
         $checkoutId = $this->request->getParam('checkout_id');
         $storeId = $this->request->getParam('store_id');
 
         if ($checkoutId && $storeId) {
-            $order = $this->captureService->getOrderByPaymentField('rvvup_moto_id', $checkoutId, $storeId);
+            $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId, $storeId);
 
             if (!$rvvupId) {
                 $rvvupId = $this->virtualCheckoutService->getRvvupIdByMotoId($checkoutId, $storeId, $order);
