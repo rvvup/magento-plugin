@@ -5,6 +5,7 @@ namespace Rvvup\Payments\Service;
 
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -82,14 +83,17 @@ class Result
     /**
      * @param string|null $orderId
      * @param string $rvvupId
+     * @param string $origin
      * @param int $storeId
      * @param bool $reservedOrderId
      * @param string|null $redirectUrl
      * @return Redirect
+     * Update Magento Order based on Rvuup Order and payment statuses
      */
     public function processOrderResult(
         ?string $orderId,
         string $rvvupId,
+        string $origin,
         int $storeId,
         bool $reservedOrderId = false,
         string $redirectUrl = null
@@ -115,12 +119,12 @@ class Result
 
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
                 if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {
-                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData);
+                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData, $origin);
                 }
             }
 
             $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
-            $result = $processor->execute($order, $rvvupData);
+            $result = $processor->execute($order, $rvvupData, $origin);
 
             if ($redirectUrl) {
                 $result->setRedirectPath($redirectUrl);

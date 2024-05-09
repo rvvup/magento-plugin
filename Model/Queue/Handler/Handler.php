@@ -112,6 +112,7 @@ class Handler
             $rvvupPaymentId = $payload['payment_id'];
             $storeId = $payload['store_id'] ?? false;
             $checkoutId = $payload['checkout_id'] ?? false;
+            $origin = $payload['origin'] ?? false;
 
             if (!$storeId) {
                 return;
@@ -139,7 +140,7 @@ class Handler
                     $storeId
                 );
                 if ($order && $order->getId()) {
-                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
                     return;
                 }
                 return;
@@ -160,7 +161,7 @@ class Handler
                 $payment = $quote->getPayment();
                 $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
                 $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
-                $validate = $this->captureService->validate($quote, $lastTransactionId, $rvvupOrderId);
+                $validate = $this->captureService->validate($quote, $lastTransactionId, $rvvupOrderId, $origin);
                 if (!$validate->getIsValid()) {
                     if ($validate->getRedirectToCart()) {
                         return;
@@ -170,7 +171,7 @@ class Handler
                     }
                 }
                 $this->captureService->setCheckoutMethod($quote);
-                $validation = $this->captureService->createOrder($rvvupOrderId, $quote);
+                $validation = $this->captureService->createOrder($rvvupOrderId, $quote, $origin);
                 $alreadyExists = $validation->getAlreadyExists();
                 $orderId = $validation->getOrderId();
 
@@ -186,7 +187,8 @@ class Handler
                     $payment,
                     $lastTransactionId,
                     $rvvupPaymentId,
-                    $rvvupOrderId
+                    $rvvupOrderId,
+                    $origin
                 );
 
                 return;
@@ -194,7 +196,7 @@ class Handler
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
             if ($order && $order->getId()) {
-                $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId);
+                $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
             }
             return;
         } catch (\Exception $e) {
@@ -208,12 +210,17 @@ class Handler
      * @param OrderInterface $order
      * @param string $rvvupOrderId
      * @param string $rvvupPaymentId
+     * @param string $origin
      * @return void
-     * @throws LocalizedException
      * @throws AlreadyExistsException
+     * @throws LocalizedException
      */
-    private function processOrder(OrderInterface $order, string $rvvupOrderId, string $rvvupPaymentId): void
-    {
+    private function processOrder(
+        OrderInterface $order,
+        string $rvvupOrderId,
+        string $rvvupPaymentId,
+        string $origin
+    ): void {
         // if Payment method is not Rvvup, exit.
         if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
             if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
@@ -236,12 +243,14 @@ class Handler
         if ($order->getPayment()->getMethod() == 'rvvup_payment-link') {
             $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
-                $rvvupData
+                $rvvupData,
+                $origin
             );
         } else {
             $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
-                $rvvupData
+                $rvvupData,
+                $origin
             );
         }
     }

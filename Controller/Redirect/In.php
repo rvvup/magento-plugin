@@ -89,6 +89,7 @@ class In implements HttpGetActionInterface
         $quote = $this->captureService->getQuoteByRvvupId((string) $rvvupId);
         $checkoutId = $this->request->getParam('checkout_id');
         $storeId = $this->request->getParam('store_id');
+        $origin = 'customer-flow';
 
         if ($checkoutId && $storeId) {
             $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId, $storeId);
@@ -101,6 +102,7 @@ class In implements HttpGetActionInterface
             return $this->resultService->processOrderResult(
                 (string)$order->getId(),
                 $rvvupId,
+                $origin,
                 (int)$storeId,
                 false,
                 $redirectUrl
@@ -115,7 +117,13 @@ class In implements HttpGetActionInterface
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
         $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
 
-        $validate = $this->captureService->validate($quote, $lastTransactionId, $rvvupId, $paymentStatus);
+        $validate = $this->captureService->validate(
+            $quote,
+            $lastTransactionId,
+            $rvvupId,
+            $paymentStatus,
+            $origin
+        );
 
         if (!$validate->getIsValid()) {
             if ($validate->getRestoreQuote()) {
@@ -142,23 +150,22 @@ class In implements HttpGetActionInterface
                     return $this->resultService->processOrderResult(
                         null,
                         $rvvupId,
-                        $quote->getStoreId(),
-                        false,
-                        null
+                        $origin,
+                        $quote->getStoreId()
                     );
                 }
                 return $this->resultService->processOrderResult(
                     (string)$quote->getReservedOrderId(),
                     $rvvupId,
+                    $origin,
                     $quote->getStoreId(),
-                    true,
-                    null
+                    true
                 );
             }
         }
 
         $this->captureService->setCheckoutMethod($quote);
-        $validation = $this->captureService->createOrder($rvvupId, $quote);
+        $validation = $this->captureService->createOrder($rvvupId, $quote, $origin);
         $orderId = $validation->getOrderId();
         $alreadyExists = $validation->getAlreadyExists();
 
@@ -170,9 +177,9 @@ class In implements HttpGetActionInterface
             return $this->resultService->processOrderResult(
                 (string)$orderId,
                 $rvvupId,
+                $origin,
                 $quote->getStoreId(),
-                true,
-                null
+                true
             );
         }
 
@@ -187,7 +194,13 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        if (!$this->captureService->paymentCapture($payment, $lastTransactionId, $rvvupPaymentId, $rvvupId)) {
+        if (!$this->captureService->paymentCapture(
+            $payment,
+            $lastTransactionId,
+            $rvvupPaymentId,
+            $rvvupId,
+            $origin
+        )) {
             $this->messageManager->addErrorMessage(
                 __(
                     'An error occurred while capturing your order (ID %1). Please contact us.',
@@ -200,9 +213,8 @@ class In implements HttpGetActionInterface
         return $this->resultService->processOrderResult(
             (string)$orderId,
             $rvvupId,
-            $quote->getStoreId(),
-            false,
-            null
+            $origin,
+            $quote->getStoreId()
         );
     }
 

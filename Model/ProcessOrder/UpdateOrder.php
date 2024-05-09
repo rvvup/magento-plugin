@@ -29,11 +29,12 @@ class UpdateOrder implements ProcessorInterface
     /**
      * @param OrderInterface $order
      * @param array $rvvupData
+     * @param string $origin
      * @return ProcessOrderResultInterface
      * @throws JsonException
      * @throws NoSuchEntityException
      */
-    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
+    public function execute(OrderInterface $order, array $rvvupData, string $origin): ProcessOrderResultInterface
     {
         $processOrderResult = $this->processOrderResultFactory->create();
         $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);

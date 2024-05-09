@@ -77,12 +77,13 @@ class Cancel implements ProcessorInterface
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param OrderInterface $order
      * @param array $rvvupData
+     * @param string $origin
      * @return \Rvvup\Payments\Api\Data\ProcessOrderResultInterface
      * @throws \Rvvup\Payments\Exception\PaymentValidationException
      */
-    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
+    public function execute(OrderInterface $order, array $rvvupData, string $origin): ProcessOrderResultInterface
     {
         $this->validateIdExists($rvvupData);
         $this->validateStatusAllowed($rvvupData['payments'][0], $this->allowedStatuses);

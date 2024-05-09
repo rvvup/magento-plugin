@@ -43,10 +43,11 @@ class Comment implements ProcessorInterface
     /**
      * @param OrderInterface $order
      * @param array $rvvupData
+     * @param string $origin
      * @return ProcessOrderResultInterface
      * @throws PaymentValidationException
      */
-    public function execute(OrderInterface $order, array $rvvupData): ProcessOrderResultInterface
+    public function execute(OrderInterface $order, array $rvvupData, string $origin): ProcessOrderResultInterface
     {
         if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
             throw new PaymentValidationException(__('Order is not paid via Rvvup Payment Link'));

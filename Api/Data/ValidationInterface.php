@@ -23,12 +23,14 @@ interface ValidationInterface
      * @param string $lastTransactionId
      * @param string|null $rvvupId
      * @param string|null $paymentStatus
+     * @param string|null $origin
      * @return ValidationInterface
      */
     public function validate(
         Quote &$quote,
         string &$lastTransactionId,
         string $rvvupId = null,
-        string $paymentStatus = null
+        string $paymentStatus = null,
+        string $origin = null
     ): ValidationInterface;
 }

@@ -144,7 +144,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'event_type' => $eventType,
                 'store_id' => $this->getStoreId(),
                 'payment_link_id' => $paymentLinkId,
-                'checkout_id' => $checkoutId
+                'checkout_id' => $checkoutId,
+                'origin' => 'webhook'
             ];
 
             if ($payload['event_type'] == Complete::TYPE) {
