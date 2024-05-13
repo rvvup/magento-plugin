@@ -5,8 +5,9 @@
         <referenceBlock name="column_qty"
                         class="Rvvup\Payments\Block\Adminhtml\Items\Column\Qty"
                         template="Rvvup_Payments::items/column/qty.phtml"/>
-        <referenceBlock name="order_info"
-                        class="Rvvup\Payments\Block\Order\View\Info"
-                        template="Rvvup_Payments::order/view/info.phtml"/>
+        <referenceContainer name="payment_additional_info">
+            <block name="rvvup_information" class="Rvvup\Payments\Block\Order\View\Info"
+                   template="Rvvup_Payments::order/view/info.phtml"/>
+        </referenceContainer>
     </body>
 </page>
