@@ -9,7 +9,6 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
 use Rvvup\Payments\Exception\PaymentValidationException;
-use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\RvvupConfigProvider;
 
 class Comment implements ProcessorInterface
@@ -55,6 +54,11 @@ class Comment implements ProcessorInterface
 
         /** @var ProcessOrderResultInterface $processOrderResult */
         $processOrderResult = $this->processOrderResultFactory->create();
+
+        if ($order->getGrandTotal() === $order->getTotalPaid()
+            && $order->getGrandTotal() === $order->getTotalInvoiced()) {
+            return $processOrderResult;
+        }
 
         try {
             $message = 'Rvvup payment link order was updated by webhook with rvvup status : '
