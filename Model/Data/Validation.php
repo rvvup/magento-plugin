@@ -92,7 +92,9 @@ class Validation extends DataObject implements ValidationInterface
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
             $message = __('Payment was already completed');
-            $data[ValidationInterface::MESSAGE] = $message;
+            if ($origin !== 'webhook') {
+                $data[ValidationInterface::MESSAGE] = $message;
+            }
             $this->logger->addRvvupError(
                 'The quote is not active',
                 $message,
@@ -122,7 +124,9 @@ class Validation extends DataObject implements ValidationInterface
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::REDIRECT_TO_CART] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
-            $data[ValidationInterface::MESSAGE] = $message;
+            if ($origin !== 'webhook') {
+                $data[ValidationInterface::MESSAGE] = $message;
+            }
             $this->setValidationData($data);
             return $this;
         }
@@ -147,7 +151,9 @@ class Validation extends DataObject implements ValidationInterface
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::REDIRECT_TO_CART] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
-            $data[ValidationInterface::MESSAGE] = $message;
+            if ($origin !== 'webhook') {
+                $data[ValidationInterface::MESSAGE] = $message;
+            }
             $this->setValidationData($data);
             return $this;
         }
@@ -165,7 +171,9 @@ class Validation extends DataObject implements ValidationInterface
             );
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::REDIRECT_TO_CART] = true;
-            $data[ValidationInterface::MESSAGE] = $message;
+            if ($origin !== 'webhook') {
+                $data[ValidationInterface::MESSAGE] = $message;
+            }
             $this->setValidationData($data);
             return $this;
         }
