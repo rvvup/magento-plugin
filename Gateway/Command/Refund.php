@@ -12,6 +12,7 @@ use Magento\Sales\Api\Data\CreditmemoItemInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Magento\Sales\Model\Order\Item;
 use Magento\Sales\Model\Order\Payment;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Sdk\Factories\Inputs\RefundCreateInputFactory;
@@ -72,10 +73,10 @@ class Refund implements CommandInterface
     {
         /** @var Payment $payment */
         $payment = $commandSubject['payment']->getPayment();
-        $idempotencyKey = $payment->getTransactionId() . '-' . time();
-
+        $transactionId = $payment->getTransactionId() ?: $payment->getAdditionalInformation(Method::PAYMENT_ID);
+        $idempotencyKey = $transactionId . '-' . time();
         $order = $payment->getOrder();
-        $rvvupOrderId = $payment->getAdditionalInformation('rvvup_order_id');
+        $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $orderState = $payment->getOrder()->getState();
 
         $input = $this->refundCreateInputFactory->create(

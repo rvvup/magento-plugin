@@ -4,6 +4,9 @@
  * @var \Rvvup\Payments\Block\Info $block
  */
 /** Magento 2.3.5 backward compatibility fix */
+
+use Rvvup\Payments\Gateway\Method;
+
 if (!isset($escaper)) {
     $escaper = $block;
 }
@@ -27,7 +30,9 @@ $paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->g
             <th><?= $escaper->escapeHtml('Payment Link') ?>:</th>
             <td>
                 <a href="<?= $escaper->escapeUrl($block->getInfo()->getAdditionalInformation('dashboardUrl')) ?>"
-                   target="_blank"><?= $escaper->escapeHtml($block->getInfo()->getAdditionalInformation('rvvup_order_id')) ?></a>
+                   target="_blank">
+                    <?= $escaper->escapeHtml($block->getInfo()->getAdditionalInformation(Method::ORDER_ID)) ?>
+                </a>
             </td>
         </tr>
         <?php endif; ?>

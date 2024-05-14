@@ -27,9 +27,10 @@ interface ConfigInterface
      * Validate whether Rvvup module & payment methods are active.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return bool
      */
-    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE): bool;
+    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool;
 
     /**
      * Get the active value from the config.
@@ -59,9 +60,10 @@ interface ConfigInterface
      * Get the Merchant ID.
      *
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string
      */
-    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE): string;
+    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
 
     /**
      * Get the Authorization Token.
@@ -89,9 +91,10 @@ interface ConfigInterface
     /**
      * Get text for pay-by-link emails
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string
      */
-    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE): string;
+    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
 
     /**
      * Get valid product types

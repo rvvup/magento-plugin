@@ -7,6 +7,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\MessageQueue\PublisherInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Controller\Webhook\Index;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollection;
@@ -31,25 +32,31 @@ class Webhook
     /** @var Capture */
     private $captureService;
 
+    /** @var LoggerInterface */
+    private LoggerInterface $logger;
+
     /**
      * @param WebhookCollectionFactory $webhookCollectionFactory
      * @param PublisherInterface $publisher
      * @param Json $json
      * @param WebhookRepository $webhookRepository
      * @param Capture $captureService
+     * @param LoggerInterface $logger
      */
     public function __construct(
         WebhookCollectionFactory $webhookCollectionFactory,
         PublisherInterface       $publisher,
         Json                     $json,
         WebhookRepository        $webhookRepository,
-        Capture                  $captureService
+        Capture                  $captureService,
+        LoggerInterface          $logger
     ) {
         $this->webhookCollectionFactory = $webhookCollectionFactory;
         $this->json = $json;
         $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
         $this->captureService = $captureService;
+        $this->logger = $logger;
     }
 
     /**
@@ -75,32 +82,47 @@ class Webhook
     private function processWebhooks(WebhookCollection $collection): void
     {
         foreach ($collection->getItems() as $item) {
-            $payload = $item->getData('payload');
-            $data = $this->json->unserialize($payload);
-            $webhookId = (int) $item->getData('webhook_id');
-            if (isset($data['store_id'])) {
-                $storeId = (int) $data['store_id'];
-                $orderId = $data['order_id'];
+            try {
+                $payload = $item->getData('payload');
+                $data = $this->json->unserialize($payload);
+                $webhookId = (int) $item->getData('webhook_id');
+                if (isset($data['store_id'])) {
+                    $storeId = (int) $data['store_id'];
+                    $orderId = $data['order_id'];
 
-                if ($data['payment_link_id']) {
-                    if (!$this->validatePaymentLink($storeId, $data, $webhookId)) {
-                        continue;
+                    if (isset($data['payment_link_id']) && $data['payment_link_id']) {
+                        if (!$this->validatePaymentLink($storeId, $data, $webhookId)) {
+                            continue;
+                        }
+                    } elseif (isset($data['checkout_id']) && $data['checkout_id']) {
+                        if (!$this->validateMoto($storeId, $data, $webhookId)) {
+                            continue;
+                        }
+                    } elseif ($data['event_type'] == Index::PAYMENT_COMPLETED) {
+                        if (!$this->validatePaymentCompleted($orderId, $storeId, $webhookId)) {
+                            continue;
+                        }
+                    } elseif ($data['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                        if (!$this->validatePaymentAuthorized($orderId, $storeId, $webhookId)) {
+                            continue;
+                        }
                     }
-                } elseif ($data['event_type'] == Index::PAYMENT_COMPLETED) {
-                    if (!$this->validatePaymentCompleted($orderId, $storeId, $webhookId)) {
-                        continue;
-                    }
-                } elseif ($data['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                    if (!$this->validatePaymentAuthorized($orderId, $storeId, $webhookId)) {
-                        continue;
-                    }
+
+                    $this->addWebhookToQueue($webhookId);
+                } else {
+                    $webhook = $this->webhookRepository->getById($webhookId);
+                    $webhook->setData('is_processed', true);
+                    $this->webhookRepository->save($webhook);
                 }
-
-                $this->addWebhookToQueue($webhookId);
-            } else {
+            } catch (\Exception $exception) {
+                $webhookId = (int) $item->getData('webhook_id');
                 $webhook = $this->webhookRepository->getById($webhookId);
                 $webhook->setData('is_processed', true);
                 $this->webhookRepository->save($webhook);
+                $this->logger->addRvvupError(
+                    'Failed to process Rvvup webhook:' . $item->getData($payload),
+                    $exception->getMessage(),
+                );
             }
         }
     }
@@ -176,9 +198,36 @@ class Webhook
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
+    private function validateMoto(int $storeId, array $data, int $webhookId): bool
+    {
+        $order = $this->captureService->getOrderByPaymentField(
+            Method::MOTO_ID,
+            $data['checkout_id'],
+            (string)$storeId
+        );
+
+        if (!$order || !$order->getId()) {
+            $webhook = $this->webhookRepository->getById($webhookId);
+            $webhook->setData('is_processed', true);
+            $this->webhookRepository->save($webhook);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param int $storeId
+     * @param array $data
+     * @param int $webhookId
+     * @return bool
+     * @throws AlreadyExistsException
+     * @throws NoSuchEntityException
+     */
     private function validatePaymentLink(int $storeId, array $data, int $webhookId): bool
     {
-        $order = $this->captureService->getOrderByRvvupPaymentLinkId(
+        $order = $this->captureService->getOrderByPaymentField(
+            Method::PAYMENT_LINK_ID,
             $data['payment_link_id'],
             (string)$storeId
         );

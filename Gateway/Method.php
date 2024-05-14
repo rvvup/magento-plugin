@@ -10,6 +10,7 @@ use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
+use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\Method\Adapter;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -32,6 +33,12 @@ class Method extends Adapter
     public const TRANSACTION_ID = 'transaction_id';
 
     public const PAYMENT_ID = 'rvvup_payment_id';
+
+    public const MOTO_ID = 'rvvup_moto_id';
+
+    public const PAYMENT_LINK_ID = 'rvvup_payment_link_id';
+
+    public const PAYMENT_LINK_MESSAGE = 'rvvup_payment_link_message';
 
     public const CREATE_NEW = 'should_create_new_rvvup_order';
 

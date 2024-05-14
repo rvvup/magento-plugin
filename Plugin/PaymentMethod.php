@@ -59,7 +59,7 @@ class PaymentMethod
         if (isset($result[RvvupConfigProvider::CODE])) {
             $result = array_merge($result, $this->getMethods());
             if (isset($result[RvvupConfigProvider::CODE]['label'])) {
-                $result[RvvupConfigProvider::CODE]['label'] = 'Rvvup Payment Link';
+                $result[RvvupConfigProvider::CODE]['label'] = 'Rvvup Payments';
             }
         } elseif (isset($result[RvvupConfigProvider::GROUP_CODE])) {
             $result[RvvupConfigProvider::GROUP_CODE][self::VALUE] = $this->getMethods();

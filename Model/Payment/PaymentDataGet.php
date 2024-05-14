@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\Payment;
 
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Throwable;
 
@@ -42,7 +43,7 @@ class PaymentDataGet implements PaymentDataGetInterface
         try {
             return $this->sdkProxy->getOrder($rvvupId);
         } catch (Throwable $t) {
-            $this->logger->error('Failed to get data from Rvvup for order id', ['rvvup_order_id' => $rvvupId]);
+            $this->logger->error('Failed to get data from Rvvup for order id', [Method::ORDER_ID => $rvvupId]);
             return [];
         }
     }

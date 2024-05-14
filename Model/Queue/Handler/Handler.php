@@ -111,6 +111,7 @@ class Handler
             $rvvupOrderId = $payload['order_id'];
             $rvvupPaymentId = $payload['payment_id'];
             $storeId = $payload['store_id'] ?? false;
+            $checkoutId = $payload['checkout_id'] ?? false;
             $origin = $payload['origin'] ?? false;
 
             if (!$storeId) {
@@ -120,7 +121,24 @@ class Handler
             $this->emulation->startEnvironmentEmulation((int) $storeId);
 
             if ($paymentLinkId = $payload['payment_link_id']) {
-                $order = $this->captureService->getOrderByRvvupPaymentLinkId($paymentLinkId, $storeId);
+                $order = $this->captureService->getOrderByPaymentField(
+                    Method::PAYMENT_LINK_ID,
+                    $paymentLinkId,
+                    $storeId
+                );
+                if ($order && $order->getId()) {
+                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
+                    return;
+                }
+                return;
+            }
+
+            if ($checkoutId) {
+                $order = $this->captureService->getOrderByPaymentField(
+                    Method::MOTO_ID,
+                    $checkoutId,
+                    $storeId
+                );
                 if ($order && $order->getId()) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
                     return;
@@ -213,7 +231,7 @@ class Handler
         $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
         if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
             $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
-                    'rvvup_order_id' => $rvvupOrderId
+                    Method::ORDER_ID => $rvvupOrderId
                 ]);
             return;
         }
@@ -222,7 +240,7 @@ class Handler
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
         $this->paymentResource->save($payment);
         $this->cacheService->clear($rvvupOrderId, $order->getState());
-        if ($order->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
+        if ($order->getPayment()->getMethod() == 'rvvup_payment-link') {
             $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
                 $order,
                 $rvvupData,

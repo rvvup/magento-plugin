@@ -1,0 +1,38 @@
+<?php
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Payment\Block\Form;
+
+/**
+ * @var Escaper $escaper
+ * @var Form $block
+ */
+$code = $block->getMethodCode();
+$quote = $block->getMethod()->getInfoInstance()->getQuote();
+$amount = $quote->getGrandTotal();
+$storeId = $quote->getStoreId();
+$currencyCode = $quote->getQuoteCurrencyCode();
+$url = $block->getUrl('rvvup/availability/index');
+?>
+<fieldset class="admin__fieldset payment-method"
+          id="payment_form_<?= $escaper->escapeHtmlAttr($code) ?>"
+          style="display:none;">
+    <div class="admin__field _required">
+        <label class="label admin__field-label" style="font-weight: normal; display: contents; word-break: auto-phrase;">
+            Will create and share in order email
+        </label>
+    </div>
+    <script>
+        require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {
+            var config = {
+                'method': '<?= $escaper->escapeJs($code) ?>',
+                'amount': '<?= $escaper->escapeJs($amount) ?>',
+                'currency_code': '<?= $escaper->escapeJs($currencyCode) ?>',
+                'store_id': '<?= $escaper->escapeJs($storeId) ?>',
+                'url': '<?= $escaper->escapeJs($url) ?>',
+            };
+            availablePayment(config);
+        });
+    </script>
+</fieldset>

@@ -16,7 +16,7 @@
     <table name="rvvup_webhook" resource="default" engine="innodb" comment="Webhook">
         <column xsi:type="int" name="webhook_id" padding="10" unsigned="true" nullable="false" identity="true"
                 comment="Webhook Id Column"/>
-        <column xsi:type="varchar" name="payload" nullable="false" length="255" comment="Payload Column"/>
+        <column xsi:type="text" name="payload" nullable="false" comment="Payload Column"/>
         <column xsi:type="datetime" name="created_at" on_update="false"
                 nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
         <column xsi:type="boolean" name="is_processed"

@@ -66,10 +66,34 @@
         <arguments>
             <argument name="code" xsi:type="string">rvvup</argument>
             <argument name="title" xsi:type="string">Rvvup</argument>
-            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form\Cc</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupValueHandlerPool</argument>
             <argument name="commandPool" xsi:type="object">\Rvvup\Payments\Gateway\CommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment Link Method Facade configuration -->
+    <virtualType name="RvvupPaymentLinkFacade" type="Rvvup\Payments\Gateway\Method">
+        <arguments>
+            <argument name="code" xsi:type="string">rvvup_payment-link</argument>
+            <argument name="title" xsi:type="string">Rvvup Payment Link</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">RvvupPaymentLinkValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">RvvupPaymentLinksPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Virtual Terminal Method Facade configuration -->
+    <virtualType name="RvvupVirtualTerminalFacade" type="Rvvup\Payments\Gateway\Method">
+        <arguments>
+            <argument name="code" xsi:type="string">rvvup_virtual-terminal</argument>
+            <argument name="title" xsi:type="string">Rvvup Virtual Terminal</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">RvvupVirtualTerminalValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">RvvupVirtualTerminalPool</argument>
         </arguments>
     </virtualType>
 
@@ -91,15 +115,60 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="RvvupPaymentLinkValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">RvvupPaymentLinkConfigValueHandler</item>
+                <item name="can_refund" xsi:type="string">Rvvup\Payments\Gateway\Command\CanRefund</item>
+                <item name="can_void" xsi:type="string">Rvvup\Payments\Gateway\Command\CanVoid</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">RvvupVirtualTerminalConfigValueHandler</item>
+                <item name="can_refund" xsi:type="string">Rvvup\Payments\Gateway\Command\CanRefund</item>
+                <item name="can_void" xsi:type="string">Rvvup\Payments\Gateway\Command\CanVoid</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="RvvupConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
         <arguments>
             <argument name="configInterface" xsi:type="object">RvvupConfigValueHandlerConfig</argument>
         </arguments>
     </virtualType>
 
+    <virtualType name="RvvupPaymentLinkConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">RvvupPaymentLinkConfigValueHandlerConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">RvvupVirtualTerminalConfigValueHandlerConfig</argument>
+        </arguments>
+    </virtualType>
+
+
     <virtualType name="RvvupConfigValueHandlerConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">rvvup</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupPaymentLinkConfigValueHandlerConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">rvvup_payment-link</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalConfigValueHandlerConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">rvvup_virtual-terminal</argument>
         </arguments>
     </virtualType>
 
@@ -113,7 +182,7 @@
         </arguments>
     </virtualType>
 
-    <type name="\Rvvup\Payments\Gateway\CommandPool">
+    <type name="Rvvup\Payments\Gateway\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
@@ -122,6 +191,25 @@
             </argument>
         </arguments>
     </type>
+
+    <virtualType name="RvvupPaymentLinksPool" type="Rvvup\Payments\Gateway\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
+                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\Cancel</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupVirtualTerminalPool" type="Rvvup\Payments\Gateway\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
+                <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
+            </argument>
+        </arguments>
+    </virtualType>
 
     <!-- Initialize Command -->
     <virtualType name="Rvvup\Payments\Gateway\Command\InitializeCommand"
@@ -388,6 +476,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Gateway\Command\Cancel">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Model\ProcessOrder\Cancel">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
@@ -449,6 +543,12 @@
     </type>
 
     <type name="Rvvup\Payments\Gateway\Http\Client\TransactionInitialize">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Rvvup\Payments\Cron\Webhook">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>

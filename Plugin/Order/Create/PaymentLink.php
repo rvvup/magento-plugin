@@ -2,37 +2,22 @@
 
 namespace Rvvup\Payments\Plugin\Order\Create;
 
-use Laminas\Http\Request;
+use Magento\Backend\Model\Session\Quote;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
-use Magento\Sales\Api\OrderManagementInterface;
-use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
+use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Model\AdminOrder\Create;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Service\PaymentLink as PaymentLinkService;
 use Rvvup\Payments\Model\Config;
-use Rvvup\Payments\Model\RvvupConfigProvider;
-use Rvvup\Payments\Sdk\Curl;
 use Psr\Log\LoggerInterface;
 
 class PaymentLink
 {
-    /** @var Curl */
-    private $curl;
-
     /** @var Config */
     private $config;
-
-    /** @var SerializerInterface */
-    private $json;
-
-    /** @var OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory */
-    private $orderStatusHistoryFactory;
-
-    /** @var OrderManagementInterface $orderManagement */
-    private $orderManagement;
 
     /** @var Http */
     private $request;
@@ -44,37 +29,31 @@ class PaymentLink
      */
     private $logger;
 
-    /** @var Payment */
-    private $quotePaymentResource;
+    /** @var PaymentLinkService */
+    private $paymentLinkService;
+
+    /** @var Quote */
+    private $quoteSession;
 
     /**
-     * @param Curl $curl
      * @param Config $config
-     * @param SerializerInterface $json
-     * @param OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
-     * @param OrderManagementInterface $orderManagement
      * @param Http $request
-     * @param Payment $quotePaymentResource
      * @param LoggerInterface $logger
+     * @param PaymentLinkService $paymentLinkService
+     * @param Quote $quoteSession
      */
     public function __construct(
-        Curl                               $curl,
         Config                             $config,
-        SerializerInterface                $json,
-        OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
-        OrderManagementInterface           $orderManagement,
         Http                               $request,
-        Payment                            $quotePaymentResource,
-        LoggerInterface                    $logger
+        LoggerInterface                    $logger,
+        PaymentLinkService                 $paymentLinkService,
+        Quote                              $quoteSession
     ) {
-        $this->curl = $curl;
         $this->config = $config;
-        $this->json = $json;
-        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
-        $this->orderManagement = $orderManagement;
         $this->request = $request;
-        $this->quotePaymentResource = $quotePaymentResource;
         $this->logger = $logger;
+        $this->paymentLinkService = $paymentLinkService;
+        $this->quoteSession = $quoteSession;
     }
 
     /**
@@ -86,34 +65,9 @@ class PaymentLink
      */
     public function afterImportPostData(Create $subject, Create $result, array $data): Create
     {
-        if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-            if (isset($data['comment'])) {
-                if (!$subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_id')) {
-                    $quote = $result->getQuote();
-                    $storeId = (string)$quote->getStore()->getId();
-                    $amount = (float)$quote->getGrandTotal();
-                    $orderId = $quote->reserveOrderId()->getReservedOrderId();
-                    $currencyCode = $quote->getQuoteCurrencyCode();
-                    $order = $this->request->getPost('order');
-                    if (!isset($order['account']) || !isset($order['send_confirmation'])) {
-                        return $result;
-                    }
-
-                    if ($quote->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-                        list($id, $message) =
-                            $this->createRvvupPayByLink($storeId, $amount, $orderId, $currencyCode, $subject, $data);
-                        if ($id && $message) {
-                            $this->savePaymentLink($subject, $id, $message);
-                        }
-                    }
-                } else {
-                    $quote = $subject->getQuote();
-                    if ($quote->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-                        $message = $quote->getPayment()->getAdditionalInformation('rvvup_payment_link_message');
-                        $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
-                    }
-                }
-            }
+        if ($result->getQuote() && $result->getQuote()->getPayment()->getMethod() == 'rvvup_payment-link') {
+            $payment = $subject->getQuote()->getPayment();
+            $this->createPaymentLink($payment, $result, $subject, $data);
         }
         return $result;
     }
@@ -127,20 +81,25 @@ class PaymentLink
      */
     public function afterCreateOrder(Create $subject, Order $result): Order
     {
-        $order = $this->request->getPost('order');
-        if (!(isset($order['send_confirmation']) && $order['send_confirmation'])) {
-            if (!$subject->getQuote()->getPayment()->getAdditionalInformation('rvvup_payment_link_id')) {
-                if ($result->getPayment()->getMethod() == RvvupConfigProvider::CODE) {
-                    list($id, $message) = $this->createRvvupPayByLink(
-                        (string)$result->getStoreId(),
-                        $result->getGrandTotal(),
-                        $result->getId(),
-                        $result->getOrderCurrencyCode(),
-                        $subject,
-                        ['status' => $result->getStatus()]
-                    );
-                    if ($id && $message) {
-                        $this->savePaymentLink($subject, $id, $message);
+        if (!(isset($subject['send_confirmation']) && $subject['send_confirmation']) ||
+            $this->quoteSession->getData('reordered')) {
+            $payment = $subject->getQuote()->getPayment();
+            if (!$payment->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
+                if ($payment->getMethod() == 'rvvup_payment-link') {
+                    if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $result->getStoreId())) {
+                        list($id, $message) = $this->createRvvupPayByLink(
+                            (string)$result->getStoreId(),
+                            $result->getGrandTotal(),
+                            $result->getId(),
+                            $result->getOrderCurrencyCode(),
+                            $subject,
+                            ['status' => $result->getStatus()],
+                            $result->getIncrementId()
+                        );
+                        if ($id && $message) {
+                            $payment = $this->paymentLinkService->getQuotePaymentByOrder($result);
+                            $this->paymentLinkService->savePaymentLink($payment, $id, $message);
+                        }
                     }
                 }
             }
@@ -150,20 +109,58 @@ class PaymentLink
     }
 
     /**
+     * @param PaymentInterface $payment
+     * @param Create $result
      * @param Create $subject
-     * @param string $id
-     * @param string $message
-     * @return void
+     * @param array $data
+     * @return Create|void
+     * @throws NoSuchEntityException
      */
-    private function savePaymentLink(Create $subject, string $id, string $message): void
-    {
-        try {
-            $payment = $subject->getQuote()->getPayment();
-            $payment->setAdditionalInformation('rvvup_payment_link_id', $id);
-            $payment->setAdditionalInformation('rvvup_payment_link_message', $message);
-            $this->quotePaymentResource->save($payment);
-        } catch (\Exception $e) {
-            $this->logger->error('Error saving rvvup payment link: ' . $e->getMessage());
+    private function createPaymentLink(
+        PaymentInterface $payment,
+        Create $result,
+        Create $subject,
+        array $data
+    ) {
+        if (isset($data['comment'])) {
+            if (!$payment->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
+                $quote = $result->getQuote();
+                $storeId = (string)$quote->getStore()->getId();
+                $amount = (float)$quote->getGrandTotal();
+                $orderId = $quote->reserveOrderId()->getReservedOrderId();
+                if ($this->quoteSession->getData('reordered')) {
+                    return $result;
+                }
+
+                $currencyCode = $quote->getQuoteCurrencyCode();
+                $order = $this->request->getPost('order');
+                if (!isset($order['account']) || !isset($order['send_confirmation'])) {
+                    return $result;
+                }
+                if ($result->getQuote()->getPayment()->getMethod() == 'rvvup_payment-link') {
+                    if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
+                        list($id, $message) =
+                            $this->createRvvupPayByLink(
+                                $storeId,
+                                $amount,
+                                $orderId,
+                                $currencyCode,
+                                $subject,
+                                $data
+                            );
+                        if ($id && $message) {
+                            $payment = $subject->getQuote()->getPayment();
+                            $this->paymentLinkService->savePaymentLink($payment, $id, $message);
+                        }
+                    }
+                }
+            } else {
+                $quote = $subject->getQuote();
+                if ($quote->getPayment()->getMethod() == 'rvvup_payment-link') {
+                    $message = $quote->getPayment()->getAdditionalInformation(Method::PAYMENT_LINK_MESSAGE);
+                    $quote->addData(['customer_note' => $message, 'customer_note_notify' => true]);
+                }
+            }
         }
     }
 
@@ -175,6 +172,7 @@ class PaymentLink
      * @param string $currencyCode
      * @param Create $subject
      * @param array $data
+     * @param string|null $orderIncrementId
      * @return array|null
      */
     private function createRvvupPayByLink(
@@ -183,17 +181,20 @@ class PaymentLink
         string $orderId,
         string $currencyCode,
         Create $subject,
-        array $data
+        array $data,
+        string $orderIncrementId = null
     ): ?array {
         try {
             $amount = number_format($amount, 2, '.', '');
             if ($amount <= 0) {
                 return [null,null];
             }
-            $params = $this->getData($amount, $storeId, $orderId, $currencyCode);
-
-            $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
-            $body = $this->json->unserialize($request->body);
+            $body = $this->paymentLinkService->createPaymentLink(
+                $storeId,
+                $amount,
+                $orderIncrementId ?: $orderId,
+                $currencyCode
+            );
             $message = $this->processApiResponse($body, $amount, $subject, $data, $orderId);
             return [$body['id'], $message];
         } catch (\Exception $e) {
@@ -218,72 +219,24 @@ class PaymentLink
         array $data,
         string $orderId
     ): ?string {
-        if ($body['status'] == 'ACTIVE') {
+        if (isset($body['status']) && $body['status'] == 'ACTIVE') {
             if ($amount == $body['amount']['amount']) {
-                $message = $this->config->getPayByLinkText() . PHP_EOL . $body['url'];
+                $message = $this->config->getPayByLinkText(
+                    ScopeInterface::SCOPE_STORE,
+                    $subject->getQuote()->getStoreId()
+                ) . PHP_EOL . $body['url'];
+
                 if (isset($data['send_confirmation']) && $data['send_confirmation']) {
                     if ($data['comment']['customer_note']) {
                         $message .= PHP_EOL . $data['comment']['customer_note'];
                     }
                     $subject->getQuote()->addData(['customer_note' => $message, 'customer_note_notify' => true]);
                 } elseif (isset($data['status'])) {
-                    $historyComment = $this->orderStatusHistoryFactory->create();
-                    $historyComment->setParentId($orderId);
-                    $historyComment->setIsCustomerNotified(true);
-                    $historyComment->setIsVisibleOnFront(true);
-                    $historyComment->setComment($message);
-                    $historyComment->setStatus($data['status']);
-                    $this->orderManagement->addComment($orderId, $historyComment);
+                    $this->paymentLinkService->addCommentToOrder($data['status'], $orderId, $message);
                 }
                 return $message;
             }
         }
         return null;
-    }
-
-    /** @todo move to rest api sdk
-     * @param string $storeId
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    private function getApiUrl(string $storeId)
-    {
-        $merchantId = $this->config->getMerchantId(ScopeInterface::SCOPE_STORE, $storeId);
-        $baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
-        $baseUrl = str_replace('graphql', 'api/2024-03-01', $baseUrl);
-
-        return "$baseUrl/$merchantId/payment-links";
-    }
-
-    /**
-     * @param string $amount
-     * @param string $storeId
-     * @param string $orderId
-     * @param string $currencyCode
-     * @return array
-     * @throws NoSuchEntityException
-     */
-    private function getData(string $amount, string $storeId, string $orderId, string $currencyCode): array
-    {
-        $postData = [
-            'amount' => ['amount' => $amount, 'currency' => $currencyCode],
-            'reference' => $orderId,
-            'source' => 'MAGENTO_PAYMENT_LINK',
-            'reusable' => false
-        ];
-
-        $token = $this->config->getJwtConfig(ScopeInterface::SCOPE_STORE, $storeId);
-
-        $headers = [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Idempotency-Key' => $orderId,
-            'Authorization: Bearer ' . $token
-        ];
-
-        return [
-            'headers' => $headers,
-            'json' => $postData
-        ];
     }
 }

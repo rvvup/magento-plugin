@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Gateway\Command;
 
 use Exception;
+use Magento\Framework\App\Area;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
+use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Cache;
@@ -21,19 +23,25 @@ class CanVoid implements ValueHandlerInterface
     /** @var Json */
     private $serializer;
 
+    /** @var Emulation */
+    private $emulation;
+
     /**
      * @param SdkProxy $sdkProxy
      * @param Cache $cache
      * @param Json $serializer
+     * @param Emulation $emulation
      */
     public function __construct(
         SdkProxy $sdkProxy,
         Cache $cache,
-        Json $serializer
+        Json $serializer,
+        Emulation $emulation
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->cache = $cache;
         $this->serializer = $serializer;
+        $this->emulation = $emulation;
     }
 
     /**
@@ -44,6 +52,10 @@ class CanVoid implements ValueHandlerInterface
     public function handle(array $subject, $storeId = null): bool
     {
         try {
+            if ($storeId) {
+                $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_ADMINHTML);
+            }
+
             $payment = $subject['payment']->getPayment();
             $orderId = $payment->getAdditionalInformation(Method::ORDER_ID);
 

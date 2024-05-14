@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="order.create.billing.method.form">
+            <action method="setMethodFormTemplate">
+                <argument name="method" xsi:type="string">rvvup_payment-link</argument>
+                <argument name="template" xsi:type="string">Rvvup_Payments::form/payment-link.phtml</argument>
+            </action>
+            <action method="setMethodFormTemplate">
+                <argument name="method" xsi:type="string">rvvup_virtual-terminal</argument>
+                <argument name="template" xsi:type="string">Rvvup_Payments::form/virtual-terminal.phtml</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>

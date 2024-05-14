@@ -5,6 +5,10 @@
         <observer name="Rvvup_Payments::gateway_data_assign" instance="Rvvup\Payments\Observer\DataAssignObserver" />
     </event>
 
+    <event name="sales_order_payment_cancel">
+        <observer name="Rvvup_Payments::cancelPaymentLinks" instance="Rvvup\Payments\Observer\Cancel" />
+    </event>
+
     <event name="rvvup_payments_process_order_cancel_after">
         <observer name="Rvvup_Payments::Model\ProcessOrder\Cancel\AddOrderHistoryCommentObserver"
                   instance="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver"

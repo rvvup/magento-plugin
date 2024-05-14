@@ -157,6 +157,7 @@ class Config implements ConfigInterface
      *
      * @param string $scopeType
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isDebugEnabled(string $scopeType = ScopeInterface::SCOPE_STORE): bool
     {
@@ -174,22 +175,26 @@ class Config implements ConfigInterface
      */
     private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?stdClass
     {
-        if (!$this->jwt) {
+        if (!$scopeCode) {
+            $scopeCode = $this->storeManager->getStore()->getId();
+        }
+
+        if (!isset($this->jwt[$scopeCode])) {
             $jwt = $this->getJwtConfig($scopeType, $scopeCode);
 
             if ($jwt === null) {
-                $this->jwt = null;
+                $this->jwt[$scopeCode] = null;
 
-                return $this->jwt;
+                return $this->jwt[$scopeCode];
             }
 
             $parts = explode('.', $jwt);
             list($head, $body, $crypto) = $parts;
             // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-            $this->jwt = json_decode(base64_decode($body));
+            $this->jwt[$scopeCode] = json_decode(base64_decode($body));
         }
 
-        return $this->jwt;
+        return $this->jwt[$scopeCode];
     }
 
     /**
@@ -234,13 +239,15 @@ class Config implements ConfigInterface
 
     /**
      * @param string $scopeType
+     * @param string|null $scopeCode
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE): string
+    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
     {
         $config = self::RVVUP_CONFIG . self::XML_PATH_EMAIL . self::XML_PATH_PAY_BY_LINK_TEXT;
-        $scopeCode = $this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null;
+        $scopeCode = $scopeCode ?:
+            ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
 
         return $this->scopeConfig->getValue($config, $scopeType, $scopeCode);
     }

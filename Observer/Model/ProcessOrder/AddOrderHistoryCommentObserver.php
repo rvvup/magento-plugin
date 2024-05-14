@@ -123,7 +123,7 @@ class AddOrderHistoryCommentObserver implements ObserverInterface
 
         $orderStatusHistory = $this->createNewOrderStatusHistoryObject($order);
         $orderStatusHistory->setComment(
-            sprintf('Rvvup Order State changed from `%s` to `%s`.', $originalOrderState, $order->getState())
+            sprintf('Rvvup changed Order State from `%s` to `%s`.', $originalOrderState, $order->getState())
         );
         $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
     }
@@ -146,7 +146,7 @@ class AddOrderHistoryCommentObserver implements ObserverInterface
 
         $orderStatusHistory = $this->createNewOrderStatusHistoryObject($order);
         $orderStatusHistory->setComment(
-            sprintf('Rvvup Order Status changed from `%s` to `%s`.', $originalOrderStatus, $order->getStatus())
+            sprintf('Rvvup changed order status from `%s` to `%s`.', $originalOrderStatus, $order->getStatus())
         );
         $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
     }

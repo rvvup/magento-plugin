@@ -16,6 +16,7 @@ use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Result;
+use Rvvup\Payments\Service\VirtualCheckout;
 
 class In implements HttpGetActionInterface
 {
@@ -47,6 +48,9 @@ class In implements HttpGetActionInterface
     /** @var Result  */
     private $resultService;
 
+    /** @var VirtualCheckout */
+    private $virtualCheckoutService;
+
     /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
@@ -54,6 +58,7 @@ class In implements HttpGetActionInterface
      * @param ManagerInterface $messageManager
      * @param Capture $captureService
      * @param Result $resultService
+     * @param VirtualCheckout $virtualCheckoutService
      */
     public function __construct(
         RequestInterface $request,
@@ -61,7 +66,8 @@ class In implements HttpGetActionInterface
         SessionManagerInterface $checkoutSession,
         ManagerInterface $messageManager,
         Capture $captureService,
-        Result $resultService
+        Result $resultService,
+        VirtualCheckout $virtualCheckoutService
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -69,6 +75,7 @@ class In implements HttpGetActionInterface
         $this->messageManager = $messageManager;
         $this->captureService = $captureService;
         $this->resultService = $resultService;
+        $this->virtualCheckoutService = $virtualCheckoutService;
     }
 
     /**
@@ -77,13 +84,33 @@ class In implements HttpGetActionInterface
      */
     public function execute()
     {
-        $rvvupId = $this->request->getParam('rvvup-order-id');
+        $rvvupId = (string) $this->request->getParam('rvvup-order-id');
         $paymentStatus = $this->request->getParam('payment-status');
         $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
+        $checkoutId = $this->request->getParam('checkout_id');
+        $storeId = $this->request->getParam('store_id');
         $origin = 'customer-flow';
 
-        if (!$quote) {
-            $quote = $this->checkoutSession->getQuote();
+        if ($checkoutId && $storeId) {
+            $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId, $storeId);
+
+            if (!$rvvupId) {
+                $rvvupId = $this->virtualCheckoutService->getRvvupIdByMotoId($checkoutId, $storeId, $order);
+            }
+
+            $redirectUrl = $this->virtualCheckoutService->getOrderViewUrl((int)$order->getId());
+            return $this->resultService->processOrderResult(
+                (string)$order->getId(),
+                $rvvupId,
+                $origin,
+                (int)$storeId,
+                false,
+                $redirectUrl
+            );
+        }
+
+        if (!$quote || !$quote->getId()) {
+            $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
         }
 
         $payment = $quote->getPayment();
@@ -120,12 +147,18 @@ class In implements HttpGetActionInterface
                     $this->checkoutSession->setLastQuoteId($quote->getId());
                     $this->checkoutSession->setLastOrderId($quote->getReservedOrderId());
                     $this->checkoutSession->setLastRealOrderId($quote->getReservedOrderId());
-                    return $this->resultService->processOrderResult(null, $rvvupId, $origin);
+                    return $this->resultService->processOrderResult(
+                        null,
+                        $rvvupId,
+                        $origin,
+                        $quote->getStoreId()
+                    );
                 }
                 return $this->resultService->processOrderResult(
                     (string)$quote->getReservedOrderId(),
                     $rvvupId,
                     $origin,
+                    $quote->getStoreId(),
                     true
                 );
             }
@@ -145,6 +178,7 @@ class In implements HttpGetActionInterface
                 (string)$orderId,
                 $rvvupId,
                 $origin,
+                $quote->getStoreId(),
                 true
             );
         }
@@ -176,7 +210,12 @@ class In implements HttpGetActionInterface
             return $this->redirectToCart();
         }
 
-        return $this->resultService->processOrderResult((string)$orderId, $rvvupId, $origin);
+        return $this->resultService->processOrderResult(
+            (string)$orderId,
+            $rvvupId,
+            $origin,
+            $quote->getStoreId()
+        );
     }
 
     /**

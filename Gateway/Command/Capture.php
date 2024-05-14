@@ -36,10 +36,7 @@ class Capture extends AbstractCommand implements CommandInterface
     {
         $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
-        /** Do not proceed with payment for pay-by-link orders */
-        if ($payment->getMethod() !== RvvupConfigProvider::CODE) {
-            $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId);
-        }
+        $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId);
     }
 
     /**

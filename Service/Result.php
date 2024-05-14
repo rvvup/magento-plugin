@@ -5,6 +5,7 @@ namespace Rvvup\Payments\Service;
 
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -13,13 +14,13 @@ use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
 use Psr\Log\LoggerInterface;
+use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\Cancel;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 
 class Result
 {
-
     /** @var ResultFactory */
     private $resultFactory;
 
@@ -46,6 +47,9 @@ class Result
     /** @var OrderInterface */
     private $order;
 
+    /** @var Emulation */
+    private $emulation;
+
     /**
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -53,6 +57,7 @@ class Result
      * @param ProcessorPool $processorPool
      * @param PaymentDataGetInterface $paymentDataGet
      * @param OrderInterface $order
+     * @param Emulation $emulation
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -62,6 +67,7 @@ class Result
         ProcessorPool $processorPool,
         PaymentDataGetInterface $paymentDataGet,
         OrderInterface $order,
+        Emulation $emulation,
         LoggerInterface $logger
     ) {
         $this->resultFactory = $resultFactory;
@@ -70,13 +76,17 @@ class Result
         $this->processorPool = $processorPool;
         $this->paymentDataGet = $paymentDataGet;
         $this->order = $order;
+        $this->emulation = $emulation;
         $this->logger = $logger;
     }
 
-    /** @param string|null $orderId
+    /**
+     * @param string|null $orderId
      * @param string $rvvupId
      * @param string $origin
+     * @param int $storeId
      * @param bool $reservedOrderId
+     * @param string|null $redirectUrl
      * @return Redirect
      * Update Magento Order based on Rvuup Order and payment statuses
      */
@@ -84,8 +94,12 @@ class Result
         ?string $orderId,
         string $rvvupId,
         string $origin,
-        bool $reservedOrderId = false
+        int $storeId,
+        bool $reservedOrderId = false,
+        string $redirectUrl = null
     ): Redirect {
+        $this->emulation->startEnvironmentEmulation($storeId);
+
         if (!$orderId) {
             return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
                 In::SUCCESS,
@@ -99,6 +113,7 @@ class Result
             } else {
                 $order = $this->orderRepository->get($orderId);
             }
+
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId);
 
@@ -110,13 +125,18 @@ class Result
 
             $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
             $result = $processor->execute($order, $rvvupData, $origin);
+
+            if ($redirectUrl) {
+                $result->setRedirectPath($redirectUrl);
+            }
+
             if (get_class($processor) == Cancel::class) {
                 return $this->processResultPage($result, true);
             }
             return $this->processResultPage($result, false);
         } catch (\Exception $e) {
             $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
-                'rvvup_order_id' => $rvvupId,
+                Method::ORDER_ID => $rvvupId,
                 'rvvup_order_status' => $rvvupData['payments'][0]['status'] ?? ''
             ]);
 
