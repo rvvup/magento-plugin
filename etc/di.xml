@@ -77,7 +77,6 @@
     <virtualType name="RvvupPaymentLinkFacade" type="Rvvup\Payments\Gateway\Method">
         <arguments>
             <argument name="code" xsi:type="string">rvvup_payment-link</argument>
-            <argument name="title" xsi:type="string">Rvvup Payment Link</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupPaymentLinkValueHandlerPool</argument>
@@ -89,7 +88,6 @@
     <virtualType name="RvvupVirtualTerminalFacade" type="Rvvup\Payments\Gateway\Method">
         <arguments>
             <argument name="code" xsi:type="string">rvvup_virtual-terminal</argument>
-            <argument name="title" xsi:type="string">Rvvup Virtual Terminal</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Rvvup\Payments\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupVirtualTerminalValueHandlerPool</argument>
