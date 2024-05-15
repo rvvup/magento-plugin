@@ -11,11 +11,7 @@ if (!isset($escaper)) {
     $escaper = $block;
 }
 $specificInfo = $block->getSpecificInformation();
-$paymentTitle = '';
-$storeId = $block->getInfo()->getOrder()->getStoreId();
-if ($block->getMethod()->getConfigData('title', $storeId) == 'Rvvup') {
-    $paymentTitle = $block->getMethod()->getConfigData('title', $storeId);
-}
+$paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->getOrder()->getStoreId());
 ?>
 <?= $escaper->escapeHtml($paymentTitle) ?>
 
