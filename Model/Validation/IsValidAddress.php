@@ -25,8 +25,8 @@ class IsValidAddress
     }
 
     /**
-     * @param \Magento\Customer\Model\Address\AbstractAddress $address
-     * @return \Magento\Framework\Validation\ValidationResult
+     * @param AbstractAddress $address
+     * @return ValidationResult
      */
     public function execute(AbstractAddress $address): ValidationResult
     {
