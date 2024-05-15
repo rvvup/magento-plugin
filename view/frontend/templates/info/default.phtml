@@ -26,7 +26,7 @@ $paymentMethodTitle = null;
         <?php endif; ?>
     <?php endforeach; ?>
 <?php endif;?>
-<br>
+
 <?php if ($paymentTitle && $paymentMethodTitle): ?>
     <?= $escaper->escapeHtml($paymentTitle) . ' - ' . $escaper->escapeHtml($paymentMethodTitle) ?>
 <?php else:?>
