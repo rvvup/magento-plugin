@@ -42,13 +42,13 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Wait for Magento Store
-        uses: emilioschepis/wait-for-endpoint@v1.0.3
+        uses: mydea/action-wait-for-api@v1.0.0
         with:
-          url: http://localhost/magento_version
+          url: http://local.dev.rvvuptech.com/magento_version
           method: GET
-          expected-status: 200
-          timeout: 300000
-          interval: 5000
+          expected-status: "200"
+          timeout: "500"
+          interval: "5"
 
       - name: Run Playwright tests
         run: TEST_BASE_URL=http://localhost npx playwright test
