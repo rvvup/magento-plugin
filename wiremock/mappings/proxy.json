@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPattern": "/graphql"
+  },
+  "priority": 100,
+  "response": {
+    "proxyBaseUrl": "http://host.docker.internal:8080"
+  }
+}

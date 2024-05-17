@@ -1,0 +1,30 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPattern": "/graphql",
+    "bodyPatterns": [
+      {
+        "contains": "xxxxxAashwinzxx"
+      }
+    ]
+  },
+  "priority": 1,
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "errors": [
+        {
+          "message": "Order not found",
+          "extensions": {
+            "errorCode": "order_not_found",
+            "errorMessage": "Order not found",
+            "classification": "DataFetchingException"
+          }
+        }
+      ],
+      "data": {
+        "orderFind": null
+      }
+    }
+  }
+}

@@ -49,6 +49,14 @@ services:
     image: docker.io/axllent/mailpit:v1.18
     ports:
       - '8925:8025'
+  wiremock:
+    image: "wiremock/wiremock:latest"
+    ports:
+      - '9999:8080'
+    volumes:
+      - ./wiremock/__files:/home/wiremock/__files
+      - ./wiremock/mappings:/home/wiremock/mappings
+    entrypoint: [ "/docker-entrypoint.sh", "--global-response-templating", "--disable-gzip", "--verbose"]
 volumes:
   rvvup_magento_data_mariadb:
     driver: local
