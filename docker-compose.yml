@@ -7,7 +7,7 @@ services:
       - MARIADB_USER=bn_magento
       - MARIADB_DATABASE=bitnami_magento
     volumes:
-      - 'data_mariadb:/bitnami/mariadb'
+      - 'rvvup_magento_data_mariadb:/bitnami/mariadb'
   magento:
     ports:
       - '80:8080'
@@ -44,16 +44,12 @@ services:
   elasticsearch:
     image: docker.io/bitnami/elasticsearch:7
     volumes:
-      - 'elasticsearch_data:/bitnami/elasticsearch/data'
+      - 'rvvup_magento_elasticsearch_data:/bitnami/elasticsearch/data'
   mailpit:
     image: docker.io/axllent/mailpit:v1.18
-    ports:
-      - '1025:1025'
-      - '8025:8025'
+
 volumes:
-  data_mariadb:
+  rvvup_magento_data_mariadb:
     driver: local
-  magento_data:
-    driver: local
-  elasticsearch_data:
+  rvvup_magento_elasticsearch_data:
     driver: local
