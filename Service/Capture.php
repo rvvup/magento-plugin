@@ -255,6 +255,17 @@ class Capture
                 $quote->getReservedOrderId(),
                 $origin
             );
+
+            if ($this->sdkProxy->isOrderVoidable($rvvupId)) {
+                $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+                $reason = 'INVALID_DATA';
+                if ($e->getMessage() == 'Some of the products are out of stock.') {
+                    $reason = 'STOCK_ISSUES';
+                }
+
+                $this->sdkProxy->voidPayment($rvvupId, $rvvupPaymentId, $reason);
+            }
+
             return $this->validationInterfaceFactory->create(
                 [
                     'data' => [
