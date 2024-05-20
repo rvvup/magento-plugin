@@ -10,9 +10,13 @@ if (!isset($escaper)) {
 use Rvvup\Payments\Block\Info;
 
 $specificInfo = $block->getSpecificInformation();
-$paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->getOrder()->getStoreId());
+$paymentTitle = '';
+$storeId = $block->getInfo()->getOrder()->getStoreId();
+if ($block->getMethod()->getConfigData('title', $storeId) == 'Rvvup') {
+    $paymentTitle = $block->getMethod()->getConfigData('title', $storeId);
+}
 
-$paymentMethodTitle = null
+$paymentMethodTitle = null;
 ?>
 
 <?php if ($specificInfo): ?>
@@ -23,4 +27,14 @@ $paymentMethodTitle = null
     <?php endforeach; ?>
 <?php endif;?>
 
-<?= $escaper->escapeHtml($paymentTitle) . ($paymentMethodTitle !== null ? ' - ' . $escaper->escapeHtml($paymentMethodTitle) : '') ?>
+<?php if ($paymentTitle && $paymentMethodTitle): ?>
+    <?= $escaper->escapeHtml($paymentTitle) . ' - ' . $escaper->escapeHtml($paymentMethodTitle) ?>
+<?php else:?>
+    <?php if ($paymentTitle): ?>
+        <?= $escaper->escapeHtml($paymentTitle)?>
+    <?php endif;?>
+
+    <?php if ($paymentMethodTitle): ?>
+        <?= $escaper->escapeHtml($paymentMethodTitle)?>
+    <?php endif;?>
+<?php endif; ?>
