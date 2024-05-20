@@ -96,12 +96,12 @@ class Method extends Adapter
      * @param ValueHandlerPoolInterface $valueHandlerPool
      * @param PaymentDataObjectFactory $paymentDataObjectFactory
      * @param string $code
-     * @param string $title
      * @param string $formBlockType
      * @param string $infoBlockType
      * @param StoreManagerInterface $storeManager
-     * @param LoggerInterface|RvvupLog $logger // Set via di.xml
+     * @param LoggerInterface $logger // Set via di.xml
      * @param string $captureType
+     * @param string|null $title
      * @param CommandPoolInterface|null $commandPool
      * @param ValidatorPoolInterface|null $validatorPool
      * @param CommandManagerInterface|null $commandExecutor
@@ -112,12 +112,12 @@ class Method extends Adapter
         ValueHandlerPoolInterface $valueHandlerPool,
         PaymentDataObjectFactory $paymentDataObjectFactory,
         string $code,
-        string $title,
         string $formBlockType,
         string $infoBlockType,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
         string $captureType = '',
+        ?string $title = null,
         CommandPoolInterface $commandPool = null,
         ValidatorPoolInterface $validatorPool = null,
         CommandManagerInterface $commandExecutor = null,
@@ -148,7 +148,7 @@ class Method extends Adapter
      */
     public function getTitle(): string
     {
-        return $this->title;
+        return $this->title ?: parent::getTitle();
     }
 
     /**

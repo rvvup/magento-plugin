@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Gateway\Request;
 
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Validator\Exception;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Quote\Api\Data\CartInterface;
@@ -43,9 +46,10 @@ class InitializeDataBuilder implements BuilderInterface
     public function build(array $buildSubject): array
     {
         $quote = $buildSubject['quote'];
+        $validate = $buildSubject['validate'] ?? true;
 
         // Otherwise, we should have a Quote Payment model instance and return result if set.
-        $result = $this->handleQuotePayment($quote);
+        $result = $this->handleQuotePayment($quote, $validate);
 
         if (is_array($result)) {
             return $result;
@@ -59,16 +63,19 @@ class InitializeDataBuilder implements BuilderInterface
 
     /**
      * Handle initialization if this is a Quote Payment (not placed order yet).
-     *
      * Currently, this is supported only for creating express payment orders.
      *
      * @param CartInterface $cart
+     * @param bool $validate
      * @return array|null
+     * @throws AlreadyExistsException
+     * @throws Exception
+     * @throws LocalizedException
      * @throws QuoteValidationException
      */
-    private function handleQuotePayment(CartInterface $cart): ?array
+    private function handleQuotePayment(CartInterface $cart, bool $validate): ?array
     {
-        return $this->orderDataBuilder->build($cart, $this->isExpressPayment($cart->getPayment()));
+        return $this->orderDataBuilder->build($cart, $this->isExpressPayment($cart->getPayment()), $validate);
     }
 
     /**

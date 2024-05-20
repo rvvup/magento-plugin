@@ -6,14 +6,15 @@ namespace Rvvup\Payments\Model;
 
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\Validator\Exception;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\QuoteValidator;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -31,9 +32,6 @@ class OrderDataBuilder
     /** @var ConfigInterface  */
     private $config;
 
-    /** @var SerializerInterface  */
-    private $serializer;
-
     /** @var CartRepositoryInterface  */
     private $cartRepository;
 
@@ -46,45 +44,56 @@ class OrderDataBuilder
     /** @var Payment  */
     private $paymentResource;
 
+    /** @var QuoteValidator */
+    private $quoteValidator;
+
     /**
      * @param AddressRepositoryInterface $customerAddressRepository
-     * @param SerializerInterface $serializer
      * @param UrlInterface $urlBuilder
      * @param ConfigInterface $config
      * @param CartRepositoryInterface $cartRepository
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param QuoteValidator $quoteValidator
      * @param Payment $paymentResource
      */
     public function __construct(
         AddressRepositoryInterface $customerAddressRepository,
-        SerializerInterface $serializer,
         UrlInterface $urlBuilder,
         ConfigInterface $config,
         CartRepositoryInterface $cartRepository,
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
+        QuoteValidator $quoteValidator,
         Payment $paymentResource
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
-        $this->serializer = $serializer;
         $this->config = $config;
         $this->cartRepository = $cartRepository;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->quoteValidator = $quoteValidator;
         $this->paymentResource = $paymentResource;
     }
 
     /**
-     * @param CartInterface|Quote $quote
+     * @param CartInterface $quote
      * @param bool $express
+     * @param bool $validate
      * @return array
+     * @throws AlreadyExistsException
+     * @throws LocalizedException
      * @throws QuoteValidationException
+     * @throws Exception
      */
-    public function build(CartInterface $quote, bool $express = false): array
+    public function build(CartInterface $quote, bool $express = false, bool $validate = true): array
     {
         $billingAddress = $quote->getBillingAddress();
+
+        if ($validate) {
+            $this->quoteValidator->validateBeforeSubmit($quote);
+        }
 
         // Validate that billing address exists if this is NOT a request to build express payment data.
         if (!$express && $billingAddress === null) {
@@ -263,7 +272,7 @@ class OrderDataBuilder
     /**
      * @param CartInterface $quote
      * @param bool $express
-     * @param \Magento\Quote\Api\Data\AddressInterface|null $billingAddress
+     * @param AddressInterface|null $billingAddress
      * @return array|null
      */
     private function renderCustomer(
@@ -316,9 +325,9 @@ class OrderDataBuilder
     }
 
     /**
-     * @param CartInterface|Quote $quote
+     * @param CartInterface $quote
      * @param bool $express
-     * @param \Magento\Quote\Api\Data\AddressInterface|null $billingAddress
+     * @param AddressInterface|null $billingAddress
      * @return array|null
      * @throws QuoteValidationException
      */
@@ -345,9 +354,9 @@ class OrderDataBuilder
     }
 
     /**
-     * @param CartInterface|Quote $quote
+     * @param CartInterface $quote
      * @param bool $express
-     * @param \Magento\Quote\Api\Data\AddressInterface|null $shippingAddress
+     * @param AddressInterface|null $shippingAddress
      * @return array|null
      * @throws QuoteValidationException
      */
@@ -374,7 +383,7 @@ class OrderDataBuilder
     }
 
     /**
-     * @param \Magento\Quote\Api\Data\AddressInterface $address
+     * @param AddressInterface $address
      * @return array
      * @throws QuoteValidationException
      */
