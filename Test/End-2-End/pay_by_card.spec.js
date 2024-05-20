@@ -58,7 +58,7 @@ test.skip('Can place a modal pay by card order with 3DS challenge', async ({ pag
     await frame.frameLocator('#Cardinal-CCA-IFrame').getByPlaceholder('Enter Code Here').fill('1234');
     await frame.frameLocator('#Cardinal-CCA-IFrame').getByPlaceholder('Enter Code Here').press('Enter');
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
@@ -78,7 +78,7 @@ test.skip('Can place a modal pay by card order without 3DS challenge', async ({ 
     await frame.frameLocator('.st-security-code-iframe').getByLabel('Security Code').fill('123');
     await frame.getByRole('button', { name: 'Submit'}).click();
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });

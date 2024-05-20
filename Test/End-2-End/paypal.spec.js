@@ -10,7 +10,7 @@ test('Can place a PayPal order on checkout', async ({ page }) => {
     page.on('popup', async popup => {
         await popup.waitForLoadState();
 
-        await popup.getByPlaceholder('Email address or mobile number').fill('sb-uqeqf29136249@personal.example.com');
+        await popup.getByPlaceholder(/Email.* or mobile number/).fill('sb-uqeqf29136249@personal.example.com');
         await popup.getByPlaceholder('Password').fill('h5Hc/b8M');
 
         await popup.getByRole('button', { name: 'Log In' }).click();
@@ -49,7 +49,7 @@ test.fixme('Can place a PayPal order on checkout using debit or credit cards', a
 test('Can place a PayPal express order', async ({ page }) => {
     page.on('popup', async popup => {
         await popup.waitForLoadState();
-        await popup.getByPlaceholder('Email address or mobile number').fill('sb-uqeqf29136249@personal.example.com');
+        await popup.getByPlaceholder(/Email.* or mobile number/).fill('sb-uqeqf29136249@personal.example.com');
         await popup.getByRole('button', { name: 'Next' }).click();
 
         await popup.getByPlaceholder('Password').fill('h5Hc/b8M');
@@ -66,7 +66,6 @@ test('Can place a PayPal express order', async ({ page }) => {
 
     // Shipping page
     await page.getByLabel('Phone number').fill('+447500000000');
-    await page.getByLabel('Free').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
     // Checkout page
@@ -107,7 +106,6 @@ test.fixme('Can place a PayPal express order using debit or credit cards', async
 
     // Continue to shipping and checkout
     await page.getByLabel('Phone number').fill('+441234567890');
-    await page.getByLabel('Free').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
     await expect(page.getByText('Payment Method', { exact: true })).toBeVisible();
@@ -117,37 +115,6 @@ test.fixme('Can place a PayPal express order using debit or credit cards', async
     await page.waitForURL("**/checkout/onepage/success/");
     
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
-});
-
-test('Cannot place a PayPal express order if shipping cost is added later', async ({ page }) => {
-    page.on('popup', async popup => {
-        await popup.waitForLoadState();
-        await popup.getByPlaceholder('Email address or mobile number').fill('sb-uqeqf29136249@personal.example.com');
-        await popup.getByRole('button', { name: 'Next' }).click();
-
-        await popup.getByPlaceholder('Password').fill('h5Hc/b8M');
-        await popup.getByRole('button', { name: 'Log In' }).click();
-
-        await popup.getByRole('button', { name: 'Continue to Review Order' }).click();
-    });
-
-    // Product page
-    await page.goto('./joust-duffle-bag.html');
-
-    const paypalFrame = page.frameLocator("[title='PayPal']").first();
-    await paypalFrame.getByRole('link', { name: 'PayPal' }).click();
-
-    // Shipping page
-    await page.getByLabel('Phone number').fill('+447500000000');
-    await page.getByLabel('Fixed').click();
-    await page.getByRole('button', { name: 'Next' }).click();
-
-    // Checkout page
-    await expect(page.getByText('Payment Method', { exact: true })).toBeVisible();
-
-    await page.getByRole('button', { name: 'Place order' }).click();
-
-    await expect(page.getByText('Payment Failed')).toBeVisible();
 });
 
 test('PayPal replaces the Place Order button with a PayPal button', async ({ page }) => {

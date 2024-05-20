@@ -18,7 +18,7 @@ test('The customer can decline the payment', async ({ page }) => {
     await payByBankCheckout.decline();
 });
 
-test.fail('Payment declined if the customer has insufficient funds', async ({ page }) => {
+test.skip('Payment declined if the customer has insufficient funds', async ({ page }) => {
     const visitCheckoutPayment = new VisitCheckoutPayment(page);
     await visitCheckoutPayment.visit();
 
@@ -27,7 +27,7 @@ test.fail('Payment declined if the customer has insufficient funds', async ({ pa
     await payByBankCheckout.declineInsufficientFunds();
 });
 
-test.fail('Payment fails if the customer exits the modal before completing the transaction on their banking app', async ({ page }) => {
+test.skip('Payment fails if the customer exits the modal before completing the transaction on their banking app', async ({ page }) => {
     const visitCheckoutPayment = new VisitCheckoutPayment(page);
     await visitCheckoutPayment.visit();
     

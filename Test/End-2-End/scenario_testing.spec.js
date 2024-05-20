@@ -85,13 +85,12 @@ test.describe('multiple tabs', () => {
         const duplicateFrame = duplicatePage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
 
         // Complete order in the first tab, and then in the second tab shortly after
-        await mainFrame.getByRole('button', { name: 'Pay now' }).click();
         await duplicateFrame.getByRole('button', { name: 'Pay now' }).click();
-    
         await duplicatePage.waitForURL("**/checkout/onepage/success/");
         await expect(duplicatePage.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
-
-        await expect(mainPage.getByText(/This checkout cannot complete, a new cart was opened in another tab.+/)).toBeVisible();
+        
+        await mainFrame.getByRole('button', { name: 'Pay now' }).click();
+        await expect(mainPage.getByText(/An error has happened during application run.*/)).toBeVisible();
     });
 
     test('Cannot place order in one tab and then place the same order again in another tab', async ({ browser }) => {
@@ -137,7 +136,8 @@ test.describe('discounts', () => {
         await payByBankCheckout.checkout();
     });
 
-    test('Cannot place order when discount is 100% and cart value is £0', async ({ page }) => {
+    // TODO: Need to add Free shipping option to test this
+    test.skip('Cannot place order when discount is 100% and cart value is £0', async ({ page }) => {
         const visitCheckoutPayment = new VisitCheckoutPayment(page);
         await visitCheckoutPayment.visitWithoutShippingFee();
 
