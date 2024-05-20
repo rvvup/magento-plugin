@@ -83,7 +83,7 @@ class VoidPayment implements CommandInterface
 
             list($rvvupOrderId, $paymentId) = $this->getRvvupData($payment);
             if ($paymentId) {
-                $this->sdkProxy->voidPayment($rvvupOrderId, $paymentId);
+                $this->sdkProxy->voidPayment($rvvupOrderId, $paymentId, 'MERCHANT_REQUEST');
             }
 
             $orderState = $order->getState();
