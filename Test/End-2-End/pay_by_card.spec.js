@@ -17,7 +17,7 @@ test('Can place an inline pay by card order with 3DS challenge', async ({ page }
     await page.frameLocator('#Cardinal-CCA-IFrame').getByPlaceholder('Enter Code Here').fill('1234');
     await page.frameLocator('#Cardinal-CCA-IFrame').getByRole('button', { name: 'SUBMIT' }).click();
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
@@ -34,7 +34,7 @@ test('Can place an inline pay by card order without 3DS challenge', async ({ pag
     await page.frameLocator('.st-security-code-iframe').getByLabel('Security Code').fill('123');
     await page.getByRole('button', { name: 'Place order' }).click();
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });

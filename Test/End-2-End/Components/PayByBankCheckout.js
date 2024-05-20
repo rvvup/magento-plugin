@@ -16,7 +16,7 @@ export default class PayByBankCheckout {
         await frame.getByRole('button', { name: 'Mock Bank' }).click();
         await frame.getByRole('button', {name: 'Log in on this device'}).click();
 
-        await this.page.waitForURL("./default/checkout/onepage/success/");
+        await this.page.waitForURL("**/checkout/onepage/success/");
         await expect(this.page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
         await expect(this.page.getByText("Your payment is being processed and is pending confirmation. You will receive an email confirmation when the payment is confirmed.")).toBeVisible();
     }

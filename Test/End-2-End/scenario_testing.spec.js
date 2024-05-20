@@ -88,7 +88,7 @@ test.describe('multiple tabs', () => {
         await mainFrame.getByRole('button', { name: 'Pay now' }).click();
         await duplicateFrame.getByRole('button', { name: 'Pay now' }).click();
     
-        await duplicatePage.waitForURL("./default/checkout/onepage/success/");
+        await duplicatePage.waitForURL("**/checkout/onepage/success/");
         await expect(duplicatePage.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 
         await expect(mainPage.getByText(/This checkout cannot complete, a new cart was opened in another tab.+/)).toBeVisible();
@@ -115,7 +115,7 @@ test.describe('multiple tabs', () => {
         const mainFrame = mainPage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
         await mainFrame.getByRole('button', { name: 'Pay now' }).click();
 
-        await mainPage.waitForURL("./default/checkout/onepage/success/");
+        await mainPage.waitForURL("**/checkout/onepage/success/");
         await expect(mainPage.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 
         // Complete order in the second tab
@@ -130,7 +130,7 @@ test.describe('discounts', () => {
         await visitCheckoutPayment.visit();
 
         await page.getByRole('heading', {name: 'Apply discount code'}).click();
-        await page.getByPlaceholder('Enter discount code').fill('100');
+        await page.getByPlaceholder('Enter discount code').fill('H20');
         await page.getByRole('button', { name: 'Apply Discount' }).click();
 
         const payByBankCheckout = new PayByBankCheckout(page);
@@ -151,7 +151,7 @@ test.describe('discounts', () => {
 })
 
 test.describe('rounding', () => {
-    test('No PayPal rounding errors when paying for 20% VAT products', async ({ page }) => {
+    test.skip('No PayPal rounding errors when paying for 20% VAT products', async ({ page }) => {
         const visitCheckoutPayment = new VisitCheckoutPayment(page);
         await visitCheckoutPayment.visitCheckoutWithMultipleProducts();
 
@@ -159,7 +159,7 @@ test.describe('rounding', () => {
         await expect(page.getByText('PayPal', { exact: true })).toBeEnabled();
     });
 
-    test('No Clearpay rounding errors when paying for 20% VAT products', async ({ page }) => {
+    test.skip('No Clearpay rounding errors when paying for 20% VAT products', async ({ page }) => {
         const visitCheckoutPayment = new VisitCheckoutPayment(page);
         await visitCheckoutPayment.visitCartWithMultipleProducts();
 

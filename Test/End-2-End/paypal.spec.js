@@ -20,7 +20,7 @@ test('Can place a PayPal order on checkout', async ({ page }) => {
     const paypalFrame = page.frameLocator("[title='PayPal']").first();
     await paypalFrame.getByRole('link', { name: 'PayPal' }).click();
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
@@ -41,7 +41,7 @@ test.fixme('Can place a PayPal order on checkout using debit or credit cards', a
     await paypalCardForm.getByLabel('Mobile').fill('1234567890')
     await paypalCardForm.getByRole('button', { name: 'Buy Now' }).click();
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
@@ -59,7 +59,7 @@ test('Can place a PayPal express order', async ({ page }) => {
     });
 
     // Product page
-    page.goto('./demogento-enter-the-metaverse-2.html');
+    page.goto('./joust-duffle-bag.html');
 
     const paypalFrame = page.frameLocator("[title='PayPal']").first();
     await paypalFrame.getByRole('link', { name: 'PayPal' }).click();
@@ -78,13 +78,13 @@ test('Can place a PayPal express order', async ({ page }) => {
 
     await page.getByRole('button', { name: 'Place order' }).click();
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
 
 test.fixme('Can place a PayPal express order using debit or credit cards', async ({ page }) => {
-    page.goto('./demogento-enter-the-metaverse-2.html');
+    page.goto('./joust-duffle-bag.html');
 
     const paypalFrame = page.frameLocator("[title='PayPal']").first();
     await paypalFrame.getByRole('link', { name: 'Debit or Credit Card' }).click();
@@ -114,7 +114,7 @@ test.fixme('Can place a PayPal express order using debit or credit cards', async
 
     await page.getByRole('button', { name: 'Place order' }).click();
     
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
     
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
@@ -132,7 +132,7 @@ test('Cannot place a PayPal express order if shipping cost is added later', asyn
     });
 
     // Product page
-    await page.goto('./demogento-enter-the-metaverse-2.html');
+    await page.goto('./joust-duffle-bag.html');
 
     const paypalFrame = page.frameLocator("[title='PayPal']").first();
     await paypalFrame.getByRole('link', { name: 'PayPal' }).click();

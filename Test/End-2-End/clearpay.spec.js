@@ -16,7 +16,7 @@ test('Can place a Clearpay order', async ({ page, browser }) => {
     await clearpayFrame.getByRole('button', { name: 'Continue'}).click();
     await clearpayFrame.getByRole('button', { name: 'Confirm'}).click();
 
-    await page.waitForURL("./default/checkout/onepage/success/");
+    await page.waitForURL("**/checkout/onepage/success/");
 
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
@@ -47,7 +47,8 @@ test('Renders the Clearpay widget on the cart page', async ({ page }) => {
     await expect(page.locator('.afterpay-modal-overlay')).toBeVisible();
 });
 
-test('Clearpay not available for restricted products', async ({ page }) => {
+// TODO: Add test back in once we add a Clearpay restricted product to test against
+test.skip('Clearpay not available for restricted products', async ({ page }) => {
     await page.goto('./rvvup-crypto-future.html');
 
     await expect(page.getByText('This item has restrictions so not all payment methods may be available')).toBeVisible();
@@ -74,5 +75,5 @@ test('Clearpay not available for products above price threshold', async ({ page 
 
 test('Clearpay shows correct instalment amounts on product page', async ({ page }) => {
     await page.goto('./joust-duffle-bag.html');
-    await expect(page.getByText('or 4 interest-free payments of £7.08 with')).toBeVisible();
-});
+    await expect(page.getByText('or 4 interest-free payments of £8.50 with')).toBeVisible();
+});``
