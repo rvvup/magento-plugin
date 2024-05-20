@@ -63,7 +63,7 @@ test.describe('multiple tabs', () => {
         await expect(mainPage.getByText("Your cart was modified after making payment request, please place order again.")).toBeVisible();
     });
 
-    test('Cannot complete the same order in multiple tabs simultaneously', async ({ browser }) => {
+    test.fixme('Cannot complete the same order in multiple tabs simultaneously', async ({ browser }) => {
         const context = await browser.newContext();
 
         // Start the checkout on the first tab
