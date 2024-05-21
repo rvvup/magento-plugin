@@ -104,6 +104,7 @@ class CardsMetadata implements ObserverInterface
      * @param array $data
      * @param array $paymentData
      * @param string $key
+     * @param Payment $payment
      * @return void
      * @throws LocalizedException
      */

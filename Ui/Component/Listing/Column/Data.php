@@ -14,6 +14,9 @@ class Data extends Column
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
+    /** @var CacheInterface */
+    private $cache;
+
     /**
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
