@@ -50,7 +50,7 @@ class Data extends Column
                         continue;
                     }
 
-                    if (strpos($item['payment_method'], 'rvvup_YAPILY') == 0) {
+                    if (strpos($item['payment_method'], 'rvvup_YAPILY') === 0) {
                         $order  = $this->orderRepository->get($item["entity_id"]);
                         $payment = $order->getPayment();
                         $value = $payment->getAdditionalInformation($this->getData('name')) ?? '';
