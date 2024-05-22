@@ -6,12 +6,9 @@ namespace Rvvup\Payments\Observer\Model\ProcessOrder;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order\Payment;
-use Magento\Sales\Model\ResourceModel\Order\Payment as PaymentResource;
 use Psr\Log\LoggerInterface;
 
 class CardsMetadata implements ObserverInterface
@@ -28,27 +25,21 @@ class CardsMetadata implements ObserverInterface
     /** @var OrderManagementInterface $orderManagement */
     private $orderManagement;
 
-    /** @var PaymentResource */
-    private $paymentResource;
-
     /**
-     * @param OrderRepositoryInterface $orderRepository
+     * @param OrderRepositoryInterface           $orderRepository
      * @param OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
-     * @param OrderManagementInterface $orderManagement
-     * @param PaymentResource $paymentResource
-     * @param LoggerInterface $logger
+     * @param OrderManagementInterface           $orderManagement
+     * @param LoggerInterface                    $logger
      */
     public function __construct(
-        OrderRepositoryInterface                         $orderRepository,
-        OrderStatusHistoryInterfaceFactory               $orderStatusHistoryFactory,
-        OrderManagementInterface                         $orderManagement,
-        PaymentResource                                  $paymentResource,
-        LoggerInterface                                  $logger
+        OrderRepositoryInterface $orderRepository,
+        OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
+        OrderManagementInterface $orderManagement,
+        LoggerInterface $logger
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->orderManagement = $orderManagement;
-        $this->paymentResource = $paymentResource;
         $this->logger = $logger;
     }
 
@@ -62,7 +53,7 @@ class CardsMetadata implements ObserverInterface
     {
         $orderId = $observer->getData('order_id');
         $rvvupData = $observer->getData('rvvup_data');
-        $paymentData = $rvvupData['payments'][0];
+        $payment = $rvvupData['payments'][0];
         $order = $this->orderRepository->get($orderId);
         if ($order->getPayment()->getMethod() == 'rvvup_CARD') {
             $data = [];
@@ -76,11 +67,9 @@ class CardsMetadata implements ObserverInterface
                 'acquirerResponseMessage'
             ];
 
-            $payment = $order->getPayment();
             foreach ($keys as $key) {
-                $this->populateCardData($data, $paymentData, $key, $payment);
+                $this->populateCardData($data, $payment, $key);
             }
-            $this->paymentResource->save($payment);
 
             if (!empty($data)) {
                 try {
@@ -102,16 +91,14 @@ class CardsMetadata implements ObserverInterface
 
     /**
      * @param array $data
-     * @param array $paymentData
+     * @param array $payment
      * @param string $key
      * @return void
-     * @throws LocalizedException
      */
-    private function populateCardData(array &$data, array $paymentData, string $key, Payment $payment): void
+    private function populateCardData(array &$data, array $payment, string $key): void
     {
-        if (isset($paymentData[$key])) {
-            $value = $this->mapCardValue($paymentData[$key]);
-            $payment->setAdditionalInformation('rvvup_' . $key, $value);
+        if (isset($payment[$key])) {
+            $value = $this->mapCardValue($payment[$key]);
             $data[$key] = $key . ': ' . $value;
         }
     }
