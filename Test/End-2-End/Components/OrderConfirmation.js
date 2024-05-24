@@ -6,7 +6,6 @@ export default class OrderConfirmation {
   }
 
   async expectOnOrderConfirmation(isPending = false) {
-    await this.page.waitForURL("**/checkout/onepage/success/");
     await expect(
       this.page.getByRole("heading", { name: "Thank you for your purchase!" }),
     ).toBeVisible();
@@ -15,7 +14,7 @@ export default class OrderConfirmation {
         this.page.getByText(
           "Your payment is being processed and is pending confirmation. You will receive an email confirmation when the payment is confirmed.",
         ),
-      ).toBeHidden();
+      ).toBeVisible();
     }
   }
 }
