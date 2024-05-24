@@ -24,12 +24,10 @@ export default class CardCheckout {
 
     await this.checkoutPage.pressPlaceOrder();
     // OTP form
-    await this.page
-      .frameLocator("#Cardinal-CCA-IFrame")
-      .getByPlaceholder("Enter Code Here")
+    await this.page.frameLocator('iframe[title="Bank Authentication"]').getByPlaceholder(' Enter Code Here')
       .fill("1234");
     await this.page
-      .frameLocator("#Cardinal-CCA-IFrame")
+      .frameLocator('iframe[title="Bank Authentication"]')
       .getByRole("button", { name: "SUBMIT" })
       .click();
   }
