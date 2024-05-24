@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
-import PayByBankCheckout from "./Components/PayByBankCheckout";
+import PayByBankCheckout from "./Components/PaymentMethods/PayByBankCheckout";
 import OrderConfirmation from "./Components/OrderConfirmation";
 
 test('Can place an order using pay by bank', async ({ page }) => {
@@ -27,4 +27,4 @@ test.skip('Payment fails if the customer exits the modal before completing the t
 
     // TODO: Read the QR code and use that to generate the second page for this test
     await new PayByBankCheckout(page).exitModalBeforeCompletingTransaction();
-})
+});

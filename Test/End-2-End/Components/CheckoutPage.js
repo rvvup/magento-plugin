@@ -32,6 +32,14 @@ export default class CheckoutPage {
         await this.page.getByLabel('Clearpay').click();
     }
 
+    async selectCard() {
+        await this.page.getByLabel('Pay by Card').click();
+    }
+
+    async selectPaypal() {
+        await this.page.getByLabel('PayPal', { exact: true }).click();
+    }
+
     async pressPlaceOrder() {
         await this.page.getByRole('button', {name: 'Place order'}).click();
     }

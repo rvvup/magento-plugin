@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
-import ClearpayCheckout from "./Components/ClearpayCheckout";
+import ClearpayCheckout from "./Components/PaymentMethods/ClearpayCheckout";
 import OrderConfirmation from "./Components/OrderConfirmation";
 import GoTo from "./Components/GoTo";
 import Cart from "./Components/Cart";

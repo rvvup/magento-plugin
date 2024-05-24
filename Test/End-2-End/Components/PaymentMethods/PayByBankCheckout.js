@@ -1,5 +1,5 @@
 import {expect} from "@playwright/test";
-import CheckoutPage from "./CheckoutPage";
+import CheckoutPage from "../CheckoutPage";
 
 export default class PayByBankCheckout {
     constructor(page) {

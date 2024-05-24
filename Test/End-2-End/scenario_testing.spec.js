@@ -1,10 +1,10 @@
 import {expect, test} from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
-import RvvupMethodCheckout from "./Components/RvvupMethodCheckout";
+import RvvupMethodCheckout from "./Components/PaymentMethods/RvvupMethodCheckout";
 import Cart from "./Components/Cart";
-import PayByBankCheckout from './Components/PayByBankCheckout';
 import OrderConfirmation from "./Components/OrderConfirmation";
 import GoTo from "./Components/GoTo";
+import CheckoutPage from "./Components/CheckoutPage";
 
 test('Can place an order using different billing and shipping address', async ({ page, browser }) => {
     await new VisitCheckoutPayment(page).visit();
@@ -122,31 +122,29 @@ test.describe('multiple tabs', () => {
         await duplicatePage.getByRole('button', { name: 'Place order' }).click();
         await expect(duplicatePage.getByText('No such entity with cartId =')).toBeVisible();
     });
-})
+});
 
 test.describe('discounts', () => {
     test('Can place an order using discount codes', async ({ page }) => {
         await new VisitCheckoutPayment(page).visit();
 
-        await page.getByRole('heading', {name: 'Apply discount code'}).click();
-        await page.getByPlaceholder('Enter discount code').fill('H20');
-        await page.getByRole('button', { name: 'Apply Discount' }).click();
+        await new CheckoutPage(page).applyDiscountCode('H20');
 
-        await new PayByBankCheckout(page).checkout();
+        await new RvvupMethodCheckout(page).checkout();
+        await new OrderConfirmation(page).expectOnOrderConfirmation();
+
     });
 
     // TODO: Need to add Free shipping option to test this
     test.skip('Cannot place order when discount is 100% and cart value is £0', async ({ page }) => {
         await new VisitCheckoutPayment(page).visitWithoutShippingFee();
 
-        await page.getByRole('heading', {name: 'Apply discount code'}).click();
-        await page.getByPlaceholder('Enter discount code').fill('100');
-        await page.getByRole('button', { name: 'Apply Discount' }).click();
+        await new CheckoutPage(page).applyDiscountCode('100');
 
         await expect(page.getByText('No Payment Information Required')).toBeVisible();
         await expect(page.getByLabel('Pay by Bank')).not.toBeVisible();
     });
-})
+});
 
 test.describe('rounding', () => {
     test.skip('No PayPal rounding errors when paying for 20% VAT products', async ({ page }) => {
