@@ -57,16 +57,14 @@ jobs:
       - name: Prepare logs
         if: always()
         run: |
-            mkdir -p logs
+            mkdir -p logs/magento
             docker-compose logs > logs/container_logs.log
-            docker cp magento-plugin-magento-1:/bitnami/magento/var/log logs
+            docker cp magento-plugin-magento-1:/bitnami/magento/var/log logs/magento
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: results-${{ matrix.MAGENTO_VERSION }}-${{ github.run_number }}
           path: |
             playwright-report/
-            var/log/
-            magento.log
-            nginx-proxy.log
+            logs/
 
