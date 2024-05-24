@@ -7,8 +7,7 @@ export default class VisitCheckoutPayment {
     }
 
     async visit() {
-        const cart = new Cart(this.page);
-        await cart.addStandardItemToCart();
+        await new Cart(this.page).addStandardItemToCart();
 
         await this.page.goto('./checkout');
 
@@ -30,18 +29,18 @@ export default class VisitCheckoutPayment {
 
     async visitCartWithMultipleProducts() {
         const cart = new Cart(this.page);
-        await cart.addStandardItemToCart("Demogento - Enter The Metaverse");
-        await cart.addStandardItemToCart("Demogento - Enter The Metaverse");
-        await cart.addStandardItemToCart("Demogento - Enter The Metaverse");
+        await cart.addStandardItemToCart();
+        await cart.addStandardItemToCart();
+        await cart.addStandardItemToCart();
 
         await this.page.goto('./checkout/cart');
     }
 
     async visitCheckoutWithMultipleProducts() {
         const cart = new Cart(this.page);
-        await cart.addStandardItemToCart("Demogento - Enter The Metaverse");
-        await cart.addStandardItemToCart("Demogento - Enter The Metaverse");
-        await cart.addStandardItemToCart("Demogento - Enter The Metaverse");
+        await cart.addStandardItemToCart();
+        await cart.addStandardItemToCart();
+        await cart.addStandardItemToCart();
 
         await this.page.goto('./checkout');
 
@@ -62,8 +61,7 @@ export default class VisitCheckoutPayment {
     }
 
     async visitWithoutShippingFee() {
-        const cart = new Cart(this.page);
-        await cart.addStandardItemToCart("Rvvup Crypto Future");
+        await new Cart(this.page).addStandardItemToCart();
 
         await this.page.goto('./checkout');
 
@@ -84,8 +82,7 @@ export default class VisitCheckoutPayment {
     }
 
     async visitAsClearpayUser() {
-        const cart = new Cart(this.page);
-        await cart.addClearpayItemToCart("Joust Duffle Bag");
+        await new Cart(this.page).addStandardItemToCart();
 
         await this.page.goto('./checkout');
 
