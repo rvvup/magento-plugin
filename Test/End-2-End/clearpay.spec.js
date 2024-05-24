@@ -1,7 +1,9 @@
-import { test, expect } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import ClearpayCheckout from "./Components/ClearpayCheckout";
 import OrderConfirmation from "./Components/OrderConfirmation";
+import GoTo from "./Components/GoTo";
+import Cart from "./Components/Cart";
 
 test('Can place a Clearpay order', async ({ page, browser }) => {
     await new VisitCheckoutPayment(page).visitAsClearpayUser();
@@ -12,7 +14,7 @@ test('Can place a Clearpay order', async ({ page, browser }) => {
 });
 
 test('Renders the Clearpay widget on the product page', async ({ page }) => {
-    await page.goto('./joust-duffle-bag.html');
+    await new GoTo(page).product.standard();
 
     await expect(page.locator('.afterpay-modal-overlay')).toBeHidden();
 
@@ -23,11 +25,8 @@ test('Renders the Clearpay widget on the product page', async ({ page }) => {
 });
 
 test('Renders the Clearpay widget on the cart page', async ({ page }) => {
-    await page.goto('./joust-duffle-bag.html');
-    await page.getByRole("button", {name: "Add to cart"}).click();
-    await expect(page.getByText(/You added [A-Za-z0-9 ]+ to your shopping cart/i)).toBeVisible();
-
-    await page.goto('./checkout/cart');
+    await new Cart(page).addStandardItemToCart();
+    await new GoTo(page).product.standard();
 
     await expect(page.locator('.afterpay-modal-overlay')).toBeHidden();
 
@@ -39,7 +38,7 @@ test('Renders the Clearpay widget on the cart page', async ({ page }) => {
 
 // TODO: Add test back in once we add a Clearpay restricted product to test against
 test.skip('Clearpay not available for restricted products', async ({ page }) => {
-    await page.goto('./rvvup-crypto-future.html');
+    await new GoTo(page).product.standard();
 
     await expect(page.getByText('This item has restrictions so not all payment methods may be available')).toBeVisible();
 
@@ -49,7 +48,7 @@ test.skip('Clearpay not available for restricted products', async ({ page }) => 
 
 // TODO: Add test back in once we add a below price threshold product to test against
 test.skip('Clearpay not available for products below price threshold', async ({ page }) => {
-    await page.goto('./demogento-enter-the-metaverse-2.html');
+    await new GoTo(page).product.standard();
 
     await expect(page.getByText('This item has restrictions so not all payment methods may be available')).not.toBeVisible();
 
@@ -58,7 +57,7 @@ test.skip('Clearpay not available for products below price threshold', async ({ 
 
 // TODO: Add test back in once we add a product above price threshold to test against
 test.skip('Clearpay not available for products above price threshold', async ({ page }) => {
-    await page.goto('./zing-jump-rope.html');
+    await new GoTo(page).product.standard();
 
     await expect(page.getByText('This item has restrictions so not all payment methods may be available')).not.toBeVisible();
 
@@ -66,6 +65,6 @@ test.skip('Clearpay not available for products above price threshold', async ({ 
 });
 
 test('Clearpay shows correct instalment amounts on product page', async ({ page }) => {
-    await page.goto('./joust-duffle-bag.html');
-    await expect(page.getByText('or 4 interest-free payments of £8.50 with')).toBeVisible();
+    await new GoTo(page).product.standard();
+    await expect(page.getByText('or 4 interest-free payments of £1.75 with')).toBeVisible();
 });``

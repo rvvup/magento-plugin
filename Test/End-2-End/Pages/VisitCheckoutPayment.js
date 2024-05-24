@@ -1,5 +1,6 @@
 import {expect} from "@playwright/test";
 import Cart from "../Components/Cart";
+import GoTo from "../Components/GoTo";
 
 export default class VisitCheckoutPayment {
     constructor(page) {
@@ -9,7 +10,7 @@ export default class VisitCheckoutPayment {
     async visit() {
         await new Cart(this.page).addStandardItemToCart();
 
-        await this.page.goto('./checkout');
+        await new GoTo(this.page).checkout();
 
         await this.page.getByRole('textbox', { name: 'Email Address' }).fill('johndoe@example.com');
         await this.page.getByLabel('First name').fill('John');
@@ -33,7 +34,7 @@ export default class VisitCheckoutPayment {
         await cart.addStandardItemToCart();
         await cart.addStandardItemToCart();
 
-        await this.page.goto('./checkout/cart');
+        await new GoTo(this.page).cart();
     }
 
     async visitCheckoutWithMultipleProducts() {
@@ -42,7 +43,7 @@ export default class VisitCheckoutPayment {
         await cart.addStandardItemToCart();
         await cart.addStandardItemToCart();
 
-        await this.page.goto('./checkout');
+        await new GoTo(this.page).checkout();
 
         await this.page.getByRole('textbox', { name: 'Email Address' }).fill('johndoe@example.com');
         await this.page.getByLabel('First name').fill('John');
@@ -63,7 +64,7 @@ export default class VisitCheckoutPayment {
     async visitWithoutShippingFee() {
         await new Cart(this.page).addStandardItemToCart();
 
-        await this.page.goto('./checkout');
+        await new GoTo(this.page).checkout();
 
         await this.page.getByRole('textbox', { name: 'Email Address' }).fill('johndoe@example.com');
         await this.page.getByLabel('First name').fill('John');
@@ -84,7 +85,7 @@ export default class VisitCheckoutPayment {
     async visitAsClearpayUser() {
         await new Cart(this.page).addStandardItemToCart();
 
-        await this.page.goto('./checkout');
+        await new GoTo(this.page).checkout();
 
         await this.page.getByRole('textbox', { name: 'Email Address' }).fill('debim90109@fretice.com');
         await this.page.getByLabel('First name').fill('John');

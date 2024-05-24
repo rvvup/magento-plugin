@@ -4,6 +4,7 @@ import RvvupMethodCheckout from "./Components/RvvupMethodCheckout";
 import Cart from "./Components/Cart";
 import PayByBankCheckout from './Components/PayByBankCheckout';
 import OrderConfirmation from "./Components/OrderConfirmation";
+import GoTo from "./Components/GoTo";
 
 test('Can place an order using different billing and shipping address', async ({ page, browser }) => {
     await new VisitCheckoutPayment(page).visit();
@@ -77,7 +78,8 @@ test.describe('multiple tabs', () => {
 
         // Start the checkout on the second tab
         const duplicatePage = await context.newPage();
-        await duplicatePage.goto('./checkout');
+        await new GoTo(duplicatePage).checkout();
+
         await duplicatePage.getByRole('button', { name: 'Next' }).click();
 
         await duplicatePage.getByLabel('Rvvup Payment Method').click();
@@ -103,7 +105,8 @@ test.describe('multiple tabs', () => {
 
         // Open the checkout page on the second tab
         const duplicatePage = await context.newPage();
-        await duplicatePage.goto('./checkout');
+        await new GoTo(duplicatePage).checkout();
+
         await duplicatePage.getByRole('button', { name: 'Next' }).click();
         await expect(duplicatePage.getByText('Payment Method', { exact: true })).toBeVisible();
         await duplicatePage.getByLabel('Rvvup Payment Method').click();
