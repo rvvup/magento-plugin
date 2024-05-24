@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
+import OrderConfirmation from "./Components/OrderConfirmation";
 
 test('Can place a PayPal order on checkout', async ({ page }) => {
     await new VisitCheckoutPayment(page).visit();
@@ -19,9 +20,7 @@ test('Can place a PayPal order on checkout', async ({ page }) => {
     const paypalFrame = page.frameLocator("[title='PayPal']").first();
     await paypalFrame.getByRole('link', { name: 'PayPal' }).click();
 
-    await page.waitForURL("**/checkout/onepage/success/");
-
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test.fixme('Can place a PayPal order on checkout using debit or credit cards', async ({ page }) => {
@@ -39,9 +38,7 @@ test.fixme('Can place a PayPal order on checkout using debit or credit cards', a
     await paypalCardForm.getByLabel('Mobile').fill('1234567890')
     await paypalCardForm.getByRole('button', { name: 'Buy Now' }).click();
 
-    await page.waitForURL("**/checkout/onepage/success/");
-
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test('Can place a PayPal express order', async ({ page }) => {
@@ -75,9 +72,7 @@ test('Can place a PayPal express order', async ({ page }) => {
 
     await page.getByRole('button', { name: 'Place order' }).click();
 
-    await page.waitForURL("**/checkout/onepage/success/");
-
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test.fixme('Can place a PayPal express order using debit or credit cards', async ({ page }) => {
@@ -110,9 +105,7 @@ test.fixme('Can place a PayPal express order using debit or credit cards', async
 
     await page.getByRole('button', { name: 'Place order' }).click();
 
-    await page.waitForURL("**/checkout/onepage/success/");
-
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test('PayPal replaces the Place Order button with a PayPal button', async ({ page }) => {

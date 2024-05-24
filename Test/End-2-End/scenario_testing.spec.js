@@ -3,6 +3,7 @@ import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import RvvupMethodCheckout from "./Components/RvvupMethodCheckout";
 import Cart from "./Components/Cart";
 import PayByBankCheckout from './Components/PayByBankCheckout';
+import OrderConfirmation from "./Components/OrderConfirmation";
 
 test('Can place an order using different billing and shipping address', async ({ page, browser }) => {
     await new VisitCheckoutPayment(page).visit();
@@ -25,6 +26,8 @@ test('Can place an order using different billing and shipping address', async ({
     await billingForm.getByText("Liam Fox").isVisible();
     const rvvupMethodCheckout = new RvvupMethodCheckout(page);
     await rvvupMethodCheckout.checkout();
+
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test.fail('Cannot spam the place order button to create duplicate orders', async ({ page }) => {
@@ -83,8 +86,8 @@ test.describe('multiple tabs', () => {
 
         // Complete order in the first tab, and then in the second tab shortly after
         await duplicateFrame.getByRole('button', { name: 'Pay now' }).click();
-        await duplicatePage.waitForURL("**/checkout/onepage/success/");
-        await expect(duplicatePage.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+
+        await new OrderConfirmation(duplicatePage).expectOnOrderConfirmation();
 
         await mainFrame.getByRole('button', { name: 'Pay now' }).click();
         await expect(mainPage.getByText(/An error has happened during application run.*/)).toBeVisible();
@@ -110,8 +113,7 @@ test.describe('multiple tabs', () => {
         const mainFrame = mainPage.frameLocator('#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD');
         await mainFrame.getByRole('button', { name: 'Pay now' }).click();
 
-        await mainPage.waitForURL("**/checkout/onepage/success/");
-        await expect(mainPage.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+        await new OrderConfirmation(mainPage).expectOnOrderConfirmation();
 
         // Complete order in the second tab
         await duplicatePage.getByRole('button', { name: 'Place order' }).click();

@@ -19,4 +19,20 @@ export default class CheckoutPage {
         await this.page.getByRole('button', { name: 'Apply Discount' }).click();
         await expect(await this.page.getByText('Your coupon was successfully applied.')).toBeVisible();
     }
+
+    async selectPayByBank() {
+        await this.page.getByLabel('Pay by Bank').click();
+    }
+
+    async selectRvvupTestMethod() {
+        await this.page.getByLabel('Rvvup Payment Method').click();
+    }
+
+    async selectClearpay() {
+        await this.page.getByLabel('Clearpay').click();
+    }
+
+    async pressPlaceOrder() {
+        await this.page.getByRole('button', {name: 'Place order'}).click();
+    }
 }

@@ -1,10 +1,12 @@
 import { test } from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import PayByBankCheckout from "./Components/PayByBankCheckout";
+import OrderConfirmation from "./Components/OrderConfirmation";
 
 test('Can place an order using pay by bank', async ({ page }) => {
     await new VisitCheckoutPayment(page).visit();
     await new PayByBankCheckout(page).checkout();
+    await new OrderConfirmation(page).expectOnOrderConfirmation(true);
 });
 
 test('The customer can decline the payment', async ({ page }) => {

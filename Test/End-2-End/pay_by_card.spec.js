@@ -1,5 +1,6 @@
 import test, { expect } from "@playwright/test";
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
+import OrderConfirmation from "./Components/OrderConfirmation";
 
 test('Can place an inline pay by card order with 3DS challenge', async ({ page }) => {
     await new VisitCheckoutPayment(page).visit();
@@ -16,9 +17,8 @@ test('Can place an inline pay by card order with 3DS challenge', async ({ page }
     await page.frameLocator('#Cardinal-CCA-IFrame').getByPlaceholder('Enter Code Here').fill('1234');
     await page.frameLocator('#Cardinal-CCA-IFrame').getByRole('button', { name: 'SUBMIT' }).click();
 
-    await page.waitForURL("**/checkout/onepage/success/");
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
 
 test('Can place an inline pay by card order without 3DS challenge', async ({ page }) => {
@@ -32,9 +32,7 @@ test('Can place an inline pay by card order without 3DS challenge', async ({ pag
     await page.frameLocator('.st-security-code-iframe').getByLabel('Security Code').fill('123');
     await page.getByRole('button', { name: 'Place order' }).click();
 
-    await page.waitForURL("**/checkout/onepage/success/");
-
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test.skip('Can place a modal pay by card order with 3DS challenge', async ({ page }) => {
@@ -55,9 +53,7 @@ test.skip('Can place a modal pay by card order with 3DS challenge', async ({ pag
     await frame.frameLocator('#Cardinal-CCA-IFrame').getByPlaceholder('Enter Code Here').fill('1234');
     await frame.frameLocator('#Cardinal-CCA-IFrame').getByPlaceholder('Enter Code Here').press('Enter');
 
-    await page.waitForURL("**/checkout/onepage/success/");
-
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test.skip('Can place a modal pay by card order without 3DS challenge', async ({ page }) => {
@@ -74,9 +70,7 @@ test.skip('Can place a modal pay by card order without 3DS challenge', async ({ 
     await frame.frameLocator('.st-security-code-iframe').getByLabel('Security Code').fill('123');
     await frame.getByRole('button', { name: 'Submit'}).click();
 
-    await page.waitForURL("**/checkout/onepage/success/");
-
-    await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
 test('Cannot place pay by card order using invalid card details', async ({ page }) => {
