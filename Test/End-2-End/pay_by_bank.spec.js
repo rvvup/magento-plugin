@@ -3,35 +3,26 @@ import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import PayByBankCheckout from "./Components/PayByBankCheckout";
 
 test('Can place an order using pay by bank', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
-
-    const payByBankCheckout = new PayByBankCheckout(page);
-    await payByBankCheckout.checkout();
+    await new VisitCheckoutPayment(page).visit();
+    await new PayByBankCheckout(page).checkout();
 });
 
 test('The customer can decline the payment', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
-    const payByBankCheckout = new PayByBankCheckout(page);
-    await payByBankCheckout.decline();
+    await new PayByBankCheckout(page).decline();
 });
 
 test.skip('Payment declined if the customer has insufficient funds', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     // TODO: Testing insufficient funds does not work and needs fixing
-    const payByBankCheckout = new PayByBankCheckout(page);
-    await payByBankCheckout.declineInsufficientFunds();
+    await new PayByBankCheckout(page).declineInsufficientFunds();
 });
 
 test.skip('Payment fails if the customer exits the modal before completing the transaction on their banking app', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
-    
+    await new VisitCheckoutPayment(page).visit();
+
     // TODO: Read the QR code and use that to generate the second page for this test
-    const payByBankCheckout = new PayByBankCheckout(page);
-    await payByBankCheckout.exitModalBeforeCompletingTransaction();
+    await new PayByBankCheckout(page).exitModalBeforeCompletingTransaction();
 })

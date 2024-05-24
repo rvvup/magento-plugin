@@ -2,8 +2,7 @@ import test, { expect } from "@playwright/test";
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 
 test('Can place an inline pay by card order with 3DS challenge', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByLabel('Pay by Card').click();
 
@@ -23,8 +22,7 @@ test('Can place an inline pay by card order with 3DS challenge', async ({ page }
 });
 
 test('Can place an inline pay by card order without 3DS challenge', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByLabel('Pay by Card').click();
 
@@ -40,8 +38,7 @@ test('Can place an inline pay by card order without 3DS challenge', async ({ pag
 });
 
 test.skip('Can place a modal pay by card order with 3DS challenge', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByLabel('Pay by Card').click();
 
@@ -64,8 +61,7 @@ test.skip('Can place a modal pay by card order with 3DS challenge', async ({ pag
 });
 
 test.skip('Can place a modal pay by card order without 3DS challenge', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByLabel('Pay by Card').click();
 
@@ -84,8 +80,7 @@ test.skip('Can place a modal pay by card order without 3DS challenge', async ({ 
 });
 
 test('Cannot place pay by card order using invalid card details', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByLabel('Pay by Card').click();
 

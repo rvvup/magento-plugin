@@ -2,9 +2,8 @@ import { test, expect } from '@playwright/test';
 import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 
 test('Can place a PayPal order on checkout', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
-    
+    await new VisitCheckoutPayment(page).visit();
+
     await page.getByLabel('PayPal', { exact: true }).click();
 
     page.on('popup', async popup => {
@@ -26,8 +25,7 @@ test('Can place a PayPal order on checkout', async ({ page }) => {
 });
 
 test.fixme('Can place a PayPal order on checkout using debit or credit cards', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByLabel('PayPal', { exact: true }).click();
 
@@ -70,7 +68,7 @@ test('Can place a PayPal express order', async ({ page }) => {
 
     // Checkout page
     await expect(page.getByText('Payment Method', { exact: true })).toBeVisible();
-    
+
     // TODO: Check that only PayPal is an option on checkout
     // const children = await page.$$('#payment-methods ol > li');
     // await expect(children.length).toBe(1);
@@ -89,7 +87,7 @@ test.fixme('Can place a PayPal express order using debit or credit cards', async
     await paypalFrame.getByRole('link', { name: 'Debit or Credit Card' }).click();
 
     // Fill in the form
-    const paypalCardForm = paypalFrame.frameLocator("[title='paypal_card_form']"); 
+    const paypalCardForm = paypalFrame.frameLocator("[title='paypal_card_form']");
     await paypalCardForm.getByPlaceholder('Card number').fill('4698 4665 2050 8153')
     await paypalCardForm.getByPlaceholder('Expires').fill('1125')
     await paypalCardForm.getByPlaceholder('Security code').fill('141')
@@ -111,19 +109,18 @@ test.fixme('Can place a PayPal express order using debit or credit cards', async
     await expect(page.getByText('Payment Method', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Place order' }).click();
-    
+
     await page.waitForURL("**/checkout/onepage/success/");
-    
+
     await expect(page.getByRole('heading', { name: 'Thank you for your purchase!' })).toBeVisible();
 });
 
 test('PayPal replaces the Place Order button with a PayPal button', async ({ page }) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByText('Pay by Bank', { exact: true }).click();
     await expect(page.getByRole('button', { name: 'Place Order' })).toBeVisible();
-    
+
     await page.getByText('PayPal', { exact: true }).click();
     await expect(page.getByRole('button', { name: 'Place Order' })).not.toBeVisible();
 

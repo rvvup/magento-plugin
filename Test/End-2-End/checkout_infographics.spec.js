@@ -3,10 +3,9 @@ import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import CheckoutPage from "./Components/CheckoutPage";
 
 test('Clearpay infographic updates when total changes on checkout page', async ({page}) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
     const checkoutPage = new CheckoutPage(page);
 
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
     await page.getByLabel('Clearpay').click();
 
     const initialGrandTotal = await checkoutPage.getGrandTotalValue();
@@ -24,9 +23,7 @@ test('Clearpay infographic updates when total changes on checkout page', async (
 });
 
 test('Pay by bank infographic is loaded', async ({page}) => {
-    const visitCheckoutPayment = new VisitCheckoutPayment(page);
-
-    await visitCheckoutPayment.visit();
+    await new VisitCheckoutPayment(page).visit();
 
     await page.getByLabel('Pay by Bank').click();
 
