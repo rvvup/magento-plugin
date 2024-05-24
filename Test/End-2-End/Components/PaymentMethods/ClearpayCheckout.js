@@ -21,7 +21,7 @@ export default class ClearpayCheckout {
     await clearpayFrame
       .getByTestId("login-password-input")
       .fill("XHvZsaUWh6K-BPWgXY!NJBwG");
-    await clearpayFrame.getByRole("button", { name: "Continue" }).click();
-    await clearpayFrame.getByRole("button", { name: "Confirm" }).click();
+    await clearpayFrame.getByTestId('login-password-button').click();
+    await clearpayFrame.getByTestId('summary-button').click();
   }
 }
