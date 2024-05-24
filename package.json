@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "format:test": "prettier --write 'Test/**/*.{js,jsx,ts,tsx}'"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.41.1",
-    "@types/node": "^20.11.8"
+    "@types/node": "^20.11.8",
+    "prettier": "3.2.5"
   }
 }
