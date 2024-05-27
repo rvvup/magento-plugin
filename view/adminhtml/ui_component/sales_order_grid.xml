@@ -2,32 +2,44 @@
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <columns name="sales_order_columns">
-        <column name="rvvup_cvvResponseCode" class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
+        <column name="rvvup_cvvResponseCode"
+                component="Magento_PageBuilder/js/grid/columns/preview-image"
+                class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
             <settings>
                 <label translate="true">Rvvup CVV</label>
-                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <hasPreview>1</hasPreview>
                 <sortable>false</sortable>
+                <draggable>false</draggable>
             </settings>
         </column>
-        <column name="rvvup_avsPostCodeResponseCode" class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
+        <column name="rvvup_avsPostCodeResponseCode"
+                component="Magento_PageBuilder/js/grid/columns/preview-image"
+                class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
             <settings>
                 <label translate="true">Rvvup PostCode Avs</label>
-                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <hasPreview>1</hasPreview>
                 <sortable>false</sortable>
+                <draggable>false</draggable>
             </settings>
         </column>
-        <column name="rvvup_avsAddressResponseCode" class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
+        <column name="rvvup_avsAddressResponseCode"
+                component="Magento_PageBuilder/js/grid/columns/preview-image"
+                class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
             <settings>
                 <label translate="true">Rvvup Address Avs</label>
-                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <hasPreview>1</hasPreview>
                 <sortable>false</sortable>
+                <draggable>false</draggable>
             </settings>
         </column>
-        <column name="rvvup_eci" class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
+        <column name="rvvup_eci"
+                component="Magento_PageBuilder/js/grid/columns/preview-image"
+                class="Rvvup\Payments\Ui\Component\Listing\Column\Data">
             <settings>
                 <label translate="true">Rvvup Eci</label>
-                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <hasPreview>1</hasPreview>
                 <sortable>false</sortable>
+                <draggable>false</draggable>
             </settings>
         </column>
     </columns>

@@ -112,7 +112,7 @@ class CardsMetadata implements ObserverInterface
     {
         if (isset($paymentData[$key])) {
             $value = $this->mapCardValue($paymentData[$key]);
-            $payment->setAdditionalInformation('rvvup_' . $key, $value);
+            $payment->setAdditionalInformation('rvvup_' . $key, $paymentData[$key]);
             $data[$key] = $key . ': ' . $value;
         }
     }
