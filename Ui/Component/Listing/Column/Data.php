@@ -76,8 +76,13 @@ class Data extends Column
                         $order  = $this->orderRepository->get($item["entity_id"]);
                         $payment = $order->getPayment();
                         $value = $payment->getAdditionalInformation($field) ?? '';
-                        $value = $this->getImagePath($field, $value);
-                        $item[$field . '_src'] = $value;
+                        if ($field == 'rvvup_eci_number') {
+                            $value = $payment->getAdditionalInformation('rvvup_eci') ?? '';
+                            $item[$field] = $value;
+                        } else {
+                            $value = $this->getImagePath($field, $value);
+                            $item[$field . '_src'] = $value;
+                        }
                         $this->cache->save($value, $id);
                     } else {
                         $this->cache->save('', $id);
