@@ -223,6 +223,16 @@ class VirtualCheckout
             $order = $this->orderRepository->get($orderId);
             $payment = $this->paymentLinkService->getQuotePaymentByOrder($order);
             $payment->setAdditionalInformation(Method::MOTO_ID, $motoId);
+
+            if ($payment->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
+                $paymentLinkId = $payment->getAdditionalInformation(Method::PAYMENT_LINK_ID);
+            } elseif ($order->getPayment()->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
+                $paymentLinkId = $order->getPayment()->getAdditionalInformation(Method::PAYMENT_LINK_ID);
+            }
+            if (isset($paymentLinkId)) {
+                $this->paymentLinkService->cancelPaymentLink((string)$order->getStoreId(), $paymentLinkId);
+            }
+
             $this->paymentResource->save($payment);
         } catch (\Exception $e) {
             $this->logger->error(
