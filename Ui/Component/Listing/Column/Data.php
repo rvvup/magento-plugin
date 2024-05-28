@@ -72,6 +72,7 @@ class Data extends Column
                 $dataFromCache = $this->cache->load($id);
                 if ($dataFromCache != null) {
                     $item[$field . '_src'] = $dataFromCache;
+                    $item[$field] = $dataFromCache;
                     continue;
                 }
 
