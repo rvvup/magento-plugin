@@ -48,7 +48,7 @@ class PaymentVoid
         $method = $subject->getMethodInstance();
         $method->setStore($order->getStoreId());
         $method->void($subject);
-        $message =  __('Voided authorization for ' . $subject->getMethodInstance()->getTitle());
+        $message =  __('Voided authorization for Rvvup Payment link');
         $order->addCommentToStatusHistory($message);
         $this->eventManager->dispatch('sales_order_payment_void', ['payment' => $this, 'invoice' => $document]);
         return $subject;
