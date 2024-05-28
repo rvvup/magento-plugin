@@ -9,7 +9,7 @@
                 <label translate="true">Rvvup 3DS</label>
                 <hasPreview>0</hasPreview>
                 <sortable>false</sortable>
-                <draggable>false</draggable>
+                <draggable>true</draggable>
             </settings>
         </column>
         <column name="rvvup_eci_number" sortOrder="11"
@@ -18,7 +18,7 @@
                 <label translate="true">Rvvup ECI</label>
                 <bodyTmpl>ui/grid/cells/html</bodyTmpl>
                 <sortable>false</sortable>
-                <draggable>false</draggable>
+                <draggable>true</draggable>
             </settings>
         </column>
         <column name="rvvup_cvvResponseCode" sortOrder="12"
@@ -28,7 +28,7 @@
                 <label translate="true">Rvvup CVV</label>
                 <hasPreview>0</hasPreview>
                 <sortable>false</sortable>
-                <draggable>false</draggable>
+                <draggable>true</draggable>
             </settings>
         </column>
         <column name="rvvup_avsPostCodeResponseCode" sortOrder="13"
@@ -38,7 +38,7 @@
                 <label translate="true">Rvvup PostCode Avs</label>
                 <hasPreview>0</hasPreview>
                 <sortable>false</sortable>
-                <draggable>false</draggable>
+                <draggable>true</draggable>
             </settings>
         </column>
         <column name="rvvup_avsAddressResponseCode" sortOrder="14"
@@ -48,7 +48,7 @@
                 <label translate="true">Rvvup Address Avs</label>
                 <hasPreview>0</hasPreview>
                 <sortable>false</sortable>
-                <draggable>false</draggable>
+                <draggable>true</draggable>
             </settings>
         </column>
     </columns>
