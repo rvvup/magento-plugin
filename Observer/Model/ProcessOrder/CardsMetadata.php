@@ -7,6 +7,7 @@ namespace Rvvup\Payments\Observer\Model\ProcessOrder;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -104,11 +105,10 @@ class CardsMetadata implements ObserverInterface
      * @param array $data
      * @param array $paymentData
      * @param string $key
-     * @param Payment $payment
+     * @param OrderPaymentInterface $payment
      * @return void
-     * @throws LocalizedException
      */
-    private function populateCardData(array &$data, array $paymentData, string $key, Payment $payment): void
+    private function populateCardData(array &$data, array $paymentData, string $key, OrderPaymentInterface $payment): void
     {
         if (isset($paymentData[$key])) {
             $value = $this->mapCardValue($paymentData[$key]);
