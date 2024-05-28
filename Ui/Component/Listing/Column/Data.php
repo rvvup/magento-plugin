@@ -62,32 +62,30 @@ class Data extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                if (isset($item['payment_method'])) {
-                    $field = $this->getData('name');
-                    $id = $item["entity_id"] . '_' . $field;
 
-                    if ($this->cache->load($id) != null) {
-                        $value = $this->cache->load($id);
-                        $item[$field . '_src'] = $value;
-                        continue;
-                    }
-
-                    if (strpos($item['payment_method'], 'rvvup_CARD') === 0) {
-                        $order  = $this->orderRepository->get($item["entity_id"]);
-                        $payment = $order->getPayment();
-                        $value = $payment->getAdditionalInformation($field) ?? '';
-                        if ($field == 'rvvup_eci_number') {
-                            $value = $payment->getAdditionalInformation('rvvup_eci') ?? '';
-                            $item[$field] = $value;
-                        } else {
-                            $value = $this->getImagePath($field, $value);
-                            $item[$field . '_src'] = $value;
-                        }
-                        $this->cache->save($value, $id);
-                    } else {
-                        $this->cache->save('', $id);
-                    }
+                if (!isset($item['payment_method']) || strpos($item['payment_method'], 'rvvup_CARD') !== 0) {
+                    continue;
                 }
+                $field = $this->getData('name');
+                $id = $item["entity_id"] . '_' . $field;
+
+                $dataFromCache = $this->cache->load($id);
+                if ($dataFromCache != null) {
+                    $item[$field . '_src'] = $dataFromCache;
+                    continue;
+                }
+
+                $order  = $this->orderRepository->get($item["entity_id"]);
+                $payment = $order->getPayment();
+                $value = $payment->getAdditionalInformation($field) ?? '';
+                if ($field == 'rvvup_eci_number') {
+                    $value = $payment->getAdditionalInformation('rvvup_eci') ?? '';
+                    $item[$field] = $value;
+                } else {
+                    $value = $this->getImagePath($field, $value);
+                    $item[$field . '_src'] = $value;
+                }
+                $this->cache->save($value, $id);
             }
         }
         return $dataSource;
