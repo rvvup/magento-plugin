@@ -6,12 +6,10 @@ namespace Rvvup\Payments\Observer\Model\ProcessOrder;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\ResourceModel\Order\Payment as PaymentResource;
 use Psr\Log\LoggerInterface;
 
@@ -108,8 +106,12 @@ class CardsMetadata implements ObserverInterface
      * @param OrderPaymentInterface $payment
      * @return void
      */
-    private function populateCardData(array &$data, array $paymentData, string $key, OrderPaymentInterface $payment): void
-    {
+    private function populateCardData(
+        array &$data,
+        array $paymentData,
+        string $key,
+        OrderPaymentInterface $payment
+    ): void {
         if (isset($paymentData[$key])) {
             $value = $this->mapCardValue($paymentData[$key]);
             $payment->setAdditionalInformation('rvvup_' . $key, $paymentData[$key]);
