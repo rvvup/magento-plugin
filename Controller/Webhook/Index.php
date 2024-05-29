@@ -22,6 +22,7 @@ use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\Complete;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\WebhookRepository;
+use Rvvup\Payments\Service\Capture;
 
 /**
  * The purpose of this controller is to accept incoming webhooks from Rvvup to update the status of payments
@@ -68,6 +69,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var StoreRepositoryInterface */
     private $storeRepository;
 
+    /** @var Capture  */
+    private $captureService;
+
     /**
      * @param RequestInterface $request
      * @param StoreRepositoryInterface $storeRepository
@@ -80,6 +84,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param StoreManagerInterface $storeManager
      * @param StorePathInfoValidator $storePathInfoValidator
      * @param RefundPool $refundPool
+     * @param Capture $captureService
      */
     public function __construct(
         RequestInterface         $request,
@@ -92,7 +97,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         WebhookRepository        $webhookRepository,
         StoreManagerInterface    $storeManager,
         StorePathInfoValidator   $storePathInfoValidator,
-        RefundPool               $refundPool
+        RefundPool               $refundPool,
+        Capture                  $captureService
     ) {
         $this->request = $request;
         $this->config = $config;
@@ -105,6 +111,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->http = $http;
         $this->storeRepository = $storeRepository;
         $this->refundPool = $refundPool;
+        $this->captureService = $captureService;
     }
 
     /**
@@ -147,6 +154,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'checkout_id' => $checkoutId,
                 'origin' => 'webhook'
             ];
+            $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
+            if ($quote && $quote->getId()) {
+                $payload['quote_id'] = $quote->getId();
+                $payload['store_id'] = $quote->getStoreId();
+            }
 
             if ($payload['event_type'] == Complete::TYPE) {
                 $this->refundPool->getProcessor($eventType)->execute($payload);
@@ -243,6 +255,10 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     private function getStoreId(): string
     {
         $storeId = $this->storeManager->getStore()->getId();
+        if ($storeId) {
+            return (string)$storeId;
+        }
+
         if ($storeCode = $this->storePathInfoValidator->getValidStoreCode($this->http)) {
             try {
                 $storeId = $this->storeRepository->getActiveStoreByCode($storeCode)->getId();

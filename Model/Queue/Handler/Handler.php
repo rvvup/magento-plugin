@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\Queue\Handler;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Area;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Magento\Store\Model\App\Emulation;
@@ -15,7 +15,6 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Magento\Framework\Serialize\Serializer\Json;
-use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\RvvupConfigProvider;
@@ -29,9 +28,6 @@ class Handler
 
     /** @var SerializerInterface */
     private $serializer;
-
-    /** @var ConfigInterface */
-    private $config;
 
     /** @var SearchCriteriaBuilder */
     private $paymentDataGet;
@@ -57,10 +53,12 @@ class Handler
     /** @var Emulation */
     private $emulation;
 
+    /** @var CartRepositoryInterface */
+    private $cartRepository;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
-     * @param ConfigInterface $config
      * @param PaymentDataGetInterface $paymentDataGet
      * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
@@ -69,11 +67,11 @@ class Handler
      * @param Capture $captureService
      * @param Emulation $emulation
      * @param Json $json
+     * @param CartRepositoryInterface $cartRepository
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
         SerializerInterface $serializer,
-        ConfigInterface $config,
         PaymentDataGetInterface $paymentDataGet,
         ProcessorPool $processorPool,
         LoggerInterface $logger,
@@ -81,11 +79,11 @@ class Handler
         Cache $cacheService,
         Capture $captureService,
         Emulation $emulation,
-        Json $json
+        Json $json,
+        CartRepositoryInterface $cartRepository
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
-        $this->config = $config;
         $this->paymentDataGet = $paymentDataGet;
         $this->processorPool = $processorPool;
         $this->captureService = $captureService;
@@ -94,6 +92,7 @@ class Handler
         $this->logger = $logger;
         $this->emulation = $emulation;
         $this->json = $json;
+        $this->cartRepository = $cartRepository;
     }
 
     /**
@@ -147,7 +146,11 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
+                if ($payload['quote_id']) {
+                    $quote = $this->cartRepository->get((int)$payload['quote_id']);
+                } else {
+                    $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
+                }
                 if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
