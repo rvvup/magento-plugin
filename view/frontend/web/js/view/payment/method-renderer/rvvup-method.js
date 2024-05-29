@@ -21,6 +21,7 @@ define([
         'mage/url',
         'Magento_Checkout/js/action/set-payment-information-extended',
         'Magento_Ui/js/model/messageList',
+        'Magento_Customer/js/model/customer',
         'domReady!'
     ], function (
         Component,
@@ -44,7 +45,8 @@ define([
         cardPayment,
         url,
         setPaymentInformation,
-        messageList
+        messageList,
+        customer
     ) {
         'use strict';
 
@@ -641,6 +643,14 @@ define([
 
                 if (self.shouldDisplayPayPalButton()) {
                     return;
+                }
+                if (!customer.isLoggedIn()) {
+                    if (!quote.guestEmail) {
+                        var email = document.getElementById('customer-email');
+                        if (email) {
+                            quote.guestEmail = email.value;
+                        }
+                    }
                 }
                 setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                     let code = self.getCode();
