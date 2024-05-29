@@ -12,6 +12,7 @@ use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment as PaymentResource;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Gateway\Method;
 
 class CardsMetadata implements ObserverInterface
 {
@@ -114,7 +115,7 @@ class CardsMetadata implements ObserverInterface
     ): void {
         if (isset($paymentData[$key])) {
             $value = $this->mapCardValue($paymentData[$key]);
-            $payment->setAdditionalInformation('rvvup_' . $key, $paymentData[$key]);
+            $payment->setAdditionalInformation(Method::PAYMENT_TITLE_PREFIX . $key, $paymentData[$key]);
             $data[$key] = $key . ': ' . $value;
         }
     }
