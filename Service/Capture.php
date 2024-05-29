@@ -291,6 +291,7 @@ class Capture
                 $e->getMessage(),
                 $rvvupId,
                 $rvvupPaymentId,
+                null,
                 $origin
             );
             return false;
