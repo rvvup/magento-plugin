@@ -135,12 +135,25 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                  * so returning a 400 should be fine to indicate the request is invalid and won't cause
                  * Rvvup to make repeated requests to the webhook.
                  */
-                return $this->returnInvalidResponse();
+                return $this->returnInvalidResponse('Missing required params', [
+                    'rvvupOrderId' => $rvvupOrderId,
+                    'merchantId' => $merchantId,
+                    'paymentId' => $paymentId,
+                    'paymentLinkId' => $paymentLinkId,
+                    'checkoutId' => $checkoutId,
+                ]);
             }
 
             // Merchant ID does not match, no need to process
             if ($merchantId !== $this->config->getMerchantId()) {
-                return $this->returnSkipResponse();
+                return $this->returnSkipResponse(
+                    'Invalid merchant id',
+                    [
+                        'merchant_id' => $merchantId,
+                        'config_merchant_id' => $this->config->getMerchantId(),
+                        'rvvup_id' => $rvvupOrderId
+                    ]
+                );
             }
 
             $payload = [
@@ -154,11 +167,64 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'checkout_id' => $checkoutId,
                 'origin' => 'webhook'
             ];
+
             $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
             if ($quote && $quote->getId()) {
                 $payload['quote_id'] = $quote->getId();
                 $payload['store_id'] = $quote->getStoreId();
             }
+
+            $storeCode = $this->storePathInfoValidator->getValidStoreCode($this->http);
+            if ($storeCode != null) {
+                $storeId = $this->storeRepository->getActiveStoreByCode($storeCode)->getId();
+                if ($quote && $quote->getStoreId()) {
+                    if ($storeId != $quote->getStoreId()) {
+                        return $this->returnSkipResponse(
+                            'Quote store id mismatch',
+                            [
+                                'store_id' => $storeId,
+                                'quote_store_id' => $quote->getStoreId(),
+                                'quote_id' => $quote->getId(),
+                                'external_reference' => $quote->getReservedOrderId(),
+                                'merchant_id' => $merchantId,
+                                'rvvup_id' => $rvvupOrderId
+                            ]
+                        );
+                    }
+                }
+
+                if ($payload['payment_link_id']) {
+                    $order = $this->captureService->getOrderByPaymentField(
+                        Method::PAYMENT_LINK_ID,
+                        $paymentLinkId
+                    );
+                } elseif ($payload['checkout_id']) {
+                    $order = $this->captureService->getOrderByPaymentField(
+                        Method::MOTO_ID,
+                        $checkoutId
+                    );
+                } else {
+                    $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+                }
+
+                if (isset($order) && $order->getId()) {
+                    if ($order->getStoreId()) {
+                        if ($storeId != $order->getStoreId()) {
+                            return $this->returnSkipResponse(
+                                'Order store id mismatch',
+                                [
+                                    'store_id' => $storeId,
+                                    'order_store_id' => $order->getStoreId(),
+                                    'external_reference' => $order->getId(),
+                                    'merchant_id' => $merchantId,
+                                    'rvvup_id' => $rvvupOrderId
+                                ]
+                            );
+                        }
+                    }
+                }
+            }
+
 
             if ($payload['event_type'] == Complete::TYPE) {
                 $this->refundPool->getProcessor($eventType)->execute($payload);
@@ -219,24 +285,28 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     }
 
     /**
+     * @param string $reason
+     * @param array $metadata
      * @return ResultInterface
      */
-    private function returnSkipResponse(): ResultInterface
+    private function returnSkipResponse(string $reason, array $metadata): ResultInterface
     {
-        $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(210);
-
+        $response->setData(['reason' => $reason, 'metadata' => $metadata]);
         return $response;
     }
 
     /**
+     * @param string $reason
+     * @param array $metadata
      * @return ResultInterface
      */
-    private function returnInvalidResponse(): ResultInterface
+    private function returnInvalidResponse(string $reason, array $metadata): ResultInterface
     {
         $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
         $response->setHttpResponseCode(400);
-
+        $response->setData(['reason' => $reason, 'metadata' => $metadata]);
         return $response;
     }
 
@@ -255,17 +325,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     private function getStoreId(): string
     {
         $storeId = $this->storeManager->getStore()->getId();
-        if ($storeId) {
-            return (string)$storeId;
-        }
-
-        if ($storeCode = $this->storePathInfoValidator->getValidStoreCode($this->http)) {
-            try {
-                $storeId = $this->storeRepository->getActiveStoreByCode($storeCode)->getId();
-            } catch (\Exception $e) {
-                return (string) $storeId;
-            }
-        }
         return (string) $storeId;
     }
 }

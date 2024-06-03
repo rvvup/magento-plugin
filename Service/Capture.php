@@ -335,10 +335,9 @@ class Capture
     /**
      * @param string $field
      * @param string $value
-     * @param string $storeId
      * @return Quote|null
      */
-    public function getOrderByPaymentField(string $field, string $value, string $storeId): ?OrderInterface
+    public function getOrderByPaymentField(string $field, string $value): ?OrderInterface
     {
         /** @var Collection $collection */
         $collection = $this->collectionFactory->create();
@@ -356,9 +355,6 @@ class Capture
         $quoteId = end($items)->getQuoteId();
         try {
             $cart = $this->cartRepository->get($quoteId);
-            if ($cart->getStoreId() != $storeId) {
-                return null;
-            }
             return $this->order->loadByIncrementId($cart->getReservedOrderId());
         } catch (NoSuchEntityException $ex) {
             return null;

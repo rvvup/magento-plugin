@@ -122,8 +122,7 @@ class Handler
             if ($paymentLinkId = $payload['payment_link_id']) {
                 $order = $this->captureService->getOrderByPaymentField(
                     Method::PAYMENT_LINK_ID,
-                    $paymentLinkId,
-                    $storeId
+                    $paymentLinkId
                 );
                 if ($order && $order->getId()) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
@@ -135,8 +134,7 @@ class Handler
             if ($checkoutId) {
                 $order = $this->captureService->getOrderByPaymentField(
                     Method::MOTO_ID,
-                    $checkoutId,
-                    $storeId
+                    $checkoutId
                 );
                 if ($order && $order->getId()) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);

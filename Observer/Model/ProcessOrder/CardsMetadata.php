@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Observer\Model\ProcessOrder;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
@@ -57,6 +58,7 @@ class CardsMetadata implements ObserverInterface
      *
      * @param  Observer $observer
      * @return void
+     * @throws AlreadyExistsException
      */
     public function execute(Observer $observer)
     {
