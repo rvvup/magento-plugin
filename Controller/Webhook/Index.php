@@ -173,9 +173,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             if ($quote && $quote->getId()) {
                 $payload['quote_id'] = $quote->getId();
                 $payload['store_id'] = $quote->getStoreId();
-            }
-
-            if (isset($payload['payment_link_id']) && $payload['payment_link_id']) {
+            } elseif (isset($payload['payment_link_id']) && $payload['payment_link_id']) {
                 $order = $this->captureService->getOrderByPaymentField(
                     Method::PAYMENT_LINK_ID,
                     $paymentLinkId
