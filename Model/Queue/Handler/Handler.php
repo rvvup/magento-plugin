@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Magento\Store\Model\App\Emulation;
 use Psr\Log\LoggerInterface;
@@ -56,6 +57,9 @@ class Handler
     /** @var CartRepositoryInterface */
     private $cartRepository;
 
+    /** @var OrderRepositoryInterface */
+    private $orderRepository;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -67,6 +71,7 @@ class Handler
      * @param Capture $captureService
      * @param Emulation $emulation
      * @param Json $json
+     * @param OrderRepositoryInterface $orderRepository
      * @param CartRepositoryInterface $cartRepository
      */
     public function __construct(
@@ -80,6 +85,7 @@ class Handler
         Capture $captureService,
         Emulation $emulation,
         Json $json,
+        OrderRepositoryInterface $orderRepository,
         CartRepositoryInterface $cartRepository
     ) {
         $this->webhookRepository = $webhookRepository;
@@ -92,6 +98,7 @@ class Handler
         $this->logger = $logger;
         $this->emulation = $emulation;
         $this->json = $json;
+        $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
     }
 
@@ -120,10 +127,15 @@ class Handler
             $this->emulation->startEnvironmentEmulation((int) $storeId);
 
             if ($paymentLinkId = $payload['payment_link_id']) {
-                $order = $this->captureService->getOrderByPaymentField(
-                    Method::PAYMENT_LINK_ID,
-                    $paymentLinkId
-                );
+                if (isset($payload['order_id']) && $payload['order_id']) {
+                    $order = $this->orderRepository->get((int)$payload['order_id']);
+                } else {
+                    $order = $this->captureService->getOrderByPaymentField(
+                        Method::PAYMENT_LINK_ID,
+                        $paymentLinkId
+                    );
+                }
+
                 if ($order && $order->getId()) {
                     $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
                     return;
@@ -144,7 +156,7 @@ class Handler
             }
 
             if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                if ($payload['quote_id']) {
+                if (isset($payload['quote_id']) && $payload['quote_id']) {
                     $quote = $this->cartRepository->get((int)$payload['quote_id']);
                 } else {
                     $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);

@@ -127,6 +127,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $refundId = $this->request->getParam('refund_id', false);
             $paymentLinkId = $this->request->getParam('payment_link_id', false);
             $checkoutId = $this->request->getParam('checkout_id', false);
+            $storeId = $this->getStoreId();
 
             // Ensure required params are present
             if (!$merchantId || !$rvvupOrderId) {
@@ -162,7 +163,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'refund_id' => $refundId,
                 'payment_id' => $paymentId,
                 'event_type' => $eventType,
-                'store_id' => $this->getStoreId(),
+                'store_id' => $storeId,
                 'payment_link_id' => $paymentLinkId,
                 'checkout_id' => $checkoutId,
                 'origin' => 'webhook'
@@ -174,55 +175,23 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 $payload['store_id'] = $quote->getStoreId();
             }
 
-            $storeCode = $this->storePathInfoValidator->getValidStoreCode($this->http);
-            if ($storeCode != null) {
-                $storeId = $this->storeRepository->getActiveStoreByCode($storeCode)->getId();
-                if ($quote && $quote->getStoreId()) {
-                    if ($storeId != $quote->getStoreId()) {
-                        return $this->returnSkipResponse(
-                            'Quote store id mismatch',
-                            [
-                                'store_id' => $storeId,
-                                'quote_store_id' => $quote->getStoreId(),
-                                'quote_id' => $quote->getId(),
-                                'external_reference' => $quote->getReservedOrderId(),
-                                'merchant_id' => $merchantId,
-                                'rvvup_id' => $rvvupOrderId
-                            ]
-                        );
-                    }
-                }
+            if (isset($payload['payment_link_id']) && $payload['payment_link_id']) {
+                $order = $this->captureService->getOrderByPaymentField(
+                    Method::PAYMENT_LINK_ID,
+                    $paymentLinkId
+                );
+            } elseif (isset($payload['checkout_id']) && $payload['checkout_id']) {
+                $order = $this->captureService->getOrderByPaymentField(
+                    Method::MOTO_ID,
+                    $checkoutId
+                );
+            } else {
+                $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+            }
 
-                if ($payload['payment_link_id']) {
-                    $order = $this->captureService->getOrderByPaymentField(
-                        Method::PAYMENT_LINK_ID,
-                        $paymentLinkId
-                    );
-                } elseif ($payload['checkout_id']) {
-                    $order = $this->captureService->getOrderByPaymentField(
-                        Method::MOTO_ID,
-                        $checkoutId
-                    );
-                } else {
-                    $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-                }
-
-                if (isset($order) && $order->getId()) {
-                    if ($order->getStoreId()) {
-                        if ($storeId != $order->getStoreId()) {
-                            return $this->returnSkipResponse(
-                                'Order store id mismatch',
-                                [
-                                    'store_id' => $storeId,
-                                    'order_store_id' => $order->getStoreId(),
-                                    'external_reference' => $order->getId(),
-                                    'merchant_id' => $merchantId,
-                                    'rvvup_id' => $rvvupOrderId
-                                ]
-                            );
-                        }
-                    }
-                }
+            if (isset($order) && $order->getId()) {
+                $payload['order_id'] = $order->getId();
+                $payload['store_id'] = $order->getStoreId();
             }
 
             if ($payload['event_type'] == Complete::TYPE) {

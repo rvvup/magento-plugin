@@ -81,6 +81,7 @@ class Webhook
      */
     private function processWebhooks(WebhookCollection $collection): void
     {
+        $uniquePayloads = [];
         foreach ($collection->getItems() as $item) {
             try {
                 $payload = $item->getData('payload');
@@ -107,7 +108,15 @@ class Webhook
                         }
                     }
 
-                    $this->addWebhookToQueue($webhookId);
+                    /** Process only unique payloads per each cron run in order to avoid the locks */
+                    if (!in_array($payload, $uniquePayloads)) {
+                        $uniquePayloads[] = $payload;
+                        $this->addWebhookToQueue($webhookId);
+                    } else {
+                        $webhook = $this->webhookRepository->getById($webhookId);
+                        $webhook->setData('is_processed', true);
+                        $this->webhookRepository->save($webhook);
+                    }
                 } else {
                     $webhook = $this->webhookRepository->getById($webhookId);
                     $webhook->setData('is_processed', true);
