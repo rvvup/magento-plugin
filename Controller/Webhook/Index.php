@@ -225,7 +225,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 }
             }
 
-
             if ($payload['event_type'] == Complete::TYPE) {
                 $this->refundPool->getProcessor($eventType)->execute($payload);
                 return $this->returnSuccessfulResponse();

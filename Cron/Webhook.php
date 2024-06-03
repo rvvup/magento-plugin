@@ -146,7 +146,6 @@ class Webhook
 
     /**
      * @param string $orderId
-     * @param int $storeId
      * @param int $webhookId
      * @return bool
      * @throws AlreadyExistsException
