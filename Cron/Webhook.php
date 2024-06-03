@@ -70,7 +70,7 @@ class Webhook
         $date = date('Y-m-d H:i:s', strtotime('-30 seconds'));
         $collection->addFieldToSelect('*')
             ->addFieldToFilter('is_processed', ['eq' => 'false'])
-            ->addFieldToFilter('created_at', ['gt' => $date]);
+            ->addFieldToFilter('created_at', ['lt' => $date]);
         $this->processWebhooks($collection);
     }
 
