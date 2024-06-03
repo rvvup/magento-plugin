@@ -190,7 +190,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             }
 
             if (isset($order) && $order->getId()) {
-                $payload['order_id'] = $order->getId();
+                $payload['magento_order_id'] = $order->getId();
                 $payload['store_id'] = $order->getStoreId();
             }
 
@@ -272,7 +272,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     private function returnInvalidResponse(string $reason, array $metadata): ResultInterface
     {
-        $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(400);
         $response->setData(['reason' => $reason, 'metadata' => $metadata]);
         return $response;
@@ -280,7 +280,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
     private function returnExceptionResponse(): ResultInterface
     {
-        $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(500);
 
         return $response;

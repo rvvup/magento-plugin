@@ -127,8 +127,8 @@ class Handler
             $this->emulation->startEnvironmentEmulation((int) $storeId);
 
             if ($paymentLinkId = $payload['payment_link_id']) {
-                if (isset($payload['order_id']) && $payload['order_id']) {
-                    $order = $this->orderRepository->get((int)$payload['order_id']);
+                if (isset($payload['magento_order_id']) && $payload['magento_order_id']) {
+                    $order = $this->orderRepository->get((int)$payload['magento_order_id']);
                 } else {
                     $order = $this->captureService->getOrderByPaymentField(
                         Method::PAYMENT_LINK_ID,
@@ -203,7 +203,6 @@ class Handler
                     $rvvupOrderId,
                     $origin
                 );
-
                 return;
             }
 
