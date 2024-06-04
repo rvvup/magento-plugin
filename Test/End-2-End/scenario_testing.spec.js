@@ -38,7 +38,6 @@ test("Can place an order using different billing and shipping address", async ({
   await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
-
 test.describe("multiple tabs", () => {
   test("Changing quote on a different tab for an in progress order makes the payment invalid", async ({
     browser,
