@@ -44,7 +44,6 @@ interface HashInterface
      */
     public function setHash(?string $hash): void;
 
-
     /**
      * Getter for QuoteID.
      *

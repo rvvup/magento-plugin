@@ -5,6 +5,8 @@ namespace Rvvup\Payments\Model;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Api\SearchResultsInterfaceFactory;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Sales\Api\Data\OrderPaymentSearchResultInterface;
 use Rvvup\Payments\Api\HashRepositoryInterface;
 use Rvvup\Payments\Api\Data\HashInterface;
 use Rvvup\Payments\Api\Data\HashInterfaceFactory;
@@ -52,7 +54,11 @@ class HashRepository implements HashRepositoryInterface
         $this->searchResultsFactory = $searchResultsFactory;
     }
 
-    /** @inheirtDoc  */
+    /**
+     * @param HashInterface $hash
+     * @return HashInterface
+     * @throws AlreadyExistsException
+     */
     public function save(HashInterface $hash): HashInterface
     {
         $hash->setHasDataChanges(true);
@@ -60,7 +66,11 @@ class HashRepository implements HashRepositoryInterface
         return $hash;
     }
 
-    /** @inheirtDoc  */
+    /**
+     * @param int $id
+     * @return HashInterface
+     * @throws NoSuchEntityException
+     */
     public function getById(int $id): HashInterface
     {
         $hash = $this->hashFactory->create();
@@ -72,7 +82,9 @@ class HashRepository implements HashRepositoryInterface
     }
 
     /**
-     * @inheritDoc
+     * @param int $id
+     * @return HashInterface
+     * @throws NoSuchEntityException
      */
     public function getByQuoteId(int $id): HashInterface
     {
@@ -84,14 +96,21 @@ class HashRepository implements HashRepositoryInterface
         return $hash;
     }
 
-    /** @inheirtDoc  */
+    /**
+     * @param HashInterface $hash
+     * @return HashInterface
+     * @throws \Exception
+     */
     public function delete(HashInterface $hash): HashInterface
     {
         $this->resource->delete($hash);
         return $hash;
     }
 
-    /** @inheirtDoc  */
+    /**
+     * @param SearchCriteriaInterface $searchCriteria
+     * @return OrderPaymentSearchResultInterface
+     */
     public function getList(SearchCriteriaInterface $searchCriteria)
     {
         /** @var HashCollection $collection */

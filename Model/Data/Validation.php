@@ -144,7 +144,8 @@ class Validation extends DataObject implements ValidationInterface
         if ($hash !== $savedHash) {
             $hashItem = $this->hashRepository->getByQuoteId($quote->getId());
             $message = 'Payment hash is invalid during Rvvup Checkout: ' . PHP_EOL;
-            $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt() . ', for quote_id: ' . $hashItem->getQuoteId();
+            $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt();
+            $message .= ', for quote_id: ' . $hashItem->getQuoteId();
             $message .= ', with value :' . $hashItem->getHash();
             $message .= ', is not equal to :' . $hashedData;
 
