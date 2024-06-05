@@ -33,11 +33,12 @@ class Info extends ConfigurableInfo
      * @param array $data
      */
     public function __construct(
-        Context $context,
-        ConfigInterface $config,
+        Context                 $context,
+        ConfigInterface         $config,
         CartRepositoryInterface $cartRepository,
-        array $data = []
-    ) {
+        array                   $data = []
+    )
+    {
         $this->cartRepository = $cartRepository;
         parent::__construct(
             $context,
@@ -71,16 +72,16 @@ class Info extends ConfigurableInfo
      */
     public function getAdditionalInformation(string $field): string
     {
-       $payment = $this->getInfo();
-       if ($payment->getAdditionalInformation($field)) {
-           return $payment->getAdditionalInformation($field) ?: '';
-       } elseif ($this->getInfo() instanceof OrderPaymentInterface) {
-         $quoteId = $payment->getOrder()->getQuoteId();
-         if ($quoteId) {
-             $cart = $this->cartRepository->get((int) $quoteId);
-             return $cart->getPayment()->getAdditionalInformation($field) ?: '';
-         }
-       }
-       return '';
+        $payment = $this->getInfo();
+        if ($payment->getAdditionalInformation($field)) {
+            return $payment->getAdditionalInformation($field) ?: '';
+        } elseif ($this->getInfo() instanceof OrderPaymentInterface) {
+            $quoteId = $payment->getOrder()->getQuoteId();
+            if ($quoteId) {
+                $cart = $this->cartRepository->get((int)$quoteId);
+                return $cart->getPayment()->getAdditionalInformation($field) ?: '';
+            }
+        }
+        return '';
     }
 }
