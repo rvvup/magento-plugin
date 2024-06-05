@@ -2,6 +2,8 @@
 
 namespace Rvvup\Payments\Block;
 
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Block\ConfigurableInfo;
 use Magento\Payment\Gateway\ConfigInterface;
@@ -61,6 +63,12 @@ class Info extends ConfigurableInfo
         return $this->labels[$field] ?? $field;
     }
 
+    /**
+     * @param string $field
+     * @return string
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function getAdditionalInformation(string $field): string
     {
        $payment = $this->getInfo();
