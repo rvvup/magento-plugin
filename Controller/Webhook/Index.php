@@ -22,6 +22,7 @@ use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\Complete;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\WebhookRepository;
+use Rvvup\Payments\Service\Capture;
 
 /**
  * The purpose of this controller is to accept incoming webhooks from Rvvup to update the status of payments
@@ -68,6 +69,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var StoreRepositoryInterface */
     private $storeRepository;
 
+    /** @var Capture  */
+    private $captureService;
+
     /**
      * @param RequestInterface $request
      * @param StoreRepositoryInterface $storeRepository
@@ -80,6 +84,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param StoreManagerInterface $storeManager
      * @param StorePathInfoValidator $storePathInfoValidator
      * @param RefundPool $refundPool
+     * @param Capture $captureService
      */
     public function __construct(
         RequestInterface         $request,
@@ -92,7 +97,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         WebhookRepository        $webhookRepository,
         StoreManagerInterface    $storeManager,
         StorePathInfoValidator   $storePathInfoValidator,
-        RefundPool               $refundPool
+        RefundPool               $refundPool,
+        Capture                  $captureService
     ) {
         $this->request = $request;
         $this->config = $config;
@@ -105,6 +111,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->http = $http;
         $this->storeRepository = $storeRepository;
         $this->refundPool = $refundPool;
+        $this->captureService = $captureService;
     }
 
     /**
@@ -120,6 +127,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $refundId = $this->request->getParam('refund_id', false);
             $paymentLinkId = $this->request->getParam('payment_link_id', false);
             $checkoutId = $this->request->getParam('checkout_id', false);
+            $storeId = $this->getStoreId();
 
             // Ensure required params are present
             if (!$merchantId || !$rvvupOrderId) {
@@ -128,12 +136,25 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                  * so returning a 400 should be fine to indicate the request is invalid and won't cause
                  * Rvvup to make repeated requests to the webhook.
                  */
-                return $this->returnInvalidResponse();
+                return $this->returnInvalidResponse('Missing required params', [
+                    'rvvupOrderId' => $rvvupOrderId,
+                    'merchantId' => $merchantId,
+                    'paymentId' => $paymentId,
+                    'paymentLinkId' => $paymentLinkId,
+                    'checkoutId' => $checkoutId,
+                ]);
             }
 
             // Merchant ID does not match, no need to process
             if ($merchantId !== $this->config->getMerchantId()) {
-                return $this->returnSkipResponse();
+                return $this->returnSkipResponse(
+                    'Invalid merchant id',
+                    [
+                        'merchant_id' => $merchantId,
+                        'config_merchant_id' => $this->config->getMerchantId(),
+                        'rvvup_id' => $rvvupOrderId
+                    ]
+                );
             }
 
             $payload = [
@@ -142,11 +163,34 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'refund_id' => $refundId,
                 'payment_id' => $paymentId,
                 'event_type' => $eventType,
-                'store_id' => $this->getStoreId(),
+                'store_id' => $storeId,
                 'payment_link_id' => $paymentLinkId,
                 'checkout_id' => $checkoutId,
                 'origin' => 'webhook'
             ];
+
+            $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
+            if ($quote && $quote->getId()) {
+                $payload['quote_id'] = $quote->getId();
+                $payload['store_id'] = $quote->getStoreId();
+            } elseif (isset($payload['payment_link_id']) && $payload['payment_link_id']) {
+                $order = $this->captureService->getOrderByPaymentField(
+                    Method::PAYMENT_LINK_ID,
+                    $paymentLinkId
+                );
+            } elseif (isset($payload['checkout_id']) && $payload['checkout_id']) {
+                $order = $this->captureService->getOrderByPaymentField(
+                    Method::MOTO_ID,
+                    $checkoutId
+                );
+            } else {
+                $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+            }
+
+            if (isset($order) && $order->getId()) {
+                $payload['magento_order_id'] = $order->getId();
+                $payload['store_id'] = $order->getStoreId();
+            }
 
             if ($payload['event_type'] == Complete::TYPE) {
                 $this->refundPool->getProcessor($eventType)->execute($payload);
@@ -207,30 +251,34 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     }
 
     /**
+     * @param string $reason
+     * @param array $metadata
      * @return ResultInterface
      */
-    private function returnSkipResponse(): ResultInterface
+    private function returnSkipResponse(string $reason, array $metadata): ResultInterface
     {
-        $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(210);
-
+        $response->setData(['reason' => $reason, 'metadata' => $metadata]);
         return $response;
     }
 
     /**
+     * @param string $reason
+     * @param array $metadata
      * @return ResultInterface
      */
-    private function returnInvalidResponse(): ResultInterface
+    private function returnInvalidResponse(string $reason, array $metadata): ResultInterface
     {
-        $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(400);
-
+        $response->setData(['reason' => $reason, 'metadata' => $metadata]);
         return $response;
     }
 
     private function returnExceptionResponse(): ResultInterface
     {
-        $response = $this->resultFactory->create($this->resultFactory::TYPE_RAW);
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(500);
 
         return $response;
@@ -243,13 +291,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     private function getStoreId(): string
     {
         $storeId = $this->storeManager->getStore()->getId();
-        if ($storeCode = $this->storePathInfoValidator->getValidStoreCode($this->http)) {
-            try {
-                $storeId = $this->storeRepository->getActiveStoreByCode($storeCode)->getId();
-            } catch (\Exception $e) {
-                return (string) $storeId;
-            }
-        }
         return (string) $storeId;
     }
 }

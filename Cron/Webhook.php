@@ -67,10 +67,10 @@ class Webhook
     {
         /** @var WebhookCollection $collection */
         $collection = $this->webhookCollectionFactory->create();
+        $date = date('Y-m-d H:i:s', strtotime('-30 seconds'));
         $collection->addFieldToSelect('*')
-            ->addFieldToFilter('is_processed', ['eq' => 'false']);
-        $collection->clear();
-
+            ->addFieldToFilter('is_processed', ['eq' => 'false'])
+            ->addFieldToFilter('created_at', ['lt' => $date]);
         $this->processWebhooks($collection);
     }
 
@@ -81,34 +81,42 @@ class Webhook
      */
     private function processWebhooks(WebhookCollection $collection): void
     {
+        $uniquePayloads = [];
         foreach ($collection->getItems() as $item) {
             try {
                 $payload = $item->getData('payload');
                 $data = $this->json->unserialize($payload);
                 $webhookId = (int) $item->getData('webhook_id');
                 if (isset($data['store_id'])) {
-                    $storeId = (int) $data['store_id'];
                     $orderId = $data['order_id'];
 
                     if (isset($data['payment_link_id']) && $data['payment_link_id']) {
-                        if (!$this->validatePaymentLink($storeId, $data, $webhookId)) {
+                        if (!$this->validatePaymentLink($data, $webhookId)) {
                             continue;
                         }
                     } elseif (isset($data['checkout_id']) && $data['checkout_id']) {
-                        if (!$this->validateMoto($storeId, $data, $webhookId)) {
+                        if (!$this->validateMoto($data, $webhookId)) {
                             continue;
                         }
                     } elseif ($data['event_type'] == Index::PAYMENT_COMPLETED) {
-                        if (!$this->validatePaymentCompleted($orderId, $storeId, $webhookId)) {
+                        if (!$this->validatePaymentCompleted($orderId, $webhookId)) {
                             continue;
                         }
                     } elseif ($data['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
-                        if (!$this->validatePaymentAuthorized($orderId, $storeId, $webhookId)) {
+                        if (!$this->validatePaymentAuthorized($orderId, $webhookId)) {
                             continue;
                         }
                     }
 
-                    $this->addWebhookToQueue($webhookId);
+                    /** Process only unique payloads per each cron run in order to avoid the locks */
+                    if (!in_array($payload, $uniquePayloads)) {
+                        $uniquePayloads[] = $payload;
+                        $this->addWebhookToQueue($webhookId);
+                    } else {
+                        $webhook = $this->webhookRepository->getById($webhookId);
+                        $webhook->setData('is_processed', true);
+                        $this->webhookRepository->save($webhook);
+                    }
                 } else {
                     $webhook = $this->webhookRepository->getById($webhookId);
                     $webhook->setData('is_processed', true);
@@ -147,20 +155,19 @@ class Webhook
 
     /**
      * @param string $orderId
-     * @param int $storeId
      * @param int $webhookId
      * @return bool
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    private function validatePaymentCompleted(string $orderId, int $storeId, int $webhookId): bool
+    private function validatePaymentCompleted(string $orderId, int $webhookId): bool
     {
         $orderList = $this->captureService->getOrderListByRvvupId($orderId);
         if ($orderList->getTotalCount() == 1) {
             $items = $orderList->getItems();
             $orderPayment = end($items);
             $order = $orderPayment->getOrder();
-            if (!$order || (int)$order->getStoreId() !== $storeId) {
+            if (!$order) {
                 $webhook = $this->webhookRepository->getById($webhookId);
                 $webhook->setData('is_processed', true);
                 $this->webhookRepository->save($webhook);
@@ -172,15 +179,14 @@ class Webhook
 
     /**
      * @param string $orderId
-     * @param int $storeId
      * @param int $webhookId
      * @return bool
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    private function validatePaymentAuthorized(string $orderId, int $storeId, int $webhookId): bool
+    private function validatePaymentAuthorized(string $orderId, int $webhookId): bool
     {
-        $quote = $this->captureService->getQuoteByRvvupId($orderId, (string)$storeId);
+        $quote = $this->captureService->getQuoteByRvvupId($orderId);
         if (!$quote || !$quote->getId()) {
             $webhook = $this->webhookRepository->getById($webhookId);
             $webhook->setData('is_processed', true);
@@ -191,19 +197,17 @@ class Webhook
     }
 
     /**
-     * @param int $storeId
      * @param array $data
      * @param int $webhookId
      * @return bool
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    private function validateMoto(int $storeId, array $data, int $webhookId): bool
+    private function validateMoto(array $data, int $webhookId): bool
     {
         $order = $this->captureService->getOrderByPaymentField(
             Method::MOTO_ID,
-            $data['checkout_id'],
-            (string)$storeId
+            $data['checkout_id']
         );
 
         if (!$order || !$order->getId()) {
@@ -217,19 +221,17 @@ class Webhook
     }
 
     /**
-     * @param int $storeId
      * @param array $data
      * @param int $webhookId
      * @return bool
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    private function validatePaymentLink(int $storeId, array $data, int $webhookId): bool
+    private function validatePaymentLink(array $data, int $webhookId): bool
     {
         $order = $this->captureService->getOrderByPaymentField(
             Method::PAYMENT_LINK_ID,
-            $data['payment_link_id'],
-            (string)$storeId
+            $data['payment_link_id']
         );
 
         if (!$order || !$order->getId()) {
