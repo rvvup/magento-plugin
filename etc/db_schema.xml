@@ -4,7 +4,7 @@
     <table name="rvvup_hash" resource="default" engine="innodb" comment="Hash">
         <column xsi:type="int" name="hash_id" padding="10" unsigned="true" nullable="false" identity="true"
                 comment="Hash Id Column"/>
-        <column xsi:type="varchar" name="hash" nullable="false" length="255" comment="Hash Column"/>
+        <column xsi:type="text" name="hash" nullable="false" comment="Hash Column"/>
         <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" identity="false"
                 default="0" comment="Quote ID"/>
         <column xsi:type="datetime" name="created_at" on_update="false"
