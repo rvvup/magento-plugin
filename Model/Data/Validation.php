@@ -7,6 +7,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\OrderIncrementIdChecker;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
+use Rvvup\Payments\Api\HashRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Hash;
 use Psr\Log\LoggerInterface;
@@ -24,21 +25,27 @@ class Validation extends DataObject implements ValidationInterface
     /** @var OrderIncrementIdChecker */
     private $orderIncrementChecker;
 
+    /** @var HashRepositoryInterface */
+    private $hashRepository;
+
     /**
      * @param Hash|null $hashService
      * @param OrderIncrementIdChecker|null $orderIncrementIdChecker
      * @param LoggerInterface|null $logger
+     * @param HashRepositoryInterface $hashRepository
      * @param array $data
      */
     public function __construct(
         Hash $hashService,
         OrderIncrementIdChecker $orderIncrementIdChecker,
         LoggerInterface $logger,
+        HashRepositoryInterface $hashRepository,
         array $data = []
     ) {
         $this->logger = $logger;
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->hashService = $hashService;
+        $this->hashRepository = $hashRepository;
         parent::__construct($data);
     }
 
@@ -133,10 +140,16 @@ class Validation extends DataObject implements ValidationInterface
 
         $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
         $quote->collectTotals();
-        $savedHash = $this->hashService->getHashForData($quote);
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote);
         if ($hash !== $savedHash) {
+            $hashItem = $this->hashRepository->getByQuoteId($quote->getId());
+            $message = 'Payment hash is invalid during Rvvup Checkout: ' . PHP_EOL;
+            $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt() . ', for quote_id: ' . $hashItem->getQuoteId();
+            $message .= ', with value :' . $hashItem->getHash();
+            $message .= ', is not equal to :' . $hashedData;
+
             $this->logger->addRvvupError(
-                'Payment hash is invalid during Rvvup Checkout',
+                $message,
                 null,
                 $rvvupId,
                 $lastTransactionId,

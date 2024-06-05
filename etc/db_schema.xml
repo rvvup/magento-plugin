@@ -1,6 +1,27 @@
 <?xml version="1.0"?>
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="rvvup_hash" resource="default" engine="innodb" comment="Hash">
+        <column xsi:type="int" name="hash_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Hash Id Column"/>
+        <column xsi:type="varchar" name="hash" nullable="false" length="255" comment="Hash Column"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" identity="false"
+                default="0" comment="Quote ID"/>
+        <column xsi:type="datetime" name="created_at" on_update="false"
+                nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="hash_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="RVVUP_HASH_QUOTE_ID_QUOTE_ENTITY_ID" table="rvvup_hash"
+                    column="quote_id" referenceTable="quote" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="RVVUP_HASH_QUOTE_ID" indexType="btree">
+            <column name="quote_id"/>
+        </index>
+        <index referenceId="RVVUP_HASH_HASH_ID" indexType="btree">
+            <column name="hash_id"/>
+        </index>
+    </table>
     <table name="rvvup_log" resource="default" engine="innodb" comment="Log">
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
                 comment="Entity Id Column"/>
