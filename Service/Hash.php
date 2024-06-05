@@ -45,20 +45,22 @@ class Hash
     public function saveQuoteHash(Quote $quote): void
     {
         $payment = $quote->getPayment();
-        list($data, $hash) = $this->getHashForData($quote);
+        list($data, $hash) = $this->getHashForData($quote, true);
         $hashItem = $this->hashFactory->create(['data' => ['hash' => $data, 'quote_id' => (int)$quote->getId()]]);
         $this->hashRepository->save($hashItem);
-        $payment->setAdditionalInformation('quote_hash', $hash);
+        $payment->setAdditionalInformation('rvvup_quote_hash', $hash);
         $this->paymentResource->save($payment);
     }
 
     /**
      * Create hash for current quote state
      * @param Quote $quote
+     * @param bool $sort
      * @return array
      */
-    public function getHashForData(Quote $quote): array
+    public function getHashForData(Quote $quote, bool $sort = false): array
     {
+        $quote->collectTotals();
         $hashedValues = [];
         foreach ($quote->getTotals() as $total) {
             $hashedValues[$total->getCode()] = $total->getValue();
@@ -68,7 +70,9 @@ class Hash
             $hashedValues[$item->getSku()] = $item->getQty() . '_' . $item->getPrice();
         }
 
-        ksort($hashedValues);
+        if ($sort) {
+            ksort($hashedValues);
+        }
         $output = implode(
             ', ',
             array_map(

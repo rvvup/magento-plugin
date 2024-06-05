@@ -135,20 +135,26 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
-        $quote->collectTotals();
-        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote);
+        $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash');
+        $sort = true;
+        /** Backward compatibility to prevent orders from failing when the plugin is upgrading */
+        if (!$hash) {
+            $sort = false;
+            $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
+        }
+
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, $sort);
         if ($hash !== $savedHash) {
             $hashItem = $this->hashRepository->getByQuoteId($quote->getId());
-            $message = 'Payment hash is invalid during Rvvup Checkout: ' . PHP_EOL;
+            $message = 'Payment hash is invalid during Rvvup Checkout: ';
             $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt();
             $message .= ', for quote_id: ' . $hashItem->getQuoteId();
-            $message .= ', with value :' . $hashItem->getHash();
-            $message .= ', is not equal to :' . $hashedData;
+            $cause = 'Original value: [' . $hashItem->getHash() . ']';
+            $cause .= ', is not equal to: [' . $hashedData . ']';
 
             $this->logger->addRvvupError(
                 $message,
-                null,
+                $cause,
                 $rvvupId,
                 $lastTransactionId,
                 $quote->getReservedOrderId() ?? null,
