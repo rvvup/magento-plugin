@@ -37,8 +37,7 @@ class Info extends ConfigurableInfo
         ConfigInterface         $config,
         CartRepositoryInterface $cartRepository,
         array                   $data = []
-    )
-    {
+    ) {
         $this->cartRepository = $cartRepository;
         parent::__construct(
             $context,
