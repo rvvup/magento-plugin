@@ -24,7 +24,9 @@ export default class CardCheckout {
 
     await this.checkoutPage.pressPlaceOrder();
     // OTP form
-    await this.page.frameLocator('iframe[title="Bank Authentication"]').getByPlaceholder(' Enter Code Here')
+    await this.page
+      .frameLocator('iframe[title="Bank Authentication"]')
+      .getByPlaceholder(" Enter Code Here")
       .fill("1234");
     await this.page
       .frameLocator('iframe[title="Bank Authentication"]')

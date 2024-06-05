@@ -25,13 +25,13 @@ $paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->g
                 </td>
             </tr>
         <?php endforeach; ?>
-        <?php if ($block->getInfo()->getAdditionalInformation('dashboardUrl')): ?>
+        <?php if ($block->getAdditionalInformation(Method::DASHBOARD_URL)): ?>
         <tr>
-            <th><?= $escaper->escapeHtml('Payment Link') ?>:</th>
+            <th><?= $escaper->escapeHtml('Dashboard Link') ?>:</th>
             <td>
-                <a href="<?= $escaper->escapeUrl($block->getInfo()->getAdditionalInformation('dashboardUrl')) ?>"
+                <a href="<?= $escaper->escapeUrl($block->getAdditionalInformation(Method::DASHBOARD_URL)) ?>"
                    target="_blank">
-                    <?= $escaper->escapeHtml($block->getInfo()->getAdditionalInformation(Method::ORDER_ID)) ?>
+                    <?= $escaper->escapeHtml($block->getAdditionalInformation(Method::ORDER_ID)) ?>
                 </a>
             </td>
         </tr>

@@ -248,8 +248,10 @@ class Handler
             return;
         }
         $payment = $order->getPayment();
+        $dashboardUrl = $rvvupData['dashboardUrl'] ?? '';
         $payment->setAdditionalInformation(Method::ORDER_ID, $rvvupOrderId);
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
+        $payment->setAdditionalInformation(Method::DASHBOARD_URL, $dashboardUrl);
         $this->paymentResource->save($payment);
         $this->cacheService->clear($rvvupOrderId, $order->getState());
         if ($order->getPayment()->getMethod() == 'rvvup_payment-link') {
