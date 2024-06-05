@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Controller\Redirect\In;
@@ -50,6 +51,9 @@ class Result
     /** @var Emulation */
     private $emulation;
 
+    /** @var Payment */
+    private $paymentResource;
+
     /**
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -59,6 +63,7 @@ class Result
      * @param OrderInterface $order
      * @param Emulation $emulation
      * @param LoggerInterface $logger
+     * @param Payment $paymentResource
      */
     public function __construct(
         ResultFactory $resultFactory,
@@ -68,7 +73,8 @@ class Result
         PaymentDataGetInterface $paymentDataGet,
         OrderInterface $order,
         Emulation $emulation,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Payment $paymentResource
     ) {
         $this->resultFactory = $resultFactory;
         $this->checkoutSession = $checkoutSession;
@@ -78,6 +84,7 @@ class Result
         $this->order = $order;
         $this->emulation = $emulation;
         $this->logger = $logger;
+        $this->paymentResource = $paymentResource;
     }
 
     /**
@@ -129,6 +136,11 @@ class Result
             if ($redirectUrl) {
                 $result->setRedirectPath($redirectUrl);
             }
+
+            $payment = $order->getPayment();
+            $dashboardUrl = $rvvupData['dashboardUrl'] ?? '';
+            $payment->setAdditionalInformation(Method::DASHBOARD_URL, $dashboardUrl);
+            $this->paymentResource->save($payment);
 
             if (get_class($processor) == Cancel::class) {
                 return $this->processResultPage($result, true);

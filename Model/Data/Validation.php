@@ -99,9 +99,6 @@ class Validation extends DataObject implements ValidationInterface
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
             $message = __('Payment was already completed');
-            if ($origin !== 'webhook') {
-                $data[ValidationInterface::MESSAGE] = $message;
-            }
             $this->logger->addRvvupError(
                 'The quote is not active',
                 $message,

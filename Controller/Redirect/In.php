@@ -92,7 +92,7 @@ class In implements HttpGetActionInterface
         $origin = 'customer-flow';
 
         if ($checkoutId && $storeId) {
-            $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId, $storeId);
+            $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId);
 
             if (!$rvvupId) {
                 $rvvupId = $this->virtualCheckoutService->getRvvupIdByMotoId($checkoutId, $storeId, $order);
