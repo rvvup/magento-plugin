@@ -161,7 +161,7 @@ class Handler
                 } else {
                     $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
                 }
-                if (!$quote) {
+                if (!$quote || !$quote->getId()) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
                         [
@@ -174,7 +174,7 @@ class Handler
                 $payment = $quote->getPayment();
                 $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
                 $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
-                $validate = $this->captureService->validate($quote, $lastTransactionId, $rvvupOrderId, $origin);
+                $validate = $this->captureService->validate($quote, $rvvupOrderId, $origin);
                 if (!$validate->getIsValid()) {
                     if ($validate->getRedirectToCart()) {
                         return;

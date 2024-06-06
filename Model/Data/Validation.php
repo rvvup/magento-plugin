@@ -7,6 +7,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\OrderIncrementIdChecker;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
+use Rvvup\Payments\Api\HashRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Hash;
 use Psr\Log\LoggerInterface;
@@ -24,40 +25,71 @@ class Validation extends DataObject implements ValidationInterface
     /** @var OrderIncrementIdChecker */
     private $orderIncrementChecker;
 
+    /** @var HashRepositoryInterface */
+    private $hashRepository;
+
     /**
      * @param Hash|null $hashService
      * @param OrderIncrementIdChecker|null $orderIncrementIdChecker
      * @param LoggerInterface|null $logger
+     * @param HashRepositoryInterface $hashRepository
      * @param array $data
      */
     public function __construct(
         Hash $hashService,
         OrderIncrementIdChecker $orderIncrementIdChecker,
         LoggerInterface $logger,
+        HashRepositoryInterface $hashRepository,
         array $data = []
     ) {
         $this->logger = $logger;
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->hashService = $hashService;
+        $this->hashRepository = $hashRepository;
         parent::__construct($data);
     }
 
     /**
-     * @param Quote $quote
-     * @param string $lastTransactionId
+     * @param Quote|null $quote
      * @param string|null $rvvupId
      * @param string|null $paymentStatus
      * @param string|null $origin
      * @return ValidationInterface
      */
     public function validate(
-        Quote &$quote,
-        string &$lastTransactionId,
+        ?Quote  &$quote,
         string $rvvupId = null,
         string $paymentStatus = null,
         string $origin = null
     ): ValidationInterface {
         $data = $this->getDefaultData();
+
+        if ($quote == null || empty($quote->getId())) {
+            $message = __(
+                'This checkout cannot complete because another payment is in progress. '
+                . $rvvupId
+            );
+            $this->logger->addRvvupError(
+                'Missing quote for Rvvup payment',
+                $message,
+                $rvvupId,
+                null,
+                null,
+                $origin
+            );
+
+            $data[ValidationInterface::IS_VALID] = false;
+            $data[ValidationInterface::REDIRECT_TO_CART] = true;
+            $data[ValidationInterface::RESTORE_QUOTE] = true;
+            if ($origin !== 'webhook') {
+                $data[ValidationInterface::MESSAGE] = $message;
+            }
+            $this->setValidationData($data);
+            return $this;
+        }
+
+        $payment = $quote->getPayment();
+        $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
 
         // First validate we have a Rvvup Order ID, silently return to basket page.
         // A standard Rvvup return should always include `rvvup-order-id` param.
@@ -77,17 +109,8 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        if (!$this->isPaymentStatusValid($paymentStatus)) {
-            $data[ValidationInterface::IS_VALID] = false;
-            $data[ValidationInterface::REDIRECT_TO_CHECKOUT_PAYMENT] = true;
-            $data[ValidationInterface::RESTORE_QUOTE] = true;
-            $this->setValidationData($data);
-            return $this;
-        }
-
         /** ID which we will show to customer in case of an error  */
         $errorId = $quote->getReservedOrderId() ?: $rvvupId;
-
         if (!$quote->getIsActive()) {
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
@@ -96,7 +119,7 @@ class Validation extends DataObject implements ValidationInterface
                 'The quote is not active',
                 $message,
                 $rvvupId,
-                $lastTransactionId,
+                null,
                 $quote->getReservedOrderId() ?? null,
                 $origin
             );
@@ -105,38 +128,35 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        if (empty($quote->getId())) {
-            $message = __(
-                'An error occurred while processing your payment (ID %1). Please contact us. ',
-                $errorId
-            );
-            $this->logger->addRvvupError(
-                'Missing quote for Rvvup payment',
-                $message,
-                $rvvupId,
-                $lastTransactionId,
-                $origin
-            );
-
+        if (!$this->isPaymentStatusValid($paymentStatus)) {
             $data[ValidationInterface::IS_VALID] = false;
-            $data[ValidationInterface::REDIRECT_TO_CART] = true;
+            $data[ValidationInterface::REDIRECT_TO_CHECKOUT_PAYMENT] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
-            if ($origin !== 'webhook') {
-                $data[ValidationInterface::MESSAGE] = $message;
-            }
             $this->setValidationData($data);
             return $this;
         }
 
-        $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
-        $quote->collectTotals();
-        $savedHash = $this->hashService->getHashForData($quote);
+        $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash');
+        $sort = true;
+        /** Backward compatibility to prevent orders from failing when the plugin is upgrading */
+        if (!$hash) {
+            $sort = false;
+            $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
+        }
+
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, $sort);
         if ($hash !== $savedHash) {
+            $hashItem = $this->hashRepository->getByHash($hash);
+            $message = 'Payment hash is invalid during Rvvup Checkout: ';
+            $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt();
+            $cause = 'Original value: [' . $hashItem->getRawData() . ']';
+            $cause .= ', is not equal to: [' . $hashedData . ']';
+
             $this->logger->addRvvupError(
-                'Payment hash is invalid during Rvvup Checkout',
-                null,
+                $message,
+                $cause,
                 $rvvupId,
-                $lastTransactionId,
+                null,
                 $quote->getReservedOrderId() ?? null,
                 $origin
             );

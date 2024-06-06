@@ -1,6 +1,24 @@
 <?xml version="1.0"?>
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="rvvup_hash" resource="default" engine="innodb" comment="Hash">
+        <column xsi:type="int" name="hash_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Hash Id Column"/>
+        <column xsi:type="varchar" name="hash" length="100" nullable="false" comment="Hash Column"/>
+        <column xsi:type="text" name="raw_data" nullable="false"
+                comment="Raw data before hashing"/>
+        <column xsi:type="datetime" name="created_at" on_update="false"
+                nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="hash_id"/>
+        </constraint>
+        <index referenceId="RVVUP_HASH_HASH_ID" indexType="btree">
+            <column name="hash_id"/>
+        </index>
+        <index referenceId="RVVUP_HASH_HASH" indexType="btree">
+            <column name="hash"/>
+        </index>
+    </table>
     <table name="rvvup_log" resource="default" engine="innodb" comment="Log">
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
                 comment="Entity Id Column"/>

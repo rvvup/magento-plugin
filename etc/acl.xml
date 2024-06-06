@@ -10,6 +10,7 @@
                         </resource>
                     </resource>
                 </resource>
+                <resource id="Rvvup_Payments::management" title="Hash Management"/>
             </resource>
         </resources>
     </acl>
