@@ -9,12 +9,14 @@
                 comment="Raw data before hashing"/>
         <column xsi:type="datetime" name="created_at" on_update="false"
                 nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
-
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="hash_id"/>
         </constraint>
         <index referenceId="RVVUP_HASH_HASH_ID" indexType="btree">
             <column name="hash_id"/>
+        </index>
+        <index referenceId="RVVUP_HASH_HASH" indexType="btree">
+            <column name="hash"/>
         </index>
     </table>
     <table name="rvvup_log" resource="default" engine="innodb" comment="Log">
