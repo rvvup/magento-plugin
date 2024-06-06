@@ -161,7 +161,7 @@ class Handler
                 } else {
                     $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
                 }
-                if (!$quote) {
+                if (!$quote || !$quote->getId()) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
                         [

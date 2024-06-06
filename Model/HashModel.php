@@ -71,17 +71,17 @@ class HashModel extends AbstractModel implements HashInterface
     /**
      * @inheritDoc
      */
-    public function getQuoteId(): int
+    public function getRawData(): string
     {
-        return $this->getData(self::QUOTE_ID);
+        return $this->getData(self::RAW_DATA);
     }
 
     /**
      * @inheritDoc
      */
-    public function setQuoteId(int $id): void
+    public function setRawData(string $data): void
     {
-        $this->setData(self::QUOTE_ID, $id);
+        $this->setData(self::RAW_DATA, $data);
     }
 
     /**

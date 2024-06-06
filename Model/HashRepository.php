@@ -82,16 +82,16 @@ class HashRepository implements HashRepositoryInterface
     }
 
     /**
-     * @param int $id
+     * @param string $data
      * @return HashInterface
      * @throws NoSuchEntityException
      */
-    public function getByQuoteId(int $id): HashInterface
+    public function getByHash(string $data): HashInterface
     {
         $hash = $this->hashFactory->create();
-        $this->resource->load($hash, $id, 'quote_id');
+        $this->resource->load($hash, $data, 'hash');
         if (!$hash->getId()) {
-            throw new NoSuchEntityException(__('Unable to find hash with quote id "%1"', $id));
+            throw new NoSuchEntityException(__('Unable to find hash item with hash "%1"', $data));
         }
         return $hash;
     }

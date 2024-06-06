@@ -109,10 +109,6 @@ class In implements HttpGetActionInterface
             );
         }
 
-        if (!$quote || !$quote->getId()) {
-            $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
-        }
-
         $payment = $quote->getPayment();
         $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
         $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);

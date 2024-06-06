@@ -46,7 +46,7 @@ class Hash
     {
         $payment = $quote->getPayment();
         list($data, $hash) = $this->getHashForData($quote, true);
-        $hashItem = $this->hashFactory->create(['data' => ['hash' => $data, 'quote_id' => (int)$quote->getId()]]);
+        $hashItem = $this->hashFactory->create(['data' => ['hash' => $hash, 'raw_data' => $data]]);
         $this->hashRepository->save($hashItem);
         $payment->setAdditionalInformation('rvvup_quote_hash', $hash);
         $this->paymentResource->save($payment);

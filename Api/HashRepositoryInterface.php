@@ -29,10 +29,10 @@ interface HashRepositoryInterface
     public function getById(int $id): HashInterface;
 
     /**
-     * @param int $id
+     * @param string $data
      * @return HashInterface
      */
-    public function getByQuoteId(int $id): HashInterface;
+    public function getByHash(string $data): HashInterface;
 
     /**
      * @param HashInterface $hash

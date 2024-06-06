@@ -9,7 +9,7 @@ interface HashInterface
      */
     public const HASH_ID = "hash_id";
     public const HASH = "hash";
-    public const QUOTE_ID = "quote_id";
+    public const RAW_DATA = "raw_data";
     public const CREATED_AT = "created_at";
 
     /**
@@ -45,19 +45,19 @@ interface HashInterface
     public function setHash(?string $hash): void;
 
     /**
-     * Getter for QuoteID.
+     * Getter for RAW_DATA.
      *
-     * @return int
+     * @return string
      */
-    public function getQuoteId(): int;
+    public function getRawData(): string;
 
     /**
-     * Setter for QuoteID.
+     * Setter for RAW_DATA.
      *
-     * @param int $id
+     * @param string $data
      * @return void
      */
-    public function setQuoteId(int $id): void;
+    public function setRawData(string $data): void;
 
     /**
      * Getter for CREATED_AT.
