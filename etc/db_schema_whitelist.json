@@ -40,7 +40,8 @@
             "created_at": true
         },
         "index": {
-            "RVVUP_HASH_HASH_ID": true
+            "RVVUP_HASH_HASH_ID": true,
+            "RVVUP_HASH_HASH": true
         },
         "constraint": {
             "PRIMARY": true
