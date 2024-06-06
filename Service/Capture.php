@@ -12,7 +12,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
-use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\QuoteManagement;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\Collection;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -76,9 +75,6 @@ class Capture
     /** @var OrderInterface */
     private $order;
 
-    /** @var QuoteFactory */
-    private $quoteFactory;
-
     /**
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
@@ -93,7 +89,6 @@ class Capture
      * @param ValidationInterface $validationInterface
      * @param ValidationInterfaceFactory $validationInterfaceFactory
      * @param OrderInterface $order
-     * @param QuoteFactory $quoteFactory
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -110,7 +105,6 @@ class Capture
         ValidationInterface $validationInterface,
         ValidationInterfaceFactory $validationInterfaceFactory,
         OrderInterface $order,
-        QuoteFactory $quoteFactory,
         LoggerInterface $logger
     ) {
         $this->logger = $logger;
@@ -126,7 +120,6 @@ class Capture
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->validationInterface = $validationInterface;
         $this->order = $order;
-        $this->quoteFactory = $quoteFactory;
         $this->validationInterfaceFactory = $validationInterfaceFactory;
     }
 
@@ -182,21 +175,19 @@ class Capture
     }
 
     /**
-     * @param Quote $quote
-     * @param string $lastTransactionId
+     * @param Quote|null $quote
      * @param string|null $rvvupId
      * @param string|null $paymentStatus
      * @param string|null $origin
      * @return ValidationInterface
      */
     public function validate(
-        Quote &$quote,
-        string &$lastTransactionId,
+        ?Quote &$quote,
         string $rvvupId = null,
         string $paymentStatus = null,
         string $origin = null
     ): ValidationInterface {
-        return $this->validationInterface->validate($quote, $lastTransactionId, $rvvupId, $paymentStatus, $origin);
+        return $this->validationInterface->validate($quote, $rvvupId, $paymentStatus, $origin);
     }
 
     /**
@@ -323,19 +314,19 @@ class Capture
         );
         $items = $collection->getItems();
         if (count($items) !== 1) {
-            return $this->quoteFactory->create();
+            return null;
         }
         $quoteId = end($items)->getQuoteId();
         try {
             $quote = $this->cartRepository->get($quoteId);
 
             if ($storeId && $quote->getStoreId() != (int)$storeId) {
-                return $this->quoteFactory->create();
+                return null;
             }
 
             return $quote;
         } catch (NoSuchEntityException $ex) {
-            return $this->quoteFactory->create();
+            return null;
         }
     }
 
