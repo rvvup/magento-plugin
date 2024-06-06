@@ -175,21 +175,19 @@ class Capture
     }
 
     /**
-     * @param Quote $quote
-     * @param string $lastTransactionId
+     * @param Quote|null $quote
      * @param string|null $rvvupId
      * @param string|null $paymentStatus
      * @param string|null $origin
      * @return ValidationInterface
      */
     public function validate(
-        Quote &$quote,
-        string &$lastTransactionId,
+        ?Quote &$quote,
         string $rvvupId = null,
         string $paymentStatus = null,
         string $origin = null
     ): ValidationInterface {
-        return $this->validationInterface->validate($quote, $lastTransactionId, $rvvupId, $paymentStatus, $origin);
+        return $this->validationInterface->validate($quote, $rvvupId, $paymentStatus, $origin);
     }
 
     /**

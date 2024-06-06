@@ -554,6 +554,7 @@
 
     <preference for="Rvvup\Payments\Api\Data\WebhookInterface" type="Rvvup\Payments\Model\Data\WebhookData"/>
     <preference for="Rvvup\Payments\Api\WebhookRepositoryInterface" type="Rvvup\Payments\Model\WebhookRepository"/>
+    <preference for="Rvvup\Payments\Api\HashRepositoryInterface" type="Rvvup\Payments\Model\HashRepository"/>
 
     <type name="Magento\Sales\Model\Order\Creditmemo">
         <plugin name="disableCreditMemoRefunds"
@@ -593,4 +594,5 @@
     </type>
     <preference for="Rvvup\Payments\Api\Data\ValidationInterface" type="Rvvup\Payments\Model\Data\Validation"/>
     <preference for="Rvvup\Payments\Api\Data\LogInterface" type="Rvvup\Payments\Model\Data\LogData"/>
+    <preference for="Rvvup\Payments\Api\Data\HashInterface" type="Rvvup\Payments\Model\HashModel"/>
 </config>

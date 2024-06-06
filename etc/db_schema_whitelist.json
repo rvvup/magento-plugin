@@ -31,5 +31,20 @@
         "constraint": {
             "PRIMARY": true
         }
+    },
+    "rvvup_hash": {
+        "column": {
+            "hash_id": true,
+            "hash": true,
+            "raw_data": true,
+            "created_at": true
+        },
+        "index": {
+            "RVVUP_HASH_HASH_ID": true,
+            "RVVUP_HASH_HASH": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
     }
 }
