@@ -585,6 +585,13 @@
                 type="Rvvup\Payments\Plugin\Customer\DisableOrderCreation"
                 sortOrder="1"/>
     </type>
+
+    <type name="Magento\Quote\Observer\SubmitObserver">
+        <plugin name="disableSendOrderNotificationForRvvupOrders"
+                type="Rvvup\Payments\Plugin\SendOrderNotification"
+                sortOrder="50" disabled="false"
+        />
+    </type>
     <preference for="Rvvup\Payments\Api\Data\ValidationInterface" type="Rvvup\Payments\Model\Data\Validation"/>
     <preference for="Rvvup\Payments\Api\Data\LogInterface" type="Rvvup\Payments\Model\Data\LogData"/>
     <preference for="Rvvup\Payments\Api\Data\HashInterface" type="Rvvup\Payments\Model\HashModel"/>
