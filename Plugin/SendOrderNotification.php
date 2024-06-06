@@ -12,7 +12,12 @@ use Rvvup\Payments\Gateway\Method;
  */
 class SendOrderNotification
 {
-    /** Disable sending emails on Order Creation for Rvvup Orders */
+    /**
+     * Disable sending emails on Order Creation for Rvvup Orders
+     * @param SubmitObserver $subject
+     * @param Observer $observer
+     * @return Observer[]
+     */
     public function beforeExecute(SubmitObserver $subject, Observer $observer): array
     {
         /** @var  Order $order */
