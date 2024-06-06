@@ -50,21 +50,45 @@ class Validation extends DataObject implements ValidationInterface
     }
 
     /**
-     * @param Quote $quote
-     * @param string $lastTransactionId
+     * @param Quote|null $quote
      * @param string|null $rvvupId
      * @param string|null $paymentStatus
      * @param string|null $origin
      * @return ValidationInterface
      */
     public function validate(
-        Quote &$quote,
-        string &$lastTransactionId,
+        ?Quote  &$quote,
         string $rvvupId = null,
         string $paymentStatus = null,
         string $origin = null
     ): ValidationInterface {
         $data = $this->getDefaultData();
+
+        if ($quote == null || empty($quote->getId())) {
+            $message = __(
+                'An error occurred while processing your payment (ID %1). Please contact us. ',
+                $rvvupId
+            );
+            $this->logger->addRvvupError(
+                'Missing quote for Rvvup payment',
+                $message,
+                $rvvupId,
+                null,
+                $origin
+            );
+
+            $data[ValidationInterface::IS_VALID] = false;
+            $data[ValidationInterface::REDIRECT_TO_CART] = true;
+            $data[ValidationInterface::RESTORE_QUOTE] = true;
+            if ($origin !== 'webhook') {
+                $data[ValidationInterface::MESSAGE] = $message;
+            }
+            $this->setValidationData($data);
+            return $this;
+        }
+
+        $payment = $quote->getPayment();
+        $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
 
         // First validate we have a Rvvup Order ID, silently return to basket page.
         // A standard Rvvup return should always include `rvvup-order-id` param.
@@ -84,17 +108,8 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        if (!$this->isPaymentStatusValid($paymentStatus)) {
-            $data[ValidationInterface::IS_VALID] = false;
-            $data[ValidationInterface::REDIRECT_TO_CHECKOUT_PAYMENT] = true;
-            $data[ValidationInterface::RESTORE_QUOTE] = true;
-            $this->setValidationData($data);
-            return $this;
-        }
-
         /** ID which we will show to customer in case of an error  */
         $errorId = $quote->getReservedOrderId() ?: $rvvupId;
-
         if (!$quote->getIsActive()) {
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
@@ -103,7 +118,7 @@ class Validation extends DataObject implements ValidationInterface
                 'The quote is not active',
                 $message,
                 $rvvupId,
-                $lastTransactionId,
+                null,
                 $quote->getReservedOrderId() ?? null,
                 $origin
             );
@@ -112,25 +127,10 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        if (empty($quote->getId())) {
-            $message = __(
-                'An error occurred while processing your payment (ID %1). Please contact us. ',
-                $errorId
-            );
-            $this->logger->addRvvupError(
-                'Missing quote for Rvvup payment',
-                $message,
-                $rvvupId,
-                $lastTransactionId,
-                $origin
-            );
-
+        if (!$this->isPaymentStatusValid($paymentStatus)) {
             $data[ValidationInterface::IS_VALID] = false;
-            $data[ValidationInterface::REDIRECT_TO_CART] = true;
+            $data[ValidationInterface::REDIRECT_TO_CHECKOUT_PAYMENT] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
-            if ($origin !== 'webhook') {
-                $data[ValidationInterface::MESSAGE] = $message;
-            }
             $this->setValidationData($data);
             return $this;
         }
@@ -156,7 +156,7 @@ class Validation extends DataObject implements ValidationInterface
                 $message,
                 $cause,
                 $rvvupId,
-                $lastTransactionId,
+                null,
                 $quote->getReservedOrderId() ?? null,
                 $origin
             );

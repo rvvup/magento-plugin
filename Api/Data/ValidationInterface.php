@@ -19,16 +19,14 @@ interface ValidationInterface
     public const ALREADY_EXISTS = "already_exists";
 
     /**
-     * @param Quote $quote
-     * @param string $lastTransactionId
+     * @param Quote|null $quote
      * @param string|null $rvvupId
      * @param string|null $paymentStatus
      * @param string|null $origin
      * @return ValidationInterface
      */
     public function validate(
-        Quote &$quote,
-        string &$lastTransactionId,
+        ?Quote &$quote,
         string $rvvupId = null,
         string $paymentStatus = null,
         string $origin = null

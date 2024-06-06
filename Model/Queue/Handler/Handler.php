@@ -174,7 +174,7 @@ class Handler
                 $payment = $quote->getPayment();
                 $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
                 $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
-                $validate = $this->captureService->validate($quote, $lastTransactionId, $rvvupOrderId, $origin);
+                $validate = $this->captureService->validate($quote, $rvvupOrderId, $origin);
                 if (!$validate->getIsValid()) {
                     if ($validate->getRedirectToCart()) {
                         return;
