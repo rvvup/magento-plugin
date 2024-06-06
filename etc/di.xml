@@ -587,7 +587,7 @@
 
     <type name="Magento\Quote\Observer\SubmitObserver">
         <plugin name="disableSendOrderNotificationForRvvupOrders"
-                type="Magento\Quote\Plugin\SendOrderNotification"
+                type="Rvvup\Payments\Plugin\SendOrderNotification"
                 sortOrder="50" disabled="false"
         />
     </type>
