@@ -66,8 +66,8 @@ class Validation extends DataObject implements ValidationInterface
 
         if ($quote == null || empty($quote->getId())) {
             $message = __(
-                'An error occurred while processing your payment (ID %1). Please contact us. ',
-                $rvvupId
+                'This checkout cannot complete because another payment is in progress. '
+                . $rvvupId
             );
             $this->logger->addRvvupError(
                 'Missing quote for Rvvup payment',
@@ -148,8 +148,7 @@ class Validation extends DataObject implements ValidationInterface
             $hashItem = $this->hashRepository->getByHash($hash);
             $message = 'Payment hash is invalid during Rvvup Checkout: ';
             $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt();
-            $message .= ', for quote_id: ' . $hashItem->getQuoteId();
-            $cause = 'Original value: [' . $hashItem->getHash() . ']';
+            $cause = 'Original value: [' . $hashItem->getRawData() . ']';
             $cause .= ', is not equal to: [' . $hashedData . ']';
 
             $this->logger->addRvvupError(
