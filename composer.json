@@ -20,7 +20,7 @@
         "magento/magento-coding-standard": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "phpstan/phpstan": "^0.12.2 || ^1.2",
-        "phpstan/extension-installer": "1.3.x",
+        "phpstan/extension-installer": "1.4.x",
         "bitexpert/phpstan-magento": "~0.28"
     },
     "autoload": {
