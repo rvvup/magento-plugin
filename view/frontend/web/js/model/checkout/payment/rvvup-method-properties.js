@@ -45,6 +45,9 @@ define([
          * @return {Boolean}
          */
         getIsExpressPaymentCheckout: function () {
+            if (window.isRvvupExpressPaypal) {
+                return window.isRvvupExpressPaypal;
+            }
             return isExpressPaymentCheckout();
         },
 
@@ -52,6 +55,7 @@ define([
          * @param {Boolean} value
          */
         setIsExpressPaymentCheckout: function (value) {
+            window.isRvvupExpressPaypal = value;
             isExpressPaymentCheckout(value)
         },
 
