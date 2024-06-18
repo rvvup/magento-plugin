@@ -55,7 +55,6 @@ define([
          * @param {Boolean} value
          */
         setIsExpressPaymentCheckout: function (value) {
-            window.isRvvupExpressPaypal = value;
             isExpressPaymentCheckout(value)
         },
 

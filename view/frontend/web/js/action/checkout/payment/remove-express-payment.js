@@ -25,6 +25,7 @@ define([
             true,
             'application/json'
         ).done((response) => {
+            window.isRvvupExpressPaypal = false;
             return response;
         });
     };
