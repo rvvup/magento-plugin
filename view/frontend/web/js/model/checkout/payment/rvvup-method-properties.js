@@ -45,7 +45,7 @@ define([
          * @return {Boolean}
          */
         getIsExpressPaymentCheckout: function () {
-            if (window.isRvvupExpressPaypal) {
+            if (window.isRvvupExpressPaypal !== 'undefined') {
                 return window.isRvvupExpressPaypal;
             }
             return isExpressPaymentCheckout();
