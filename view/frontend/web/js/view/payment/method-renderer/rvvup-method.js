@@ -137,7 +137,7 @@ define([
                 $(document).on('click', 'a#' + this.getCancelExpressPaymentLinkId(), (e) => {
                     e.preventDefault();
 
-                    if (!rvvupMethodProperties.getIsExpressPaymentCheckout()) {
+                    if (!window.checkoutConfig.payment[this.index].is_express) {
                         return;
                     }
 
@@ -464,7 +464,7 @@ define([
              * @return {boolean}
              */
             shouldDisplayPayPalButton() {
-                return this.isPayPalComponent() && !rvvupMethodProperties.getIsExpressPaymentCheckout();
+                return this.isPayPalComponent() && !window.checkoutConfig.payment[this.index].is_express;
             },
 
             /**
@@ -473,7 +473,7 @@ define([
              * @return {false}
              */
             shouldDisplayCancelExpressPaymentLink() {
-                return rvvupMethodProperties.getIsExpressPaymentCheckout();
+                return window.checkoutConfig.payment[this.index].is_express;
             },
 
             /**
