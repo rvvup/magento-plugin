@@ -130,12 +130,14 @@ class Cancel implements ProcessorInterface
         $processOrderResult = $this->processOrderResultFactory->create();
         $processOrderResult->setResultType(ProcessOrderResultInterface::RESULT_TYPE_ERROR);
         $processOrderResult->setRedirectPath(In::FAILURE);
-        if ($payment['status'] == 'DECLINED') {
-            if ($payment['declineReason'] = 'INVALID_AUTHORIZATION') {
-                $message = 'Total order value exceeds amount authorised on PayPal, ' . PHP_EOL;
-                $message .= 'please re-authorise with PayPal or choose another payment method';
-                $processOrderResult->setCustomerMessage($message);
-                return $processOrderResult;
+        if ($order->getPayment()->getMethod() === Method::PAYMENT_TITLE_PREFIX . 'PAYPAL') {
+            if ($payment['status'] == 'DECLINED') {
+                if ($payment['declineReason'] = 'INVALID_AUTHORIZATION') {
+                    $message = 'Total order value exceeds amount authorised on PayPal, ' . PHP_EOL;
+                    $message .= 'please re-authorise with PayPal or choose another payment method';
+                    $processOrderResult->setCustomerMessage($message);
+                    return $processOrderResult;
+                }
             }
         }
 
