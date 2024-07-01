@@ -9,6 +9,9 @@ If you would like to have a quick local installation of the plugin on a magento 
 ```
 docker-compose up -d --build
 ```
+
+- The magento store will be available at https://local.dev.rvvuptech.com/
+
 ## End to End Testing
 
 This plugin comes with Playwright tests to ensure it's functionality. The tests rely on sample data provided by magento.
