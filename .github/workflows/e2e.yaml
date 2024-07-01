@@ -43,7 +43,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Wait for Magento Store
-        uses: mydea/action-wait-for-api@v1.1.0
+        uses: mydea/action-wait-for-api@v2.0.0
         with:
           url: http://local.dev.rvvuptech.com/magento_version
           method: GET

@@ -259,6 +259,9 @@ define([
                             "font-size-label": "1.2rem",
                             "font-size-message": "1rem",
                             "space-outset-message": "0rem 0px 0px 0.5rem",
+                            // a few browser engines round up the iframe context window, making it cut off the border.
+                            // Giving it a padding helps to prevent this.
+                            "space-inset-body": "0 1px 0 0",
                         },
                     });
                     window.SecureTrading.Components();
