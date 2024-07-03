@@ -10,7 +10,7 @@ If you would like to have a quick local installation of the plugin on a magento 
 docker-compose up -d --build
 ```
 
-- The magento store will be available at https://local.dev.rvvuptech.com/
+- The magento store, once it has completed start up, will be available at https://local.dev.rvvuptech.com/
 
 ## End to End Testing
 
