@@ -73,6 +73,7 @@ class Result
      * @param LoggerInterface $logger
      * @param Payment $paymentResource
      * @param DesignInterface $design
+     * @param ManagerInterface $messageManager
      */
     public function __construct(
         ResultFactory $resultFactory,
