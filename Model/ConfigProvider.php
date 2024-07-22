@@ -140,6 +140,9 @@ class ConfigProvider implements ConfigProviderInterface
 
                 $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['use_place_order_styling'] = (bool)
                     $this->config->getPaypalBlockStyling(ConfigInterface::XML_PATH_USE_PLACE_ORDER_STYLING);
+
+                $items[Method::PAYMENT_TITLE_PREFIX . $method['name']]['is_express'] =
+                    $this->isExpressPaymentCart($quote);
             }
         }
 

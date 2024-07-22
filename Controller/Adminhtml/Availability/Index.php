@@ -7,8 +7,10 @@ namespace Rvvup\Payments\Controller\Adminhtml\Availability;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Area;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Store\Model\App\Emulation;
 use Magento\Store\Model\ScopeInterface;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\SdkProxy;
@@ -21,18 +23,24 @@ class Index extends Action implements HttpPostActionInterface
     /** @var SdkProxy */
     private $sdkProxy;
 
+    /** @var Emulation */
+    private $emulation;
+
     /**
      * @param ConfigInterface $config
      * @param SdkProxy $sdkProxy
      * @param Context $context
+     * @param Emulation $emulation
      */
     public function __construct(
         ConfigInterface $config,
         SdkProxy $sdkProxy,
-        Context $context
+        Context $context,
+        Emulation $emulation
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->config = $config;
+        $this->emulation = $emulation;
         parent::__construct($context);
     }
     /**
@@ -46,6 +54,7 @@ class Index extends Action implements HttpPostActionInterface
         $storeId = $this->_request->getParam('store_id');
         $currencyCode = $this->_request->getParam('currency_code');
         $allowedPaymentLinksMethods = ['YAPILY','CARD','APPLE_PAY'];
+        $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_ADMINHTML);
 
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
 

@@ -5,8 +5,9 @@ namespace Rvvup\Payments\Service;
 
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Framework\View\DesignInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment;
@@ -22,6 +23,7 @@ use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 
 class Result
 {
+    private const HYVA_CHECKOUT_PAYMENT_PAGE = 'checkout/index/index/step/payment';
     /** @var ResultFactory */
     private $resultFactory;
 
@@ -54,6 +56,12 @@ class Result
     /** @var Payment */
     private $paymentResource;
 
+    /** @var DesignInterface */
+    private $design;
+
+    /** @var ManagerInterface */
+    private $messageManager;
+
     /**
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -64,6 +72,7 @@ class Result
      * @param Emulation $emulation
      * @param LoggerInterface $logger
      * @param Payment $paymentResource
+     * @param DesignInterface $design
      */
     public function __construct(
         ResultFactory $resultFactory,
@@ -74,7 +83,9 @@ class Result
         OrderInterface $order,
         Emulation $emulation,
         LoggerInterface $logger,
-        Payment $paymentResource
+        Payment $paymentResource,
+        DesignInterface $design,
+        ManagerInterface $messageManager
     ) {
         $this->resultFactory = $resultFactory;
         $this->checkoutSession = $checkoutSession;
@@ -85,6 +96,8 @@ class Result
         $this->emulation = $emulation;
         $this->logger = $logger;
         $this->paymentResource = $paymentResource;
+        $this->design = $design;
+        $this->messageManager = $messageManager;
     }
 
     /**
@@ -190,6 +203,12 @@ class Result
         if ($result->getRedirectPath() === IN::FAILURE) {
             $params['_fragment'] = 'payment';
             $messageGroup = SessionMessageInterface::MESSAGE_GROUP;
+            if ($this->isHyvaThemeUsed()) {
+                $result->setRedirectPath(self::HYVA_CHECKOUT_PAYMENT_PAGE);
+            }
+        }
+        if ($result->getCustomerMessage() && $this->isHyvaThemeUsed()) {
+            $this->messageManager->addErrorMessage($result->getCustomerMessage());
         }
 
         $result->setSessionMessage($messageGroup ?? null);
@@ -197,5 +216,20 @@ class Result
         $redirect->setPath($result->getRedirectPath(), $params);
 
         return $redirect;
+    }
+
+    /**
+     * @return bool
+     */
+    private function isHyvaThemeUsed(): bool
+    {
+        $theme = $this->design->getDesignTheme();
+        while ($theme) {
+            if (strpos($theme->getCode(), 'Hyva/') === 0) {
+                return true;
+            }
+            $theme = $theme->getParentTheme();
+        }
+        return false;
     }
 }
