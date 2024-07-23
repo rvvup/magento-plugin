@@ -109,8 +109,31 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
+        if (!$quote->getReservedOrderId()) {
+            $this->logger->addRvvupError(
+                'Rvvup Quote missing reserved order id',
+                null,
+                $rvvupId,
+                $lastTransactionId,
+                null,
+                $origin
+            );
+            if ($origin !== 'webhook') {
+                $data[ValidationInterface::MESSAGE] = __(
+                    'An error occurred when trying to process your payment, ' .
+                    'please contact us to confirm the status of your order.'
+                );
+            }
+
+            $data[ValidationInterface::IS_VALID] = false;
+            $data[ValidationInterface::REDIRECT_TO_CHECKOUT_PAYMENT] = true;
+            $data[ValidationInterface::RESTORE_QUOTE] = true;
+            $this->setValidationData($data);
+            return $this;
+        }
+
         /** ID which we will show to customer in case of an error  */
-        $errorId = $quote->getReservedOrderId() ?: $rvvupId;
+        $errorId = $quote->getReservedOrderId();
         if (!$quote->getIsActive()) {
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
@@ -194,13 +217,11 @@ class Validation extends DataObject implements ValidationInterface
             $this->setValidationData($data);
             return $this;
         }
-        if ($quote->getReservedOrderId()) {
-            if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
-                $data[ValidationInterface::IS_VALID] = false;
-                $data[ValidationInterface::ALREADY_EXISTS] = true;
-                $this->setValidationData($data);
-                return $this;
-            }
+        if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
+            $data[ValidationInterface::IS_VALID] = false;
+            $data[ValidationInterface::ALREADY_EXISTS] = true;
+            $this->setValidationData($data);
+            return $this;
         }
 
         $this->setValidationData($data);
