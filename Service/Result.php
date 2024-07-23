@@ -204,9 +204,6 @@ class Result
         if ($result->getRedirectPath() === IN::FAILURE) {
             $params['_fragment'] = 'payment';
             $messageGroup = SessionMessageInterface::MESSAGE_GROUP;
-            if ($this->isHyvaThemeUsed()) {
-                $result->setRedirectPath(self::HYVA_CHECKOUT_PAYMENT_PAGE);
-            }
         }
         if ($result->getCustomerMessage() && $this->isHyvaThemeUsed()) {
             $this->messageManager->addErrorMessage($result->getCustomerMessage());
