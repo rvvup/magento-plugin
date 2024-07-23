@@ -115,7 +115,7 @@ class Validation extends DataObject implements ValidationInterface
                 null,
                 $rvvupId,
                 $lastTransactionId,
-null, 
+                null,
                 $origin
             );
             if ($origin !== 'webhook') {
