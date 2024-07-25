@@ -46,6 +46,18 @@
         <section name="checkout-data" />
         <section name="rvvup-express-payment" />
     </action>
+    <action name="rest/*/V1/carts/mine/shipping-information">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+    <action name="rest/*/V1/guest-carts/*/shipping-information">
+        <section name="cart" />
+        <section name="checkout-data" />
+        <section name="rvvup-express-payment" />
+    </action>
+
+
     <!-- Checkout endpoints additional invalidation. Copied from Magento_Checkout/etc/frontend/sections.xml -->
     <action name="checkout/cart/add">
         <section name="rvvup-express-payment" />

@@ -1,0 +1,30 @@
+<?php
+/**
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Rvvup\Payments\Block\Paypal $block
+ * @var \Rvvup\Payments\ViewModel\PayPal $paypalViewModel
+ */
+$paypalViewModel = $block->getData('rvvup_payments_paypal_view_model');
+
+if ($paypalViewModel === null ||
+    $block->getQuote() === null ||
+    !$paypalViewModel->isAvailable((string) $block->getQuote()->getGrandTotal())) {
+    return;
+}
+$quoteId = $block->getMaskedQuoteId();
+$container = $block->getNameInLayout() . '-container';
+$querySelector = '.' . $container;
+$isCartPage = $block->getData('is_cart_page');
+$scope = $isCartPage ? 'cart' : 'miniCart';
+?>
+
+<div class="rvvup-paypal-express grow z-0">
+    <div class="<?= $block->getNameInLayout() ?>-container" data-mage-init='{
+        "rvvupPaypalScript":{
+            "buttonQuerySelector":"<?= $querySelector ?>",
+            "cartId": "<?= $quoteId ?>",
+            "scope":"<?= $scope ?>"
+            }
+         }'>
+    </div>
+</div>

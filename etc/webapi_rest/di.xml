@@ -4,6 +4,11 @@
     <!-- Preferences -->
     <preference for="Rvvup\Payments\Api\ClearpayAvailabilityInterface"
                 type="Rvvup\Payments\Model\ClearpayAvailability"/>
+    <preference for="Rvvup\Payments\Api\ShippingInformationManagementInterface"
+                type="Rvvup\Payments\Model\ShippingInformationManagement"/>
+    <preference for="Rvvup\Payments\Api\GuestShippingInformationManagementInterface"
+                type="Rvvup\Payments\Model\GuestShippingInformationManagement"/>
+
     <!-- Currently this services & Data objects are used only on WebAPI context, move to central di.xml if required -->
     <!-- Reset Cart data (items, addresses, payment) -->
     <preference for="Rvvup\Payments\Api\CartResetInterface"
