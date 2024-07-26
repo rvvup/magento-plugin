@@ -22,6 +22,7 @@ define([
         'Magento_Checkout/js/action/set-payment-information-extended',
         'Magento_Ui/js/model/messageList',
         'Magento_Customer/js/model/customer',
+        'Rvvup_Payments/js/view/payment/methods/rvvup-paypal',
         'domReady!'
     ], function (
         Component,
@@ -46,7 +47,8 @@ define([
         url,
         setPaymentInformation,
         messageList,
-        customer
+        customer,
+        rvvupPaypal,
     ) {
         'use strict';
 
@@ -354,34 +356,11 @@ define([
 
                 rvvup_paypal.Buttons({
                     style: getPayPalCheckoutButtonStyle(),
-                    /**
-                     * On PayPal button click replicate core Magento JS Place Order functionality.
-                     * Use async validation as per PayPal button docs
-                     * If placedOrderId is set, resolve & continue.
-                     *
-                     * @see https://developer.paypal.com/docs/checkout/standard/customize/validate-user-input/
-                     *
-                     * @param data
-                     * @param actions
-                     * @returns {Promise<never>|*}
-                     */
                     onClick: function (data, actions) {
-                        if (self.validate() &&
-                            additionalValidators.validate() &&
-                            self.isPlaceOrderActionAllowed() === true
-                        ) {
-                            self.isPlaceOrderActionAllowed(false);
-                            return self.getPlaceOrderDeferredObject()
-                                .done(function () {
-                                    return actions.resolve();
-                                }).fail(function () {
-                                    return actions.reject();
-                                }).always(function () {
-                                    self.isPlaceOrderActionAllowed(true);
-                                });
-                        } else {
+                        if(!rvvupPaypal.validate(self, additionalValidators)) {
                             return actions.reject();
                         }
+                        return actions.resolve();
                     },
                     /**
                      * On create Order, get the token from the order payment actions.
@@ -391,6 +370,9 @@ define([
                     createOrder: function () {
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
+                            if(!rvvupPaypal.validate(self, additionalValidators)) {
+                                actions.reject();
+                            }
                             setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
                                     .done(function () {
