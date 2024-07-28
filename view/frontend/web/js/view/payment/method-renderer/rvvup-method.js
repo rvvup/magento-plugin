@@ -371,7 +371,7 @@ define([
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
                             if(!rvvupPaypal.validate(self, additionalValidators)) {
-                                actions.reject();
+                                return reject();
                             }
                             setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
