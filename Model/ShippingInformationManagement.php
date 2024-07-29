@@ -11,10 +11,10 @@ use Rvvup\Payments\Api\ShippingInformationManagementInterface;
 
 class ShippingInformationManagement implements ShippingInformationManagementInterface
 {
-    /* @var CartRepositoryInterface */
+    /* @var CartRepositoryInterface $quoteRepository */
     private $quoteRepository;
 
-    /** @var ShippingAddressManagementInterface */
+    /** @var ShippingAddressManagementInterface $shippingAddressManagement */
     private $shippingAddressManagement;
 
     /**
@@ -40,7 +40,7 @@ class ShippingInformationManagement implements ShippingInformationManagementInte
             $quote->setCustomerEmail($address->getEmail());
         }
 
-        if(!$quote->isVirtual()) {
+        if (!$quote->isVirtual()) {
             $this->shippingAddressManagement->assign($quote->getId(), $address);
         }
     }

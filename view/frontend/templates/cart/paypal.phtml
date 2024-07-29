@@ -19,11 +19,11 @@ $scope = $isCartPage ? 'cart' : 'miniCart';
 ?>
 
 <div class="rvvup-paypal-express grow z-0">
-    <div class="<?= $block->getNameInLayout() ?>-container" data-mage-init='{
+    <div class="<?= $block->escapeHtml($block->getNameInLayout()) ?>-container" data-mage-init='{
         "rvvupPaypalScript":{
-            "buttonQuerySelector":"<?= $querySelector ?>",
-            "cartId": "<?= $quoteId ?>",
-            "scope":"<?= $scope ?>"
+            "buttonQuerySelector":"<?= $block->escapeHtml($querySelector) ?>",
+            "cartId": "<?= $block->escapeHtml($quoteId) ?>",
+            "scope":"<?= $block->escapeHtml($scope) ?>"
             }
          }'>
     </div>
