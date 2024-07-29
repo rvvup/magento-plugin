@@ -12,6 +12,9 @@ define([], function () {
                 }
 
                 return main.isPlaceOrderActionAllowed() !== false;
+            },
+            beforeSetPaymentInformation: function () {
+                return true;
             }
         }
     }();

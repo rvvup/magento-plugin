@@ -23,6 +23,7 @@ define([
         'Magento_Ui/js/model/messageList',
         'Magento_Customer/js/model/customer',
         'Rvvup_Payments/js/view/payment/methods/rvvup-paypal',
+    'Swissup_Firecheckout/js/model/place-order',
         'domReady!'
     ], function (
         Component,
@@ -49,6 +50,7 @@ define([
         messageList,
         customer,
         rvvupPaypal,
+        swissUpPlaceOrder,
     ) {
         'use strict';
 
@@ -368,6 +370,8 @@ define([
                             if(!rvvupPaypal.validate(self, additionalValidators)) {
                                 return reject(createError);
                             }
+                            $.when(rvvupPaypal.beforeSetPaymentInformation())
+                                .done(function () {
                             setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
                                     .done(function () {
@@ -379,6 +383,7 @@ define([
                                 loader.stopLoader();
                                 return reject(createError);
                             })
+                          });
                         }).then(() => {
                             loader.stopLoader();
                             return orderPaymentAction.getPaymentToken();

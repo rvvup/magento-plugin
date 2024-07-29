@@ -1,4 +1,4 @@
-define(['mage/utils/wrapper'], function (wrapper) {
+define(['mage/utils/wrapper', 'jquery'], function (wrapper, $) {
     'use strict';
 
     return function (target) {
@@ -7,18 +7,36 @@ define(['mage/utils/wrapper'], function (wrapper) {
         }
 
         try {
+            console.log($(
+                [
+                    '.actions-toolbar:not([style="display: none;"])',
+                    '.action.checkout:not([style="display: none;"])'
+                ].join(' '),
+                '.payment-method._active'
+            ));
+            $(
+                [
+                    '.actions-toolbar:not([style="display: none;"])',
+                    '.action.checkout:not([style="display: none;"])'
+                ].join(' '),
+                '.payment-method._active'
+            ).hide();
+            console.log($(
+                [
+                    '.actions-toolbar:not([style="display: none;"])',
+                    '.action.checkout:not([style="display: none;"])'
+                ].join(' '),
+                '.payment-method._active'
+            ));
             const fcModule = {
-                validator: require('Swissup_Firecheckout/js/model/validator'),
-                layout: require('Swissup_Firecheckout/js/model/layout')
+                placeOrderModel: require('Swissup_Firecheckout/js/model/place-order')
             };
 
-            // Extend validation if firecheckout module is present
-            target.validate = wrapper.wrapSuper(
-                target.validate,
-                function (main, additionalValidators) {
-                    this._super(main, additionalValidators);
+            target.beforeSetPaymentInformation = wrapper.wrapSuper(
+                target.beforeSetPaymentInformation,
+                function () {
                     if (fcModule !== null) {
-                        return fcModule.validator.validateShippingAddress() && fcModule.validator.validateShippingRadios();
+                        return fcModule.placeOrderModel.placeOrder();
                     }
                     return true;
                 }
