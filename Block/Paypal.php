@@ -33,7 +33,7 @@ class Paypal extends Template
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->quoteIdToMaskedQuoteId = $quoteIdToMaskedQuoteId;
-        parent::__construct($context,$data);
+        parent::__construct($context, $data);
     }
 
     /**
