@@ -1,3 +1,5 @@
+import Cart from '../Cart';
+
 export default class PaypalCheckout {
   constructor(page) {
     this.page = page;
@@ -5,7 +7,7 @@ export default class PaypalCheckout {
 
   async pressPaypalButton() {
     const popupPromise = this.page.waitForEvent("popup");
-    const paypalFrame = this.page.frameLocator("[title='PayPal']").first();
+    const paypalFrame = this.page.frameLocator(".rvvup-paypal-express-button-container [title='PayPal']").first();
     await paypalFrame.getByRole("link", { name: "PayPal" }).click();
 
     const popup = await popupPromise;
@@ -13,6 +15,21 @@ export default class PaypalCheckout {
 
     await popup.waitForEvent("close");
   }
+
+  async pressProductButton() {
+      const cart = new Cart(this.page);
+      await cart.addStandardItemToCart();
+
+      await this.page.locator("div.minicart-wrapper a.action.showcart").click();
+      const paypalFrame = this.page.frameLocator(".rvvup-paypal-minicart-block-container [title='PayPal']").first();
+      await paypalFrame.getByRole("link", { name: "PayPal" }).click();
+
+      const popupPromise = this.page.waitForEvent("popup");
+      const popup = await popupPromise;
+      await this.acceptPayment(await popup);
+
+      //await popup.waitForEvent("close");
+    }
 
   async acceptPayment(popup) {
     await popup
