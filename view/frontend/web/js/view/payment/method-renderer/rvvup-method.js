@@ -353,6 +353,7 @@ define([
                     console.log('button already rendered');
                     return;
                 }
+                const createError = new Error("unable_to_place_order")
 
                 rvvup_paypal.Buttons({
                     style: getPayPalCheckoutButtonStyle(),
@@ -365,18 +366,18 @@ define([
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
                             if(!rvvupPaypal.validate(self, additionalValidators)) {
-                                return reject(new Error("Validation failed"));
+                                return reject(createError);
                             }
                             setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
                                     .done(function () {
                                         return resolve();
                                     }).fail(function () {
-                                        return reject(new Error('Something went wrong with processing your order'));
+                                        return reject(createError);
                                     });
                             }).fail(function () {
                                 loader.stopLoader();
-                                return reject(new Error('Something went wrong with processing your details'));
+                                return reject(createError);
                             })
                         }).then(() => {
                             loader.stopLoader();
@@ -418,10 +419,17 @@ define([
                      * @param error
                      */
                     onError: function (error) {
-                        console.error(error);
                         self.resetDefaultData();
                         loader.stopLoader();
-                        errorProcessor.process('Unable to place order!', self.messageContainer)
+                        if (!error || error.message === createError.message) {
+                            return;
+                        }
+                        console.error(error);
+                        errorProcessor.process({
+                                responseText:
+                                    JSON.stringify({message: error.message})
+                            },
+                            self.messageContainer)
                     },
                 }).render('#' + this.getPayPalId());
             },
