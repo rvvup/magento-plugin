@@ -42,6 +42,10 @@ class IsPaymentMethodAvailable implements IsPaymentMethodAvailableInterface
      */
     public function execute(string $methodCode, string $value, string $currency): bool
     {
+        if ($value <= 0) {
+            return false;
+        }
+
         $formattedMethodCode = mb_strtolower(Method::PAYMENT_TITLE_PREFIX . $methodCode);
 
         $result = array_key_exists($formattedMethodCode, $this->paymentMethodsAvailableGet->execute($value, $currency));
