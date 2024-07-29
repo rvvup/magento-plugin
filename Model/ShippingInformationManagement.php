@@ -11,6 +11,7 @@ use Rvvup\Payments\Api\ShippingInformationManagementInterface;
 
 class ShippingInformationManagement implements ShippingInformationManagementInterface
 {
+
     /* @var CartRepositoryInterface $quoteRepository */
     private $quoteRepository;
 
