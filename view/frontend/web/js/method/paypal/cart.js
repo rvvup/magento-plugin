@@ -65,12 +65,13 @@ define(
                         );
                     }
                 });
-                this.renderPayPalButton(
-                    config.buttonQuerySelector,
-                    config.cartId,
-                    config.scope
-                );
-
+                if (cartData._latestValue.subtotalAmount > 0) {
+                    this.renderPayPalButton(
+                        config.buttonQuerySelector,
+                        config.cartId,
+                        config.scope
+                    );
+                }
                 return this;
             },
 

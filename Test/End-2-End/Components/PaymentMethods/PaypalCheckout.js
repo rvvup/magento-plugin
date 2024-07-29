@@ -24,9 +24,9 @@ export default class PaypalCheckout {
       const paypalFrame = this.page.frameLocator(".rvvup-paypal-minicart-block-container [title='PayPal']").first();
       await paypalFrame.getByRole("link", { name: "PayPal" }).click();
 
-      const popupPromise = this.page.waitForEvent("popup");
-      const popup = await popupPromise;
-      await this.acceptPayment(await popup);
+      //const popupPromise = this.page.waitForEvent("popup");
+      //const popup = await popupPromise;
+      //await this.acceptPayment(await popup);
 
       //await popup.waitForEvent("close");
     }
