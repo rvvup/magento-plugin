@@ -356,12 +356,6 @@ define([
 
                 rvvup_paypal.Buttons({
                     style: getPayPalCheckoutButtonStyle(),
-                    onClick: function (data, actions) {
-                        if(!rvvupPaypal.validate(self, additionalValidators)) {
-                            return actions.reject();
-                        }
-                        return actions.resolve();
-                    },
                     /**
                      * On create Order, get the token from the order payment actions.
                      *
@@ -371,18 +365,18 @@ define([
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
                             if(!rvvupPaypal.validate(self, additionalValidators)) {
-                                return reject();
+                                return reject(new Error("Validation failed"));
                             }
                             setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
                                     .done(function () {
                                         return resolve();
                                     }).fail(function () {
-                                        return reject();
+                                        return reject(new Error('Something went wrong with processing your order'));
                                     });
                             }).fail(function () {
                                 loader.stopLoader();
-                                return reject();
+                                return reject(new Error('Something went wrong with processing your details'));
                             })
                         }).then(() => {
                             loader.stopLoader();
