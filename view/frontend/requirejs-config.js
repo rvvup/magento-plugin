@@ -20,7 +20,7 @@ var config = {
                 'Rvvup_Payments/js/action/place-order-mixin': true
             },
             'Rvvup_Payments/js/view/payment/methods/rvvup-paypal': {
-                'Rvvup_Payments/js/view/payment/methods/rvvup-paypal-firecheckout-compatibility-mixin': true
+                'Rvvup_Payments/js/view/payment/methods/rvvup-paypal-firecheckout-compatibility-hook': true
             }
         }
     },

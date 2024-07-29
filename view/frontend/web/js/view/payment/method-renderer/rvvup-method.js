@@ -372,7 +372,7 @@ define([
                                     .done(function () {
                                         return resolve();
                                     }).fail(function () {
-                                        return reject(new Error($t('Something went wrong with processing your order')));
+                                        return reject(new Error('Something went wrong with processing your order'));
                                     });
                             }).fail(function () {
                                 loader.stopLoader();
