@@ -6,7 +6,9 @@ composer config http-basic.repo.magento.com $MAGENTO_REPO_PUBLIC_KEY $MAGENTO_RE
 bin/magento config:set currency/options/allow GBP,USD
 bin/magento config:set currency/options/base GBP
 bin/magento config:set currency/options/default GBP
+bin/magento config:set general/country/optional_zip_countries HK
 bin/magento config:set general/locale/timezone Europe/London
+bin/magento config:set general/country/default GB
 bin/magento config:set general/locale/code en_GB
 bin/magento config:set carriers/freeshipping/active 1
 bin/magento config:set web/secure/use_in_adminhtml 1

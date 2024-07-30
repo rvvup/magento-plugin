@@ -23,6 +23,7 @@ define([
         'Magento_Ui/js/model/messageList',
         'Magento_Customer/js/model/customer',
         'Rvvup_Payments/js/view/payment/methods/rvvup-paypal',
+        'Magento_Checkout/js/action/set-shipping-information',
         'domReady!'
     ], function (
         Component,
@@ -49,6 +50,7 @@ define([
         messageList,
         customer,
         rvvupPaypal,
+        setShippingInformation,
     ) {
         'use strict';
 
@@ -353,6 +355,7 @@ define([
                     console.log('button already rendered');
                     return;
                 }
+                const createError = new Error("unable_to_place_order")
 
                 rvvup_paypal.Buttons({
                     style: getPayPalCheckoutButtonStyle(),
@@ -365,19 +368,25 @@ define([
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
                             if(!rvvupPaypal.validate(self, additionalValidators)) {
-                                return reject(new Error("Validation failed"));
+
+                                return reject(createError);
                             }
-                            setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
+                            let saveShippingPromise = rvvupPaypal.shouldSaveShippingInformation() ? setShippingInformation() : $.Deferred().resolve();
+
+                            saveShippingPromise
+                                .then(function () {
+                                    return setPaymentInformation(self.messageContainer, self.getData(), false);
+                                })
+                                .then(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
-                                    .done(function () {
-                                        return resolve();
-                                    }).fail(function () {
-                                        return reject(new Error('Something went wrong with processing your order'));
-                                    });
-                            }).fail(function () {
-                                loader.stopLoader();
-                                return reject(new Error('Something went wrong with processing your details'));
-                            })
+                                })
+                                .then(function () {
+                                    resolve();
+                                })
+                                .fail(function () {
+                                    loader.stopLoader();
+                                    return reject(createError);
+                                });
                         }).then(() => {
                             loader.stopLoader();
                             return orderPaymentAction.getPaymentToken();
@@ -418,10 +427,17 @@ define([
                      * @param error
                      */
                     onError: function (error) {
-                        console.error(error);
                         self.resetDefaultData();
                         loader.stopLoader();
-                        errorProcessor.process('Unable to place order!', self.messageContainer)
+                        if (!error || error.message === createError.message) {
+                            return;
+                        }
+                        console.error(error);
+                        errorProcessor.process({
+                                responseText:
+                                    JSON.stringify({message: error.message})
+                            },
+                            self.messageContainer)
                     },
                 }).render('#' + this.getPayPalId());
             },
