@@ -23,6 +23,7 @@ define([
         'Magento_Ui/js/model/messageList',
         'Magento_Customer/js/model/customer',
         'Rvvup_Payments/js/view/payment/methods/rvvup-paypal',
+        'Magento_Checkout/js/action/set-shipping-information',
         'domReady!'
     ], function (
         Component,
@@ -49,6 +50,7 @@ define([
         messageList,
         customer,
         rvvupPaypal,
+        setShippingInformation,
     ) {
         'use strict';
 
@@ -368,17 +370,22 @@ define([
                             if(!rvvupPaypal.validate(self, additionalValidators)) {
                                 return reject(createError);
                             }
-                            setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
+                            let saveShippingPromise = rvvupPaypal.shouldSaveShippingInformation() ? setShippingInformation() : $.Deferred().resolve();
+
+                            saveShippingPromise
+                                .then(function () {
+                                    return setPaymentInformation(self.messageContainer, self.getData(), false);
+                                })
+                                .then(function () {
                                 return $.when(getOrderPaymentActions(self.messageContainer))
-                                    .done(function () {
-                                        return resolve();
-                                    }).fail(function () {
-                                        return reject(createError);
-                                    });
-                            }).fail(function () {
-                                loader.stopLoader();
-                                return reject(createError);
-                            })
+                                })
+                                .then(function () {
+                                    resolve();
+                                })
+                                .fail(function () {
+                                    loader.stopLoader();
+                                    return reject(createError);
+                                });
                         }).then(() => {
                             loader.stopLoader();
                             return orderPaymentAction.getPaymentToken();
