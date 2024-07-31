@@ -41,6 +41,7 @@ class GuestCartExpressPaymentRemove implements GuestCartExpressPaymentRemoveInte
      */
     public function execute(string $cartId): bool
     {
-        return $this->cartExpressPaymentRemove->execute((string) $this->maskedQuoteIdToQuoteId->execute($cartId));
+        $cartId = is_numeric($cartId) ? $cartId : $this->maskedQuoteIdToQuoteId->execute($cartId);
+        return $this->cartExpressPaymentRemove->execute((string) $cartId);
     }
 }

@@ -60,7 +60,7 @@ define(
                     if (data.subtotalAmount > 0) {
                         self.renderPayPalButton(
                             config.buttonQuerySelector,
-                            config.cartId,
+                            data.quote_id,
                             config.scope
                         );
                     }
@@ -92,6 +92,7 @@ define(
              *
              * @param buttonId
              * @param cartId
+             * @param scope
              */
             renderPayPalButton: function (buttonId, cartId, scope) {
                 let self = this,
