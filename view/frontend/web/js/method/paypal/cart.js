@@ -72,6 +72,16 @@ define(
                         config.scope
                     );
                 }
+
+                $('[data-block="minicart"]').on('contentLoading', function () {
+                    if (cartData._latestValue.subtotalAmount > 0) {
+                        self.renderPayPalButton(
+                            config.buttonQuerySelector,
+                            config.cartId,
+                            config.scope
+                        );
+                    }
+                });
                 return this;
             },
 
