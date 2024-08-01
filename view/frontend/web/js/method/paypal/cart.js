@@ -12,6 +12,7 @@ define(
         'Rvvup_Payments/js/helper/get-paypal-button-style',
         'Rvvup_Payments/js/helper/is-paypal-button-enabled',
         'Rvvup_Payments/js/method/paypal/cancel',
+        'Magento_Customer/js/customer-data',
         'domReady!'
     ],
     function (
@@ -26,7 +27,8 @@ define(
         setSessionMessage,
         getPayPalButtonStyle,
         isPayPalButtonEnabled,
-        cancel
+        cancel,
+        customerData
     ) {
         'use strict';
         return Component.extend({
@@ -48,13 +50,38 @@ define(
                     || !isPayPalButtonEnabled(config.scope)) {
                     return this;
                 }
+                var cartData = customerData.get('cart');
+                var self = this;
+                cartData.subscribe(function (data) {
+                    var buttonElement = document.querySelector(config.buttonQuerySelector);
+                    if (buttonElement.childElementCount > 0) {
+                        buttonElement.removeChild(buttonElement.getElementsByTagName('div')[0]);
+                    }
+                    if (data.subtotalAmount > 0) {
+                        self.renderPayPalButton(
+                            config.buttonQuerySelector,
+                            data.quote_id,
+                            config.scope
+                        );
+                    }
+                });
+                if (cartData._latestValue.subtotalAmount > 0) {
+                    this.renderPayPalButton(
+                        config.buttonQuerySelector,
+                        config.cartId,
+                        config.scope
+                    );
+                }
 
-                this.renderPayPalButton(
-                    config.buttonQuerySelector,
-                    config.cartId,
-                    config.scope
-                );
-
+                $('[data-block="minicart"]').on('contentLoading', function () {
+                    if (cartData._latestValue.subtotalAmount > 0) {
+                        self.renderPayPalButton(
+                            config.buttonQuerySelector,
+                            config.cartId,
+                            config.scope
+                        );
+                    }
+                });
                 return this;
             },
 
@@ -65,6 +92,7 @@ define(
              *
              * @param buttonId
              * @param cartId
+             * @param scope
              */
             renderPayPalButton: function (buttonId, cartId, scope) {
                 let self = this,

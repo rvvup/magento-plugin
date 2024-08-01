@@ -27,7 +27,7 @@ test.fixme(
   },
 );
 
-test("Can place a PayPal express order", async ({ page }) => {
+test("Can place a PayPal PDP express order", async ({ page }) => {
   await new GoTo(page).product.standard();
   await new PaypalCheckout(page).pressPaypalButton();
 
@@ -49,6 +49,16 @@ test("Can place a PayPal express order", async ({ page }) => {
     .isVisible();
   await new CheckoutPage(page).pressPlaceOrder();
   await new OrderConfirmation(page).expectOnOrderConfirmation();
+});
+
+test("Can place a PayPal minicart express order", async ({ page }) => {
+    await new GoTo(page).product.standard();
+    await new PaypalCheckout(page).processMiniCartPaypalExpress();
+});
+
+test("Can place a PayPal cart express order", async ({ page }) => {
+    await new GoTo(page).product.standard();
+    await new PaypalCheckout(page).processCartPaypalExpress();
 });
 
 test.fixme(
