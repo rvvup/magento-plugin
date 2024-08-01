@@ -53,9 +53,12 @@ test("Can place a PayPal PDP express order", async ({ page }) => {
 
 test("Can place a PayPal minicart express order", async ({ page }) => {
     await new GoTo(page).product.standard();
-    await new PaypalCheckout(page).pressProductButton();
+    await new PaypalCheckout(page).processMiniCartPaypalExpress();
+});
 
-
+test("Can place a PayPal cart express order", async ({ page }) => {
+    await new GoTo(page).product.standard();
+    await new PaypalCheckout(page).processCartPaypalExpress();
 });
 
 test.fixme(
