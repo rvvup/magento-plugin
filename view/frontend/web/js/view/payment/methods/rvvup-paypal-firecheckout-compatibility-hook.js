@@ -23,6 +23,15 @@ define(['mage/utils/wrapper'], function (wrapper) {
                     return true;
                 }
             );
+            target.shouldSaveShippingInformation = wrapper.wrapSuper(
+                target.shouldSaveShippingInformation,
+                function () {
+                    if (fcModule === null) {
+                        return false;
+                    }
+                    return !fcModule.layout.isMultistep();
+                }
+            )
         } catch (e) {
         }
         return target;

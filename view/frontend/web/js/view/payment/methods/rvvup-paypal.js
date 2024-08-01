@@ -12,6 +12,10 @@ define([], function () {
                 }
 
                 return main.isPlaceOrderActionAllowed() !== false;
+            },
+
+            shouldSaveShippingInformation: function () {
+                return false;
             }
         }
     }();
