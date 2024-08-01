@@ -9,7 +9,7 @@ test("Can place a PayPal order on checkout", async ({ page }) => {
   await new VisitCheckoutPayment(page).visit();
 
   await new CheckoutPage(page).selectPaypal();
-  await new PaypalCheckout(page).pressPaypalButton();
+  await new PaypalCheckout(page).pressPaypalButton("[title='PayPal']");
 
   await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
@@ -29,7 +29,7 @@ test.fixme(
 
 test("Can place a PayPal PDP express order", async ({ page }) => {
   await new GoTo(page).product.standard();
-  await new PaypalCheckout(page).pressPaypalButton();
+  await new PaypalCheckout(page).pressPaypalButton(".rvvup-paypal-express-button-container [title='PayPal']");
 
   // Shipping page
   await page.getByLabel("Phone number").fill("+447500000000");

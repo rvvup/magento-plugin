@@ -6,9 +6,9 @@ export default class PaypalCheckout {
     this.page = page;
   }
 
-  async pressPaypalButton() {
+  async pressPaypalButton(selector) {
     const popupPromise = this.page.waitForEvent("popup");
-    const paypalFrame = this.page.frameLocator(".rvvup-paypal-express-button-container [title='PayPal']").first();
+    const paypalFrame = this.page.frameLocator(selector).first();
     await paypalFrame.getByRole("link", { name: "PayPal" }).click();
 
     const popup = await popupPromise;
