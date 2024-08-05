@@ -10,7 +10,7 @@ define([
      *
      * @return {Object}
      */
-    return function () {
+    return function (scope) {
         if (typeof rvvup_parameters !== 'object') {
             return {
                 layout: 'vertical',
@@ -21,12 +21,12 @@ define([
             };
         }
 
-        const layout = rvvup_parameters?.settings?.paypal?.product?.button?.layout?.value || 'vertical';
-        const color = rvvup_parameters?.settings?.paypal?.product?.button?.color?.value || 'gold';
-        const shape = rvvup_parameters?.settings?.paypal?.product?.button?.shape?.value || 'rect';
-        const label = rvvup_parameters?.settings?.paypal?.product?.button?.label?.value || 'paypal';
-        const tagline = rvvup_parameters?.settings?.paypal?.product?.button?.tagline || false;
-        const size = rvvup_parameters?.settings?.paypal?.product?.button?.size || null;
+        const layout = rvvup_parameters?.settings?.paypal?.[scope]?.button?.layout?.value || 'vertical';
+        const color = rvvup_parameters?.settings?.paypal?.[scope]?.button?.color?.value || 'gold';
+        const shape = rvvup_parameters?.settings?.paypal?.[scope]?.button?.shape?.value || 'rect';
+        const label = rvvup_parameters?.settings?.paypal?.[scope]?.button?.label?.value || 'paypal';
+        const tagline = rvvup_parameters?.settings?.paypal?.[scope]?.button?.tagline || false;
+        const size = rvvup_parameters?.settings?.paypal?.[scope]?.button?.size || null;
 
         let style = {
             layout: layout,

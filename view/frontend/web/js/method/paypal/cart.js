@@ -1,84 +1,102 @@
 define(
     [
-        'uiRegistry',
         'uiComponent',
         'jquery',
         'underscore',
-        'mage/storage',
         'mage/translate',
-        'Rvvup_Payments/js/action/add-to-cart',
-        'Rvvup_Payments/js/action/create-cart',
         'Rvvup_Payments/js/action/create-express-payment',
-        'Rvvup_Payments/js/action/empty-cart',
         'Rvvup_Payments/js/action/remove-express-payment',
-        'Rvvup_Payments/js/action/set-cart-shipping-address',
         'Rvvup_Payments/js/action/set-cart-billing-address',
+        'Rvvup_Payments/js/action/set-cart-shipping-address',
         'Rvvup_Payments/js/action/set-session-message',
-        'Rvvup_Payments/js/helper/get-add-to-cart-payload',
-        'Rvvup_Payments/js/helper/get-current-quote-id',
         'Rvvup_Payments/js/helper/get-paypal-button-style',
-        'Rvvup_Payments/js/helper/get-pdp-form',
         'Rvvup_Payments/js/helper/is-paypal-button-enabled',
-        'Rvvup_Payments/js/helper/validate-pdp-form',
         'Rvvup_Payments/js/method/paypal/cancel',
+        'Magento_Customer/js/customer-data',
         'domReady!'
     ],
     function (
-        registry,
         Component,
         $,
         _,
-        storage,
         $t,
-        addToCart,
-        createCart,
         createExpressPayment,
-        emptyCart,
         removeExpressPayment,
-        setCartShippingAddress,
         setCartBillingAddress,
+        setCartShippingAddress,
         setSessionMessage,
-        getAddToCartPayload,
-        getCurrentQuoteId,
         getPayPalButtonStyle,
-        getPdpForm,
         isPayPalButtonEnabled,
-        validatePdpForm,
-        cancel
+        cancel,
+        customerData
     ) {
         'use strict';
         return Component.extend({
             defaults: {
-                buttonId: null,
-                cartId: null
+                cartId: null,
+                buttonQuerySelector: null,
+                scope: null
             },
+
             /**
              * Component initialization function.
              *
              * We expect the buttonId to be provided when component is initialized, if none, no action.
-             * Also, no action if paypal button is disabled on pdp from Rvvup.
+             * Also, no action if Paypal button is disabled on pdp from Rvvup.
              */
             initialize: function (config) {
-                this.buttonId = config.buttonId;
 
-                if (this.buttonId === null || !isPayPalButtonEnabled('product')) {
+                if (this.buttonQuerySelector === null
+                    || !isPayPalButtonEnabled(config.scope)) {
                     return this;
                 }
+                var cartData = customerData.get('cart');
+                var self = this;
+                cartData.subscribe(function (data) {
+                    var buttonElement = document.querySelector(config.buttonQuerySelector);
+                    if (buttonElement.childElementCount > 0) {
+                        buttonElement.removeChild(buttonElement.getElementsByTagName('div')[0]);
+                    }
+                    if (data.subtotalAmount > 0) {
+                        self.renderPayPalButton(
+                            config.buttonQuerySelector,
+                            data.quote_id,
+                            config.scope
+                        );
+                    }
+                });
+                if (cartData._latestValue.subtotalAmount > 0) {
+                    this.renderPayPalButton(
+                        config.buttonQuerySelector,
+                        config.cartId,
+                        config.scope
+                    );
+                }
 
-                this.renderPayPalButton(this.buttonId);
-
+                $('[data-block="minicart"]').on('contentLoading', function () {
+                    if (cartData._latestValue.subtotalAmount > 0) {
+                        self.renderPayPalButton(
+                            config.buttonQuerySelector,
+                            config.cartId,
+                            config.scope
+                        );
+                    }
+                });
                 return this;
             },
+
             /**
              * Instantiate PayPal Button on the related container.
              *
              * If button element does not exist or already has children elements (PayPal already loaded), no action.
              *
              * @param buttonId
+             * @param cartId
+             * @param scope
              */
-            renderPayPalButton: function (buttonId) {
+            renderPayPalButton: function (buttonId, cartId, scope) {
                 let self = this,
-                    buttonElement = document.getElementById(buttonId);
+                    buttonElement = document.querySelector(buttonId);
 
                 if (!buttonElement) {
                     console.error(buttonId + ' not found in DOM');
@@ -95,60 +113,21 @@ define(
                     return;
                 }
 
-                let form = getPdpForm(buttonElement);
-
-                /* No action if no form is found */
-                if (form.length === 0) {
-                    return;
-                }
-
                 rvvup_paypal.Buttons({
-                    style: getPayPalButtonStyle('product'),
-                    /**
-                     * On PayPal button click instantiate and validate the steps allowing for errors.
-                     * 1 - Validate form data
-                     * 2 - Empty existing quote or create new quote
-                     * 3 - Add to cart
-                     * 4 - Create express payment
-                     *
-                     * Use async validation as per PayPal button docs
-                     * @see https://developer.paypal.com/docs/checkout/standard/customize/validate-user-input/
-                     *
-                     * @param data
-                     * @param actions
-                     * @returns {Promise<never>|*}
-                     */
+                    style: getPayPalButtonStyle(scope),
                     onClick: function (data, actions) {
                         $('body').trigger('processStart');
                         return new Promise((resolve, reject) => {
-                            return getCurrentQuoteId() === null
-                                ? createCart()
-                                    .done((cartId) => {
-                                        self.cartId = cartId;
-
-                                        return resolve(cartId);
-                                    })
-                                : emptyCart(getCurrentQuoteId())
-                                    .done((cartId) => {
-                                        self.cartId = cartId;
-
-                                        return resolve(cartId);
-                                    });
-                        }).then((cartId) => {
-                            if (!validatePdpForm(form)) {
-                                $('body').trigger('processStop');
-                                return actions.reject();
-                            } else {
-                                return addToCart(cartId, getAddToCartPayload(form, cartId)).done(() => {
-                                    return actions.resolve();
-                                });
-                            }
+                            return resolve(cartId);
+                        }).then(() => {
+                            return actions.resolve();
                         }).catch(() => {
                             $('body').trigger('processStop');
                             setSessionMessage($t('Something went wrong'), 'error');
                             return actions.reject();
                         });
                     },
+
                     /**
                      * On create Order
                      *
@@ -158,7 +137,7 @@ define(
                      */
                     createOrder: function () {
                         return new Promise((resolve, reject) => {
-                            return createExpressPayment(self.cartId, 'paypal')
+                            return createExpressPayment(cartId, 'paypal')
                                 .done((response) => {
                                     if (response.success === true) {
                                         /* First check get the authorization action */
@@ -196,6 +175,7 @@ define(
                             setSessionMessage($t(error), 'error');
                         });
                     },
+
                     /**
                      * On PayPal approved,
                      *
@@ -221,9 +201,8 @@ define(
                                 if (_.isEmpty(billingAddressPayload)) {
                                     return true;
                                 }
-
-                                setCartShippingAddress(self.cartId, shippingAddressPayload).done(() => {
-                                    return setCartBillingAddress(self.cartId, billingAddressPayload)
+                                setCartShippingAddress(cartId, shippingAddressPayload).done(() => {
+                                    return setCartBillingAddress(cartId, billingAddressPayload)
                                         .done(() => {
                                             return resolve();
                                         }).fail(() => {
@@ -241,6 +220,7 @@ define(
                             });
                         });
                     },
+
                     /**
                      * On PayPal cancelled, cancel express payment (if cart is created) and close modal.
                      */
@@ -248,13 +228,13 @@ define(
                         let bodyElement = $('body');
                         bodyElement.trigger('processStart');
 
-                        if (self.cartId === null) {
+                        if (cartId === null) {
                             bodyElement.trigger('processStop');
                             setSessionMessage($t('You cancelled the payment process'), 'error');
                             return;
                         }
 
-                        $.when(removeExpressPayment(self.cartId))
+                        $.when(removeExpressPayment(cartId))
                             .done(() => {
                                 bodyElement.trigger('processStop');
                                 setSessionMessage($t('You cancelled the payment process'), 'error');
@@ -262,6 +242,7 @@ define(
 
                         cancel.cancelPayment();
                     },
+
                     /**
                      * On error, display error message in the container.
                      */
@@ -269,14 +250,9 @@ define(
                         $('body').trigger('processStop');
                         setSessionMessage($t('Something went wrong'), 'error');
                     },
-                }).render('#' + buttonId);
+                }).render(buttonId);
             },
-            /**
-             * Get a structured Payment Object from the Express Payment create response.
-             *
-             * @param response
-             * @return {Object}
-             */
+
             getResponsePaymentObject: function (response) {
                 const paymentObject = {
                         captureUrl: null,
@@ -305,6 +281,7 @@ define(
 
                 return paymentObject;
             },
+
             getBillingAddressFromOrderData(orderData, shippingAddress) {
                 return {
                     firstname: orderData.payer.name.given_name,

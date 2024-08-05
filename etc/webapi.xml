@@ -38,6 +38,26 @@
             <parameter name="cartId" force="true">%cart_id%</parameter>
         </data>
     </route>
+
+    <!-- Managing shipping guest information -->
+    <route url="/V1/rvvup/guest-carts/:cartId/set-shipping-information" method="POST">
+        <service class="Rvvup\Payments\Api\GuestShippingInformationManagementInterface" method="saveAddressInformation"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+
+    <!-- Managing My shipping information -->
+    <route url="/V1/rvvup/carts/mine/set-shipping-information" method="POST">
+        <service class="Rvvup\Payments\Api\ShippingInformationManagementInterface" method="saveAddressInformation"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+
     <!-- Remove Rvvup Express Payment data from a Cart -->
     <route url="/V1/rvvup/payments/guest-carts/:cartId/express" method="DELETE">
         <service class="Rvvup\Payments\Api\GuestCartExpressPaymentRemoveInterface" method="execute"/>

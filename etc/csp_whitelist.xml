@@ -7,6 +7,7 @@
                 <value id="rvvup-prod-frame" type="host">*.rvvup.com</value>
                 <value id="rvvup-afterpay-frame" type="host">*.afterpay.com</value>
                 <value id="rvvup-clearpay-frame" type="host">*.clearpay.co.uk</value>
+                <value id="rvvup-sandbox-clearpay-frame" type="host">*.sandbox.clearpay.co.uk</value>
                 <value id="rvvup-paypal-frame" type="host">*.paypal.com</value>
                 <value id="rvvup-sandbox-paypal-frame" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-card-frame" type="host">cdn.eu.trustpayments.com</value>
