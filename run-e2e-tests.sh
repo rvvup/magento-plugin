@@ -1,6 +1,6 @@
 #!/bin/bash
 start=$(date +%s)
-docker-compose up -d --build
+docker compose up -d --build
 attempt=1
 while true; do
     http_status=$(curl -o /dev/null -s -w "%{http_code}\n" -I "http://local.dev.rvvuptech.com/magento_version")
