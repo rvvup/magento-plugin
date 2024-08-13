@@ -97,12 +97,7 @@ class OrderDataBuilder
     public function build(CartInterface $quote, bool $express = false, bool $validate = true): array
     {
         if (!$quote->getCustomerEmail()) {
-            $id = null;
-            $payment = $quote->getPayment();
-            if ($payment) {
-                $id = $payment->getAdditionalInformation(Method::ORDER_ID);
-            }
-            $this->captureService->saveCustomerEmail($quote, 'customer-flow', $id);
+            $this->captureService->saveCustomerEmail($quote);
         }
 
         $billingAddress = $quote->getBillingAddress();

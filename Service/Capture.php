@@ -200,7 +200,7 @@ class Capture
     public function createOrder(string $rvvupId, Quote $quote, string $origin): ValidationInterface
     {
         if (!$quote->getCustomerEmail()) {
-            $this->saveCustomerEmail($quote, $origin, $rvvupId);
+            $this->saveCustomerEmail($quote);
         }
         $this->quoteResource->beginTransaction();
         $payment = $quote->getPayment();
@@ -270,37 +270,23 @@ class Capture
 
     /**
      * @param CartInterface $quote
-     * @param string|null $rvvupId
      * @return void
      */
-    public function saveCustomerEmail(CartInterface $quote, string $origin, string $rvvupId = null): void
+    public function saveCustomerEmail(CartInterface $quote): void
     {
-        try {
-            $email = $quote->getBillingAddress()->getEmail();
+        $email = $quote->getBillingAddress()->getEmail();
 
-            if (!$email) {
-                $email = $quote->getShippingAddress()->getEmail();
-            }
+        if (!$email) {
+            $email = $quote->getShippingAddress()->getEmail();
+        }
 
-            if (!$email && $quote->getCustomerId()) {
-                $email = $quote->getCustomer()->getEmail();
-            }
+        if (!$email && $quote->getCustomerId()) {
+            $email = $quote->getCustomer()->getEmail();
+        }
 
-            if ($email) {
-                $quote->setCustomerEmail($email);
-                $this->cartRepository->save($quote);
-            }
-        } catch (\Exception $e) {
-            $payment = $quote->getPayment();
-            $paymentId = $payment ? $payment->getAdditionalInformation(Method::PAYMENT_ID): null;
-            $this->logger->addRvvupError(
-                'Failed to save customer email',
-                $e->getMessage(),
-                $rvvupId,
-                $paymentId,
-                $quote->getReservedOrderId(),
-                $origin
-            );
+        if ($email) {
+            $quote->setCustomerEmail($email);
+            $this->cartRepository->save($quote);
         }
     }
 
