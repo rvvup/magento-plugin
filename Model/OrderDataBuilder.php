@@ -147,7 +147,6 @@ class OrderDataBuilder
             $email = $quote->getCustomer()->getEmail();
         }
 
-        // Fix for invalidly imported quotes without email address
         if ($email) {
             $quote->setCustomerEmail($email);
             $this->cartRepository->save($quote);
