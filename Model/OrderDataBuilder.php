@@ -18,6 +18,7 @@ use Magento\Quote\Model\QuoteValidator;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\ResourceModel\Order\Address;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
 
@@ -47,6 +48,9 @@ class OrderDataBuilder
     /** @var QuoteValidator */
     private $quoteValidator;
 
+    /** @var Address */
+    private $addressResource;
+
     /**
      * @param AddressRepositoryInterface $customerAddressRepository
      * @param UrlInterface $urlBuilder
@@ -55,6 +59,7 @@ class OrderDataBuilder
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param QuoteValidator $quoteValidator
+     * @param Address $addressResource
      * @param Payment $paymentResource
      */
     public function __construct(
@@ -65,6 +70,7 @@ class OrderDataBuilder
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         QuoteValidator $quoteValidator,
+        Address $addressResource,
         Payment $paymentResource
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
@@ -75,6 +81,7 @@ class OrderDataBuilder
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->quoteValidator = $quoteValidator;
         $this->paymentResource = $paymentResource;
+        $this->addressResource = $addressResource;
     }
 
     /**
@@ -102,6 +109,12 @@ class OrderDataBuilder
 
         $orderDataArray = $this->renderBase($quote, $express);
         $orderDataArray['customer'] = $this->renderCustomer($quote, $express, $billingAddress);
+        $email = $orderDataArray['customer']['email'];
+        if ($email && !$billingAddress->getEmail()) {
+            $billingAddress->setEmail($email);
+            $this->addressResource->save($billingAddress);
+        }
+
         $orderDataArray['billingAddress'] = $this->renderBillingAddress($quote, $express, $billingAddress);
 
         // We do not require shipping data for virtual orders (orders without tangible items).
@@ -110,6 +123,11 @@ class OrderDataBuilder
         }
 
         $shippingAddress = $quote->getShippingAddress();
+
+        if ($email && !$shippingAddress->getEmail()) {
+            $shippingAddress->setEmail($email);
+            $this->addressResource->save($shippingAddress);
+        }
 
         // Validate that Shipping Address exists if this is NOT a request to build express payment data.
         if (!$express && $shippingAddress === null) {
