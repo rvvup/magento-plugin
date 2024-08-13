@@ -199,13 +199,13 @@ class Capture
      */
     public function createOrder(string $rvvupId, Quote $quote, string $origin): ValidationInterface
     {
-        if (!$quote->getCustomerEmail()) {
-            $this->saveCustomerEmail($quote);
-        }
         $this->quoteResource->beginTransaction();
         $payment = $quote->getPayment();
 
         try {
+            if (!$quote->getCustomerEmail()) {
+                $this->saveCustomerEmail($quote);
+            }
             if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
                 return $this->validationInterfaceFactory->create(
                     [
