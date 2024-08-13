@@ -89,6 +89,10 @@ class OrderDataBuilder
      */
     public function build(CartInterface $quote, bool $express = false, bool $validate = true): array
     {
+        if (!$quote->getCustomerEmail()) {
+            $this->saveCustomerEmail($quote);
+        }
+
         $billingAddress = $quote->getBillingAddress();
 
         if ($validate) {
@@ -125,6 +129,29 @@ class OrderDataBuilder
         $orderDataArray['shippingTotal']['amount'] = $this->toCurrency($shippingAddress->getShippingAmount());
 
         return $orderDataArray;
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @return void
+     */
+    private function saveCustomerEmail(CartInterface $quote): void
+    {
+        $email = $quote->getBillingAddress()->getEmail();
+
+        if (!$email) {
+            $email = $quote->getShippingAddress()->getEmail();
+        }
+
+        if (!$email && $quote->getCustomerId()) {
+            $email = $quote->getCustomer()->getEmail();
+        }
+
+        // Fix for invalidly imported quotes without email address
+        if ($email) {
+            $quote->setCustomerEmail($email);
+            $this->cartRepository->save($quote);
+        }
     }
 
     /**
