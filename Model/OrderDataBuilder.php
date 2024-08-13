@@ -20,6 +20,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Service\Capture;
 
 class OrderDataBuilder
 {
@@ -47,6 +48,9 @@ class OrderDataBuilder
     /** @var QuoteValidator */
     private $quoteValidator;
 
+    /** @var Capture */
+    private $captureService;
+
     /**
      * @param AddressRepositoryInterface $customerAddressRepository
      * @param UrlInterface $urlBuilder
@@ -56,6 +60,7 @@ class OrderDataBuilder
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param QuoteValidator $quoteValidator
      * @param Payment $paymentResource
+     * @param Capture $captureService
      */
     public function __construct(
         AddressRepositoryInterface $customerAddressRepository,
@@ -65,7 +70,8 @@ class OrderDataBuilder
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         QuoteValidator $quoteValidator,
-        Payment $paymentResource
+        Payment $paymentResource,
+        Capture $captureService
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
@@ -75,6 +81,7 @@ class OrderDataBuilder
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->quoteValidator = $quoteValidator;
         $this->paymentResource = $paymentResource;
+        $this->captureService = $captureService;
     }
 
     /**
@@ -90,7 +97,7 @@ class OrderDataBuilder
     public function build(CartInterface $quote, bool $express = false, bool $validate = true): array
     {
         if (!$quote->getCustomerEmail()) {
-            $this->saveCustomerEmail($quote);
+            $this->captureService->saveCustomerEmail($quote);
         }
 
         $billingAddress = $quote->getBillingAddress();
@@ -129,28 +136,6 @@ class OrderDataBuilder
         $orderDataArray['shippingTotal']['amount'] = $this->toCurrency($shippingAddress->getShippingAmount());
 
         return $orderDataArray;
-    }
-
-    /**
-     * @param CartInterface $quote
-     * @return void
-     */
-    private function saveCustomerEmail(CartInterface $quote): void
-    {
-        $email = $quote->getBillingAddress()->getEmail();
-
-        if (!$email) {
-            $email = $quote->getShippingAddress()->getEmail();
-        }
-
-        if (!$email && $quote->getCustomerId()) {
-            $email = $quote->getCustomer()->getEmail();
-        }
-
-        if ($email) {
-            $quote->setCustomerEmail($email);
-            $this->cartRepository->save($quote);
-        }
     }
 
     /**
