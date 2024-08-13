@@ -37,7 +37,7 @@ class ShippingInformationManagement implements ShippingInformationManagementInte
     {
         $quote = $this->quoteRepository->getActive($cartId);
         $address = $addressInformation->getShippingAddress();
-        if (!$quote->getCustomerEmail()) {
+        if (!$quote->getCustomerEmail() && $address->getEmail()) {
             $quote->setCustomerEmail($address->getEmail());
         }
 
