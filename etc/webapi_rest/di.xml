@@ -42,4 +42,9 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
+    <type name="Magento\ReCaptchaCheckout\Model\WebapiConfigProvider">
+        <plugin name="validateForReCaptcha"
+                type="Rvvup\Payments\Plugin\WebApiConfig"
+                sortOrder="1"/>
+    </type>
 </config>
