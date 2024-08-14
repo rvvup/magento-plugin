@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Plugin;
 
+use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
+use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Framework\Exception\InputException;
 use Magento\ReCaptchaCheckout\Model\WebapiConfigProvider;
 use Magento\ReCaptchaUi\Model\IsCaptchaEnabledInterface;
@@ -44,10 +46,9 @@ class WebApiConfig
         WebapiConfigProvider       $subject,
         ?ValidationConfigInterface $result,
         EndpointInterface          $endpoint
-    ): ?ValidationConfigInterface
-    {
-        if ($endpoint->getServiceClass() === 'Magento\Checkout\Api\GuestPaymentInformationManagementInterface' ||
-            $endpoint->getServiceClass() === 'Magento\Checkout\Api\PaymentInformationManagementInterface') {
+    ): ?ValidationConfigInterface {
+        if ($endpoint->getServiceClass() === GuestPaymentInformationManagementInterface::class ||
+            $endpoint->getServiceClass() === PaymentInformationManagementInterface::class) {
             if ($endpoint->getServiceMethod() === 'savePaymentInformation') {
                 if ($this->isEnabled->isCaptchaEnabledFor(self::PLACE_ORDER)) {
                     return $this->configResolver->get(self::PLACE_ORDER);
