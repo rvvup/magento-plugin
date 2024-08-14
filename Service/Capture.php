@@ -10,6 +10,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
 use Magento\Quote\Model\QuoteManagement;
@@ -202,6 +203,9 @@ class Capture
         $payment = $quote->getPayment();
 
         try {
+            if (!$quote->getCustomerEmail()) {
+                $this->saveCustomerEmail($quote);
+            }
             if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
                 return $this->validationInterfaceFactory->create(
                     [
@@ -261,6 +265,28 @@ class Capture
                     ]
                 ]
             );
+        }
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @return void
+     */
+    public function saveCustomerEmail(CartInterface $quote): void
+    {
+        $email = $quote->getBillingAddress()->getEmail();
+
+        if (!$email) {
+            $email = $quote->getShippingAddress()->getEmail();
+        }
+
+        if (!$email && $quote->getCustomerId()) {
+            $email = $quote->getCustomer()->getEmail();
+        }
+
+        if ($email) {
+            $quote->setCustomerEmail($email);
+            $this->cartRepository->save($quote);
         }
     }
 
