@@ -48,7 +48,7 @@ class Hash
         list($data, $hash) = $this->getHashForData($quote, true);
         $hashItem = $this->hashFactory->create(['data' => ['hash' => $hash, 'raw_data' => $data]]);
         $this->hashRepository->save($hashItem);
-        $payment->setAdditionalInformation('rvvup_quote_hash', $hash);
+        $payment->setAdditionalInformation('rvvup_quote_hash_v2', $hash);
         $this->paymentResource->save($payment);
     }
 
@@ -67,7 +67,7 @@ class Hash
         }
         $items = $quote->getItems() ?: $quote->getItemsCollection()->getItems();
         foreach ($items as $item) {
-            $hashedValues[$item->getSku()] = $item->getQty() . '_' . $item->getPrice();
+            $hashedValues[$item->getSku()] = $item->getQty();
         }
 
         if ($sort) {

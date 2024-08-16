@@ -159,9 +159,13 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash');
+        $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash_v2');
         $sort = true;
         /** Backward compatibility to prevent orders from failing when the plugin is upgrading */
+        if (!$hash) {
+            $sort = false;
+            $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash');
+        }
         if (!$hash) {
             $sort = false;
             $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
