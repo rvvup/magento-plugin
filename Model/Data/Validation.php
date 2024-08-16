@@ -163,7 +163,7 @@ class Validation extends DataObject implements ValidationInterface
         $sort = true;
         /** Backward compatibility to prevent orders from failing when the plugin is upgrading */
         if (!$hash) {
-            $sort = false;
+            $sort = true;
             $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash');
         }
         if (!$hash) {
