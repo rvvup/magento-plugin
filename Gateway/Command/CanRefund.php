@@ -6,9 +6,9 @@ namespace Rvvup\Payments\Gateway\Command;
 use Exception;
 use Magento\Framework\App\Area;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Store\Model\App\Emulation;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 use Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Items;
+use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Cache;
@@ -65,7 +65,7 @@ class CanRefund implements ValueHandlerInterface
 
             $payment = $subject['payment']->getPayment();
             $orderId = $payment->getAdditionalInformation(Method::ORDER_ID) ?: $payment->getParentId();
-            if ($orderId) {
+            if ($orderId && $this->items->getCreditmemo()) {
                 $invoiceCollection = $payment->getOrder()->getInvoiceCollection();
 
                 foreach ($invoiceCollection->getItems() as $id => $invoice) {
