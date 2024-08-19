@@ -71,8 +71,8 @@ jobs:
       - name: Run PHPUnit
         run: ./vendor/bin/phpunit
 
-  build-php81-magento-ce-245:
-    name: Build (Magento Community 2.4.5 w/ PHP 8.1)
+  build-php81-magento-ce-243:
+    name: Build (Magento Community 2.4.3 w/ PHP 7.4)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -84,36 +84,6 @@ jobs:
       - name: Build
         uses: ./.github/actions/magento-build
         with:
-          php-version: 8.1
-          magento-version: magento/project-community-edition:2.4.5-p8
-  build-php81-magento-ce-246-p6:
-    name: Build (Magento Community 2.4.6 w/ PHP 8.1)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+          php-version: 7.4
+          magento-version: magento/project-community-edition:2.4.3
 
-      - name: Configure
-        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
-
-      - name: Build
-        uses: ./.github/actions/magento-build
-        with:
-          php-version: 8.1
-          magento-version: magento/project-community-edition:2.4.6
-
-  build-php81-magento-ce-247:
-    name: Build (Magento Community 2.4.7 w/ PHP 8.1)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure
-        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
-
-      - name: Build
-        uses: ./.github/actions/magento-build
-        with:
-          php-version: 8.1
-          magento-version: magento/project-community-edition:2.4.7
