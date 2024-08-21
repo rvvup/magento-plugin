@@ -216,7 +216,8 @@ class Capture
                 );
             }
 
-            $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
+            $order = $this->quoteManagement->submit($quote);
+            $orderId = $order->getId();
             $this->quoteResource->commit();
             return $this->validationInterfaceFactory->create(
                 [

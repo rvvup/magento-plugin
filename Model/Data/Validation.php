@@ -159,48 +159,48 @@ class Validation extends DataObject implements ValidationInterface
             return $this;
         }
 
-        $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash_v2');
-        $sort = true;
-        /** Backward compatibility to prevent orders from failing when the plugin is upgrading */
-        if (!$hash) {
-            $sort = true;
-            $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash');
-        }
-        if (!$hash) {
-            $sort = false;
-            $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
-        }
-
-        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, $sort);
-        if ($hash !== $savedHash) {
-            $hashItem = $this->hashRepository->getByHash($hash);
-            $message = 'Payment hash is invalid during Rvvup Checkout: ';
-            $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt();
-            $cause = 'Original value: [' . $hashItem->getRawData() . ']';
-            $cause .= ', is not equal to: [' . $hashedData . ']';
-
-            $this->logger->addRvvupError(
-                $message,
-                $cause,
-                $rvvupId,
-                null,
-                $quote->getReservedOrderId() ?? null,
-                $origin
-            );
-
-            $message = __(
-                'Your cart was modified after making payment request, please place order again. ' . $errorId
-            );
-
-            $data[ValidationInterface::IS_VALID] = false;
-            $data[ValidationInterface::REDIRECT_TO_CART] = true;
-            $data[ValidationInterface::RESTORE_QUOTE] = true;
-            if ($origin !== 'webhook') {
-                $data[ValidationInterface::MESSAGE] = $message;
-            }
-            $this->setValidationData($data);
-            return $this;
-        }
+//        $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash_v2');
+//        $sort = true;
+//        /** Backward compatibility to prevent orders from failing when the plugin is upgrading */
+//        if (!$hash) {
+//            $sort = true;
+//            $hash = $quote->getPayment()->getAdditionalInformation('rvvup_quote_hash');
+//        }
+//        if (!$hash) {
+//            $sort = false;
+//            $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
+//        }
+//
+//        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, $sort);
+//        if ($hash !== $savedHash) {
+//            $hashItem = $this->hashRepository->getByHash($hash);
+//            $message = 'Payment hash is invalid during Rvvup Checkout: ';
+//            $message .= 'Quote hash created at: ' . $hashItem->getCreatedAt();
+//            $cause = 'Original value: [' . $hashItem->getRawData() . ']';
+//            $cause .= ', is not equal to: [' . $hashedData . ']';
+//
+//            $this->logger->addRvvupError(
+//                $message,
+//                $cause,
+//                $rvvupId,
+//                null,
+//                $quote->getReservedOrderId() ?? null,
+//                $origin
+//            );
+//
+//            $message = __(
+//                'Your cart was modified after making payment request, please place order again. ' . $errorId
+//            );
+//
+//            $data[ValidationInterface::IS_VALID] = false;
+//            $data[ValidationInterface::REDIRECT_TO_CART] = true;
+//            $data[ValidationInterface::RESTORE_QUOTE] = true;
+//            if ($origin !== 'webhook') {
+//                $data[ValidationInterface::MESSAGE] = $message;
+//            }
+//            $this->setValidationData($data);
+//            return $this;
+//        }
         if ($rvvupId !== $lastTransactionId) {
             $this->logger->addRvvupError(
                 'Payment transaction id is invalid during Rvvup Checkout',
