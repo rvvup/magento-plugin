@@ -9,6 +9,7 @@ use Magento\Framework\App\Area;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -54,6 +55,9 @@ class VirtualCheckout
     /** @var PaymentLink */
     private $paymentLinkService;
 
+    /** @var UrlInterface */
+    private $url;
+
     /**
      * @param Config $config
      * @param OrderRepositoryInterface $orderRepository
@@ -65,6 +69,7 @@ class VirtualCheckout
      * @param LoggerInterface $logger
      * @param StoreManagerInterface $storeManager
      * @param PaymentLink $paymentLinkService
+     * @param UrlInterface $url
      */
     public function __construct(
         Config                   $config,
@@ -76,7 +81,8 @@ class VirtualCheckout
         Emulation                $emulation,
         LoggerInterface          $logger,
         StoreManagerInterface    $storeManager,
-        PaymentLink              $paymentLinkService
+        PaymentLink              $paymentLinkService,
+        UrlInterface             $url
     ) {
         $this->config = $config;
         $this->orderRepository = $orderRepository;
@@ -88,6 +94,7 @@ class VirtualCheckout
         $this->storeManager = $storeManager;
         $this->logger = $logger;
         $this->paymentLinkService = $paymentLinkService;
+        $this->url = $url;
     }
 
     /**
@@ -241,7 +248,7 @@ class VirtualCheckout
      * @return string
      * @throws NoSuchEntityException
      */
-    private function getApiUrl(string $storeId)
+    private function getApiUrl(string $storeId): string
     {
         $merchantId = $this->config->getMerchantId(ScopeInterface::SCOPE_STORE, $storeId);
         $baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
@@ -258,7 +265,7 @@ class VirtualCheckout
      */
     private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
-        $url = $this->info->getBaseUrl(['_scope' => $storeId])
+        $url = $this->url->getBaseUrl(['_scope' => $storeId])
             . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
 
         $postData = [
