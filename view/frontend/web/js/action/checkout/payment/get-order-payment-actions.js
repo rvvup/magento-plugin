@@ -95,6 +95,13 @@ define([
         });
     }
 
+    const removeReCaptchaListener = function (reCaptchaId) {
+        if (recaptchaRegistry.hasOwnProperty('removeListener')) {
+            recaptchaRegistry.removeListener(reCaptchaId)
+        } else {
+            recaptchaRegistry._listeners[reCaptchaId] = undefined;
+        }
+    }
         /**
          * API request to get Order Payment Actions for Rvvup Payments.
          */
@@ -122,6 +129,9 @@ define([
                 });
 
                 recaptchaRegistry.triggers[reCaptchaId]();
+
+                // Remove Recaptcha to prevent non-place order actions from triggering the listener
+                removeReCaptchaListener(reCaptchaId);
 
                 return recaptchaDeferred;
             }
