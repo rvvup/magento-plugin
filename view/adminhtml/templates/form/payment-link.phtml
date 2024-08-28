@@ -24,7 +24,7 @@ $url = $block->getUrl('rvvup/availability/index');
         </label>
     </div>
     <?php if ($secureRenderer): ?>
-        <?= $secureRenderer->renderTag(
+        <?= /* @noEscape */ $secureRenderer->renderTag(
             'script',
             ['type' => 'text/javascript'],
             " require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {

@@ -19,15 +19,16 @@ $url = $block->getUrl('rvvup/availability/index');
           id="payment_form_<?= $escaper->escapeHtmlAttr($code) ?>"
           style="display:none;">
     <div class="admin__field _required">
-        <label class="label admin__field-label" style="font-weight: normal; display: contents; word-break: auto-phrase;">
+        <label class="label admin__field-label"
+               style="font-weight: normal; display: contents; word-break: auto-phrase;">
             Available after placing order
         </label>
     </div>
     <?php if ($secureRenderer): ?>
-    <?= $secureRenderer->renderTag(
-        'script',
-        ['type' => 'text/javascript'],
-        " require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {
+        <?= /* @noEscape */ $secureRenderer->renderTag(
+            'script',
+            ['type' => 'text/javascript'],
+            " require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {
             var config = {
                 'method': '" . $escaper->escapeJs($code) . "',
                 'amount': '" . $escaper->escapeJs($amount) . "',
@@ -37,21 +38,21 @@ $url = $block->getUrl('rvvup/availability/index');
             };
             availablePayment(config);
         });",
-        false
+            false
         );
-    ?>
+        ?>
     <?php else: ?>
-    <script>
-        require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {
-            var config = {
-                'method': '<?= $escaper->escapeJs($code) ?>',
-                'amount': '<?= $escaper->escapeJs($amount) ?>',
-                'currency_code': '<?= $escaper->escapeJs($currencyCode) ?>',
-                'store_id': '<?= $escaper->escapeJs($storeId) ?>',
-                'url': '<?= $escaper->escapeJs($url) ?>',
-            };
-            availablePayment(config);
-        });
-    </script>
-    <?php endif;?>
+        <script>
+            require(['jquery', 'Rvvup_Payments/js/available-payment'], function ($, availablePayment) {
+                var config = {
+                    'method': '<?= $escaper->escapeJs($code) ?>',
+                    'amount': '<?= $escaper->escapeJs($amount) ?>',
+                    'currency_code': '<?= $escaper->escapeJs($currencyCode) ?>',
+                    'store_id': '<?= $escaper->escapeJs($storeId) ?>',
+                    'url': '<?= $escaper->escapeJs($url) ?>',
+                };
+                availablePayment(config);
+            });
+        </script>
+    <?php endif; ?>
 </fieldset>

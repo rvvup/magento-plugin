@@ -59,7 +59,7 @@ use Rvvup\Payments\Block\Order\View\Info;
     $orderId = $order->getId();
     ?>
     <?php if ($secureRenderer): ?>
-        <?= $secureRenderer->renderTag(
+        <?= /* @noEscape */ $secureRenderer->renderTag(
             'script',
             ['type' => 'text/javascript'],
             "require(['jquery', 'Rvvup_Payments/js/virtual-terminal'], function($, virtualTerminal) {
@@ -81,7 +81,7 @@ use Rvvup\Payments\Block\Order\View\Info;
             false
         );
         ?>
-        <?= $secureRenderer->renderTag(
+        <?= /* @noEscape */ $secureRenderer->renderTag(
             'script',
             ['type' => 'text/javascript'],
             "require(['jquery', 'Rvvup_Payments/js/payment-link'], function($, paymentLink) {
