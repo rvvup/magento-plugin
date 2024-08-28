@@ -170,7 +170,7 @@ class Validation extends DataObject implements ValidationInterface
             $sort = false;
             $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
         }
-
+        $quote->collectTotals();
         list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, $sort);
         if ($hash !== $savedHash) {
             $hashItem = $this->hashRepository->getByHash($hash);
