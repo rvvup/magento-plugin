@@ -58,40 +58,87 @@ use Rvvup\Payments\Block\Order\View\Info;
     $currencyCode = $order->getOrderCurrencyCode();
     $orderId = $order->getId();
     ?>
-    <script>
-        require(['jquery', 'Rvvup_Payments/js/virtual-terminal'], function($, virtualTerminal) {
-            var terminalButton = document.getElementById('rvvup-virtual-terminal');
-            if (terminalButton) {
-                terminalButton.onclick =
-                    function() {
-                        terminalButton.disabled = true;
-                        virtualTerminal.createVirtualTerminal(
-                            '<?= $escaper->escapeUrl($virtualLinkUrl) ?>',
-                            '<?= $escaper->escapeJs($amount) ?>',
-                            '<?= $escaper->escapeJs($storeId) ?>',
-                            '<?= $escaper->escapeJs($currencyCode) ?>',
-                            '<?= $escaper->escapeJs($orderId) ?>',
-                        );
-                    }
-            }
-        });
-    </script>
-    <script>
-        require(['jquery', 'Rvvup_Payments/js/payment-link'], function($, paymentLink) {
-            var paymentLinkButton = document.getElementById('rvvup-payment-link');
-            if (paymentLinkButton) {
-                paymentLinkButton.onclick =
-                    function() {
-                        paymentLinkButton.disabled = true;
-                        paymentLink.createPaymentLink(
-                            '<?= $escaper->escapeJs($paymentLinkUrl) ?>',
-                            '<?= $escaper->escapeJs($amount) ?>',
-                            '<?= $escaper->escapeJs($storeId) ?>',
-                            '<?= $escaper->escapeJs($currencyCode) ?>',
-                            '<?= $escaper->escapeJs($orderId) ?>',
-                        );
-                    }
-            }
-        });
-    </script>
+    <?php if ($secureRenderer): ?>
+        <?= $secureRenderer->renderTag(
+            'script',
+            ['type' => 'text/javascript'],
+            "require(['jquery', 'Rvvup_Payments/js/virtual-terminal'], function($, virtualTerminal) {
+                var terminalButton = document.getElementById('rvvup-virtual-terminal');
+                if (terminalButton) {
+                    terminalButton.onclick =
+                        function() {
+                            terminalButton.disabled = true;
+                            virtualTerminal.createVirtualTerminal(
+                                '" . $escaper->escapeUrl($virtualLinkUrl) . "',
+                                '" . $escaper->escapeJs($amount) . "',
+                                '" . $escaper->escapeJs($storeId) . "',
+                                '" . $escaper->escapeJs($currencyCode) . "',
+                                '" . $escaper->escapeJs($orderId) . "',
+                            );
+                        }
+                }
+            });",
+            false
+        );
+        ?>
+        <?= $secureRenderer->renderTag(
+            'script',
+            ['type' => 'text/javascript'],
+            "require(['jquery', 'Rvvup_Payments/js/payment-link'], function($, paymentLink) {
+                var paymentLinkButton = document.getElementById('rvvup-payment-link');
+                if (paymentLinkButton) {
+                    paymentLinkButton.onclick =
+                        function() {
+                            paymentLinkButton.disabled = true;
+                            paymentLink.createPaymentLink(
+                                '" . $escaper->escapeUrl($paymentLinkUrl) . "',
+                                '" . $escaper->escapeJs($amount) . "',
+                                '" . $escaper->escapeJs($storeId) . "',
+                                '" . $escaper->escapeJs($currencyCode) . "',
+                                '" . $escaper->escapeJs($orderId) . "',
+                            );
+                        }
+                }
+            });",
+            false
+        );
+        ?>
+    <?php else: ?>
+        <script>
+            require(['jquery', 'Rvvup_Payments/js/virtual-terminal'], function($, virtualTerminal) {
+                var terminalButton = document.getElementById('rvvup-virtual-terminal');
+                if (terminalButton) {
+                    terminalButton.onclick =
+                        function() {
+                            terminalButton.disabled = true;
+                            virtualTerminal.createVirtualTerminal(
+                                '<?= $escaper->escapeUrl($virtualLinkUrl) ?>',
+                                '<?= $escaper->escapeJs($amount) ?>',
+                                '<?= $escaper->escapeJs($storeId) ?>',
+                                '<?= $escaper->escapeJs($currencyCode) ?>',
+                                '<?= $escaper->escapeJs($orderId) ?>',
+                            );
+                        }
+                }
+            });
+        </script>
+        <script>
+            require(['jquery', 'Rvvup_Payments/js/payment-link'], function($, paymentLink) {
+                var paymentLinkButton = document.getElementById('rvvup-payment-link');
+                if (paymentLinkButton) {
+                    paymentLinkButton.onclick =
+                        function() {
+                            paymentLinkButton.disabled = true;
+                            paymentLink.createPaymentLink(
+                                '<?= $escaper->escapeJs($paymentLinkUrl) ?>',
+                                '<?= $escaper->escapeJs($amount) ?>',
+                                '<?= $escaper->escapeJs($storeId) ?>',
+                                '<?= $escaper->escapeJs($currencyCode) ?>',
+                                '<?= $escaper->escapeJs($orderId) ?>',
+                            );
+                        }
+                }
+            });
+        </script>
+    <?php endif;?>
 <?php endif; ?>

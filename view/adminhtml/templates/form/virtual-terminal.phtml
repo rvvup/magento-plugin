@@ -23,6 +23,24 @@ $url = $block->getUrl('rvvup/availability/index');
             Available after placing order
         </label>
     </div>
+    <?php if ($secureRenderer): ?>
+    <?= $secureRenderer->renderTag(
+        'script',
+        ['type' => 'text/javascript'],
+        " require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {
+            var config = {
+                'method': '" . $escaper->escapeJs($code) . "',
+                'amount': '" . $escaper->escapeJs($amount) . "',
+                'currency_code': '" . $escaper->escapeJs($currencyCode) . "',
+                'store_id': '" . $escaper->escapeJs($storeId) . "',
+                'url': '" . $escaper->escapeJs($url) . "',
+            };
+            availablePayment(config);
+        });",
+        false
+        );
+    ?>
+    <?php else: ?>
     <script>
         require(['jquery', 'Rvvup_Payments/js/available-payment'], function($, availablePayment) {
             var config = {
@@ -35,4 +53,5 @@ $url = $block->getUrl('rvvup/availability/index');
             availablePayment(config);
         });
     </script>
+    <?php endif;?>
 </fieldset>
