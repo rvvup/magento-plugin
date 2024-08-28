@@ -67,6 +67,17 @@ class TransactionInitialize implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         try {
+            $message = 'TransactionInitialize Entry: ';
+            $cause = 'Original value: [' . $transferObject->getBody()['total']['amount'] . ']';
+
+            $this->logger->addRvvupError(
+                $message,
+                $cause,
+                null,
+                null,
+                null,
+                "customer-flow"
+            );
             if (isset($transferObject->getBody()['id']) && isset($transferObject->getBody()['express'])) {
                 $order = $this->sdkProxy->getOrder($transferObject->getBody()['id']);
 
@@ -83,7 +94,17 @@ class TransactionInitialize implements ClientInterface
             }
 
             $input = $this->roundOrderValues($transferObject->getBody());
+            $message = 'TransactionInitialize PostRound: ';
+            $cause = 'Original value: [' . $transferObject->getBody()['total']['amount'] . ']';
 
+            $this->logger->addRvvupError(
+                $message,
+                $cause,
+                null,
+                null,
+                null,
+                "customer-flow"
+            );
             $secureBaseUrl = $this->storeManager->getStore()->getBaseUrl(
                 UrlInterface::URL_TYPE_WEB,
                 true
@@ -94,11 +115,31 @@ class TransactionInitialize implements ClientInterface
             $input['metadata']['domain'] = $secureBaseUrl;
 
             $order = $this->sdkProxy->createOrder(['input' => $input]);
+            $message = 'TransactionInitialize PostCreate: ';
+            $cause = 'Original value: [' . $transferObject->getBody()['total']['amount'] . ']';
 
+            $this->logger->addRvvupError(
+                $message,
+                $cause,
+                null,
+                null,
+                null,
+                "customer-flow"
+            );
             if ($order['data']['orderCreate']['status'] == Method::STATUS_EXPIRED) {
                 return $this->processExpiredOrder($order['externalReference']);
             }
+            $message = 'TransactionInitialize Exit: ';
+            $cause = 'Original value: [' . $transferObject->getBody()['total']['amount'] . ']';
 
+            $this->logger->addRvvupError(
+                $message,
+                $cause,
+                null,
+                null,
+                null,
+                "customer-flow"
+            );
             return $order;
         } catch (Exception $ex) {
             $this->logger->error(

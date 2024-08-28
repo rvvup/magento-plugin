@@ -136,7 +136,20 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         );
         $this->hashService->saveQuoteHash($quote);
         $this->quoteRepository->save($quote);
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
 
+        $message = 'Payment Actions Creation (Post Save Hash): ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
         // create rvvup order
         $this->commandPool->get('initialize')->execute(['quote' => $quote]);
         list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
