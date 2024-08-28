@@ -40,7 +40,6 @@
     <preference for="Rvvup\Payments\Model\Payment\PaymentDataGetInterface"
                 type="Rvvup\Payments\Model\Payment\PaymentDataGet"/>
 
-
     <!-- Checks -->
     <preference for="Rvvup\Payments\Model\Checks\HasCartExpressPaymentInterface"
                 type="Rvvup\Payments\Model\Checks\HasCartExpressPayment"/>
