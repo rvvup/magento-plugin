@@ -11,9 +11,8 @@ use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\PaymentInterface as PaymentInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Quote\Model\QuoteRepository;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
@@ -91,15 +90,68 @@ class PaymentActionsGet implements PaymentActionsGetInterface
      */
     public function execute(string $cartId, ?string $customerId = null): array
     {
+
+
         $quote = $this->quoteRepository->get($cartId);
+        $mainItems = $quote->getItems();
+        $collectionsItems = $quote->getItemsCollection()->getItems();
+        $itemsStr = "Main Items: ";
+        foreach ($mainItems as $item) {
+            $itemsStr .= $item->getSku() . '-' . $item->getQty() . ';';
+        }
+        $itemsStr .= "Collections Items: ";
+        foreach ($collectionsItems as $item) {
+            $itemsStr .= $item->getSku() . '-' . $item->getQty() . ';';
+        }
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
+        $message = 'Payment Actions Creation: ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+        $cause .= ' [' . $itemsStr . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
+
         $quote->reserveOrderId();
+        $quote->collectTotals();
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
+
+        $message = 'Payment Actions Creation (Post Collection): ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
+        $this->hashService->saveQuoteHash($quote);
         $this->quoteRepository->save($quote);
 
         // create rvvup order
         $this->commandPool->get('initialize')->execute(['quote' => $quote]);
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
+        $message = 'Payment Actions Creation (Post Order Creation): ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
 
-        $this->hashService->saveQuoteHash($quote);
-
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
         $payment = $quote->getPayment();
         if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)) {
             if (!$payment->getAdditionalInformation(Method::CREATE_NEW)) {

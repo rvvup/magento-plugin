@@ -5,12 +5,12 @@ namespace Rvvup\Payments\Model\Data;
 use Magento\Framework\DataObject;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\OrderIncrementIdChecker;
+use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
 use Rvvup\Payments\Api\HashRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Hash;
-use Psr\Log\LoggerInterface;
 
 class Validation extends DataObject implements ValidationInterface
 {
@@ -170,6 +170,31 @@ class Validation extends DataObject implements ValidationInterface
             $sort = false;
             $hash = $quote->getPayment()->getAdditionalInformation('quote_hash');
         }
+        $quote->collectTotals();
+        $mainItems = $quote->getItems();
+        $collectionsItems = $quote->getItemsCollection()->getItems();
+        $itemsStr = "Main Items: ";
+        foreach ($mainItems as $item) {
+            $itemsStr .= $item->getSku() . '-' . $item->getQty() . ';';
+        }
+        $itemsStr .= "Collections Items: ";
+        foreach ($collectionsItems as $item) {
+            $itemsStr .= $item->getSku() . '-' . $item->getQty() . ';';
+        }
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
+        $message = 'Payment Validation: ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+        $cause .= ' [' . $itemsStr . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
 
         list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, $sort);
         if ($hash !== $savedHash) {
