@@ -21,6 +21,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Service\Hash;
 
 class OrderDataBuilder
 {
@@ -52,6 +53,16 @@ class OrderDataBuilder
     private $captureService;
 
     /**
+     * Set via di.xml
+     *
+     * @var LoggerInterface|RvvupLog
+     */
+    private $logger;
+
+
+    /** @var Hash */
+    private $hashService;
+    /**
      * @param AddressRepositoryInterface $customerAddressRepository
      * @param UrlInterface $urlBuilder
      * @param ConfigInterface $config
@@ -71,7 +82,10 @@ class OrderDataBuilder
         SearchCriteriaBuilder $searchCriteriaBuilder,
         QuoteValidator $quoteValidator,
         Payment $paymentResource,
-        Capture $captureService
+        Capture $captureService,
+        LoggerInterface $logger,
+        Hash $hashService,
+
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
@@ -82,6 +96,8 @@ class OrderDataBuilder
         $this->quoteValidator = $quoteValidator;
         $this->paymentResource = $paymentResource;
         $this->captureService = $captureService;
+        $this->logger = $logger;
+        $this->hashService = $hashService;
     }
 
     /**
@@ -96,22 +112,77 @@ class OrderDataBuilder
      */
     public function build(CartInterface $quote, bool $express = false, bool $validate = true): array
     {
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
+
+        $message = 'OrderDataBuilder Entry: ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
         if (!$quote->getCustomerEmail()) {
             $this->captureService->saveCustomerEmail($quote);
         }
 
         $billingAddress = $quote->getBillingAddress();
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
 
+        $message = 'OrderDataBuilder PreValidate: ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
         if ($validate) {
             $this->quoteValidator->validateBeforeSubmit($quote);
         }
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
 
+        $message = 'OrderDataBuilder PostValidate: ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
         // Validate that billing address exists if this is NOT a request to build express payment data.
         if (!$express && $billingAddress === null) {
             $this->throwException('Billing Address is always required');
         }
 
         $orderDataArray = $this->renderBase($quote, $express);
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
+
+        $message = 'OrderDataBuilder PostRenderBase: ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
+
         $orderDataArray['customer'] = $this->renderCustomer($quote, $express, $billingAddress);
         $orderDataArray['billingAddress'] = $this->renderBillingAddress($quote, $express, $billingAddress);
 
@@ -134,7 +205,20 @@ class OrderDataBuilder
         $this->paymentResource->save($payment);
         // As we have tangible products, the order will require shipping.
         $orderDataArray['shippingTotal']['amount'] = $this->toCurrency($shippingAddress->getShippingAmount());
+        list($hashedData, $savedHash) = $this->hashService->getHashForData($quote, true);
 
+        $message = 'OrderDataBuilder End: ';
+        $cause = 'Original value: [' . $hashedData . ']';
+        $cause .= ' Saved: [' . $savedHash . ']';
+
+        $this->logger->addRvvupError(
+            $message,
+            $cause,
+            null,
+            null,
+            null,
+            "customer-flow"
+        );
         return $orderDataArray;
     }
 

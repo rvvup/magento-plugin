@@ -44,10 +44,11 @@ class Hash
      */
     public function saveQuoteHash(Quote $quote): void
     {
-        $payment = $quote->getPayment();
         list($data, $hash) = $this->getHashForData($quote, true);
         $hashItem = $this->hashFactory->create(['data' => ['hash' => $hash, 'raw_data' => $data]]);
         $this->hashRepository->save($hashItem);
+
+        $payment = $quote->getPayment();
         $payment->setAdditionalInformation('rvvup_quote_hash_v2', $hash);
         $this->paymentResource->save($payment);
     }

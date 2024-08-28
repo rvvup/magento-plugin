@@ -240,6 +240,12 @@
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
+
+    <type name="Rvvup\Payments\Model\OrderDataBuilder">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
     <!-- End of Initialize command -->
 
     <type name="Rvvup\Payments\Model\CartPaymentActionsGet">
