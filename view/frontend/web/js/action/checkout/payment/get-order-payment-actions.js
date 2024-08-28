@@ -96,6 +96,12 @@ define([
     }
 
     const removeReCaptchaListener = function (reCaptchaId) {
+        if (recaptchaRegistry._isInvisibleType &&
+            recaptchaRegistry._isInvisibleType.hasOwnProperty('recaptcha-checkout-place-order') &&
+            recaptchaRegistry._isInvisibleType['recaptcha-checkout-place-order'] === true
+        ) {
+            return;
+        }
         if (recaptchaRegistry.hasOwnProperty('removeListener')) {
             recaptchaRegistry.removeListener(reCaptchaId)
         } else {
