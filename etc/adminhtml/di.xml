@@ -42,6 +42,9 @@
         <plugin name="addRvvupPaymentLink"
                 type="Rvvup\Payments\Plugin\Order\Create\PaymentLink"
                 sortOrder="1"/>
+        <plugin name="disableEmailsForRvvupAdminMethods"
+                type="Rvvup\Payments\Plugin\DisableEmails"
+                sortOrder="1"/>
     </type>
     <type name="Rvvup\Payments\Model\Checks\HasCartRestrictedProduct">
         <arguments>
@@ -72,5 +75,10 @@
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
+    </type>
+    <type name="Magento\Sales\Block\Adminhtml\Order\Create\Totals">
+        <plugin name="disableEmailConfirmation"
+                type="Rvvup\Payments\Plugin\ConfirmationEmail"
+                sortOrder="1"/>
     </type>
 </config>

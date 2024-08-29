@@ -6,49 +6,52 @@
 
 use Magento\Framework\Escaper;
 use Rvvup\Payments\Block\Order\View\Info;
+
 ?>
 <?php if ($block->shouldDisplayRvvup()): ?>
-<script src="https://checkout.rvvup.com/sdk/v1.js"></script>
-<br>
-<section class="admin__page-section payment-link">
-    <div class="admin__page-section-title">
-        <span class="title"><?= $escaper->escapeHtml(__('Payment required via Rvvup')) ?></span>
-    </div>
-    <div class="admin__page-section-content">
-        <?php if ($block->isPaymentLinkOrder()): ?>
-        <div class="admin__page-section-item payment-link"
-             style="width: calc( (100%) * 0.5 - 30px ); float: left">
-            <?php if ($block->getPaymentLink()): ?>
-                <div class="admin__page-section-item-title">
-                    <span class="title"><?= $escaper->escapeHtml(__('Payment Link')) ?></span>
+    <script src="https://checkout.rvvup.com/sdk/v1.js"></script>
+    <br>
+    <section class="admin__page-section payment-link">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Payment required via Rvvup')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <?php if ($block->isPaymentLinkOrder()): ?>
+                <div class="admin__page-section-item payment-link"
+                     style="width: calc( (100%) * 0.5 - 30px ); float: left">
+                    <?php if ($block->getPaymentLink()): ?>
+                        <div class="admin__page-section-item-title">
+                            <span class="title"><?= $escaper->escapeHtml(__('Payment Link')) ?></span>
+                        </div>
+                        <div class="admin__page-section-item-content">
+                            <?= $escaper->escapeHtml($block->getPaymentLink()); ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="admin__page-section-item-title">
+                            <span
+                                class="title"><?= $escaper->escapeHtml(__('Generate Payment Link and send to a customer')) ?></span>
+                        </div>
+                        <div class="admin__page-section-item-content">
+                            <button id="rvvup-payment-link">Generate payment link</button>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <div class="admin__page-section-item-content">
-                    <?= $escaper->escapeHtml($block->getPaymentLink()); ?>
-                </div>
-            <?php else: ?>
-                <div class="admin__page-section-item-title">
-                    <span class="title"><?= $escaper->escapeHtml(__('Generate Payment Link and send to a customer')) ?></span>
-                </div>
-                <div class="admin__page-section-item-content">
-                    <button id="rvvup-payment-link">Generate payment link</button>
+            <?php endif; ?>
+            <?php if ($block->isMotoAvailable()): ?>
+                <div class="admin__page-section-item virtual-terminal"
+                     style="width: calc( (100%) * 0.5 - 30px ); ">
+                    <div class="admin__page-section-item-title">
+                        <span class="title"><?= $escaper->escapeHtml(__('Rvvup virtual terminal')) ?></span>
+                    </div>
+                    <div class="admin__page-section-item-content">
+                        <button id="rvvup-virtual-terminal"
+                        >Launch virtual terminal
+                        </button>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>
-        <?php endif; ?>
-        <?php if ($block->isMotoAvailable()): ?>
-        <div class="admin__page-section-item virtual-terminal"
-             style="width: calc( (100%) * 0.5 - 30px ); ">
-                <div class="admin__page-section-item-title">
-                    <span class="title"><?= $escaper->escapeHtml(__('Rvvup virtual terminal')) ?></span>
-                </div>
-                <div class="admin__page-section-item-content">
-                    <button id="rvvup-virtual-terminal"
-                    >Launch virtual terminal</button>
-                </div>
-            </div>
-        <?php endif; ?>
-        </div>
-</section>
+    </section>
     <?php
     $virtualLinkUrl = $block->getUrl('rvvup/create/virtualTerminal');
     $paymentLinkUrl = $block->getUrl('rvvup/create/paymentLink');
@@ -58,40 +61,48 @@ use Rvvup\Payments\Block\Order\View\Info;
     $currencyCode = $order->getOrderCurrencyCode();
     $orderId = $order->getId();
     ?>
-    <script>
-        require(['jquery', 'Rvvup_Payments/js/virtual-terminal'], function($, virtualTerminal) {
+    <?= /* @noEscape */
+    $secureRenderer->renderTag(
+        'script',
+        ['type' => 'text/javascript'],
+        "require(['jquery', 'Rvvup_Payments/js/virtual-terminal'], function($, virtualTerminal) {
             var terminalButton = document.getElementById('rvvup-virtual-terminal');
-            if (terminalButton) {
-                terminalButton.onclick =
-                    function() {
-                        terminalButton.disabled = true;
-                        virtualTerminal.createVirtualTerminal(
-                            '<?= $escaper->escapeUrl($virtualLinkUrl) ?>',
-                            '<?= $escaper->escapeJs($amount) ?>',
-                            '<?= $escaper->escapeJs($storeId) ?>',
-                            '<?= $escaper->escapeJs($currencyCode) ?>',
-                            '<?= $escaper->escapeJs($orderId) ?>',
-                        );
-                    }
-            }
-        });
-    </script>
-    <script>
-        require(['jquery', 'Rvvup_Payments/js/payment-link'], function($, paymentLink) {
+                if (terminalButton) {
+                    terminalButton.onclick =
+                        function() {
+                            terminalButton.disabled = true;
+                            virtualTerminal.createVirtualTerminal(
+                                '" . $escaper->escapeUrl($virtualLinkUrl) . "',
+                                '" . $escaper->escapeJs($amount) . "',
+                                '" . $escaper->escapeJs($storeId) . "',
+                                '" . $escaper->escapeJs($currencyCode) . "',
+                                '" . $escaper->escapeJs($orderId) . "',
+                            );
+                        }
+                }
+            });",
+        false
+    ); ?>
+    <?= /* @noEscape */
+    $secureRenderer->renderTag(
+        'script',
+        ['type' => 'text/javascript'],
+        "require(['jquery', 'Rvvup_Payments/js/payment-link'], function($, paymentLink) {
             var paymentLinkButton = document.getElementById('rvvup-payment-link');
-            if (paymentLinkButton) {
-                paymentLinkButton.onclick =
-                    function() {
-                        paymentLinkButton.disabled = true;
-                        paymentLink.createPaymentLink(
-                            '<?= $escaper->escapeJs($paymentLinkUrl) ?>',
-                            '<?= $escaper->escapeJs($amount) ?>',
-                            '<?= $escaper->escapeJs($storeId) ?>',
-                            '<?= $escaper->escapeJs($currencyCode) ?>',
-                            '<?= $escaper->escapeJs($orderId) ?>',
-                        );
-                    }
-            }
-        });
-    </script>
+                if (paymentLinkButton) {
+                    paymentLinkButton.onclick =
+                        function() {
+                            paymentLinkButton.disabled = true;
+                            paymentLink.createPaymentLink(
+                                '" . $escaper->escapeUrl($paymentLinkUrl) . "',
+                                '" . $escaper->escapeJs($amount) . "',
+                                '" . $escaper->escapeJs($storeId) . "',
+                                '" . $escaper->escapeJs($currencyCode) . "',
+                                '" . $escaper->escapeJs($orderId) . "',
+                            );
+                        }
+                }
+            });",
+        false
+    ); ?>
 <?php endif; ?>

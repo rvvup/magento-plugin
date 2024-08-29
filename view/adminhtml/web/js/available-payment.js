@@ -2,7 +2,8 @@ define([
     'jquery',
     'uiComponent',
     'Magento_Ui/js/modal/alert',
-], function ($, Class, alert) {
+    'Rvvup_Payments/js/order-confirmation-email'
+], function ($, Class, alert, orderConfirmationEmail) {
     'use strict';
 
     return Class.extend({
@@ -22,6 +23,8 @@ define([
                     self.isAvailable(function (available) {
                         if (!available) {
                             self.warn();
+                        } else {
+                            orderConfirmationEmail.disableSendingConfirmation();
                         }
                     });
                 });
