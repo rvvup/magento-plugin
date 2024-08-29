@@ -96,11 +96,17 @@ define([
     }
 
     const removeReCaptchaListener = function (reCaptchaId) {
-        if (recaptchaRegistry.hasOwnProperty('removeListener')) {
-            recaptchaRegistry.removeListener(reCaptchaId)
-        } else {
-            recaptchaRegistry._listeners[reCaptchaId] = undefined;
+        // Old version of Magento Security Package does not have _isInvisibleType property
+        if (!recaptchaRegistry._isInvisibleType) {
+            return;
         }
+        // Do not remove it for invisible reCaptcha
+        if (recaptchaRegistry._isInvisibleType.hasOwnProperty('recaptcha-checkout-place-order') &&
+            recaptchaRegistry._isInvisibleType['recaptcha-checkout-place-order'] === true
+        ) {
+            return;
+        }
+        recaptchaRegistry.removeListener(reCaptchaId)
     }
         /**
          * API request to get Order Payment Actions for Rvvup Payments.
