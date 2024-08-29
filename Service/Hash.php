@@ -60,7 +60,6 @@ class Hash
      */
     public function getHashForData(Quote $quote, bool $sort = false): array
     {
-        $quote->collectTotals();
         $hashedValues = [];
         foreach ($quote->getTotals() as $total) {
             $hashedValues[$total->getCode()] = $total->getValue();
