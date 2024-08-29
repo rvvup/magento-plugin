@@ -12,6 +12,7 @@ use Magento\Sales\Api\Data\CreditmemoItemInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Magento\Sales\Model\Order\Item;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Cache;
@@ -45,6 +46,9 @@ class Refund implements CommandInterface
     /** @var Cache  */
     private $cache;
 
+    /** @var Emulation */
+    private $emulation;
+
     /**
      * @param SdkProxy $sdkProxy
      * @param RefundCreateInputFactory $refundCreateInputFactory
@@ -52,6 +56,7 @@ class Refund implements CommandInterface
      * @param OrderItemRepositoryInterface $orderItemRepository
      * @param CreditmemoRepositoryInterface $creditmemoRepository
      * @param Cache $cache
+     * @param Emulation $emulation
      */
     public function __construct(
         SdkProxy $sdkProxy,
@@ -59,7 +64,8 @@ class Refund implements CommandInterface
         Json $serializer,
         OrderItemRepositoryInterface $orderItemRepository,
         CreditmemoRepositoryInterface $creditmemoRepository,
-        Cache $cache
+        Cache $cache,
+        Emulation $emulation
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->refundCreateInputFactory = $refundCreateInputFactory;
@@ -67,6 +73,7 @@ class Refund implements CommandInterface
         $this->orderItemRepository = $orderItemRepository;
         $this->creditmemoRepository = $creditmemoRepository;
         $this->cache = $cache;
+        $this->emulation = $emulation;
     }
 
     public function execute(array $commandSubject)
@@ -78,7 +85,8 @@ class Refund implements CommandInterface
         $order = $payment->getOrder();
         $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
         $orderState = $payment->getOrder()->getState();
-
+        $storeId = (int)$order->getStoreId();
+        $this->emulation->startEnvironmentEmulation($storeId);
         $input = $this->refundCreateInputFactory->create(
             $rvvupOrderId,
             $commandSubject['amount'],
@@ -109,6 +117,7 @@ class Refund implements CommandInterface
             case 'FAILED':
                 throw new CommandException(__("There was an error whilst refunding"));
         }
+        $this->emulation->stopEnvironmentEmulation();
         return $this;
     }
 
