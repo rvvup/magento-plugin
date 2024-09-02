@@ -89,14 +89,18 @@ class AdminSdkProxy extends SdkProxy
                 $order = $this->orderRepository->get((int) $orderId);
                 $storeId = (int)$order->getStoreId();
                 $this->storeManager->setCurrentStore($storeId);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+                return $storeId;
+            }
         } else if ($this->request->getParam('invoice_id')) {
             $invoiceId = $this->request->getParam('invoice_id');
             try {
                 $invoice = $this->invoiceRepository->get((int) $invoiceId);
                 $storeId = (int) $invoice->getStoreId();
                 $this->storeManager->setCurrentStore($storeId);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+                return $storeId;
+            }
         }
         return $storeId;
     }
