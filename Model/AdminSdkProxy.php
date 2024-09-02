@@ -92,7 +92,7 @@ class AdminSdkProxy extends SdkProxy
             } catch (\Exception $e) {
                 return $storeId;
             }
-        } else if ($this->request->getParam('invoice_id')) {
+        } elseif ($this->request->getParam('invoice_id')) {
             $invoiceId = $this->request->getParam('invoice_id');
             try {
                 $invoice = $this->invoiceRepository->get((int) $invoiceId);
