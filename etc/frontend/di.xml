@@ -107,4 +107,9 @@
     </type>
     <preference for="Magento\Sales\Block\Order\View" type="Rvvup\Payments\Block\Order\View"/>
     <preference for="Magento\Sales\Block\Order\Info" type="Rvvup\Payments\Block\Order\Info"/>
+    <type name="Magento\Checkout\CustomerData\Cart">
+        <plugin name="setCartId"
+                type="Rvvup\Payments\Plugin\Cart"
+                sortOrder="1"/>
+    </type>
 </config>

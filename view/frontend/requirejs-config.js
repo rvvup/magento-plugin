@@ -26,7 +26,8 @@ var config = {
     },
     map: {
         '*': {
-            'cardPayment': 'Rvvup_Payments/js/method/pay-by-card/card'
+            'cardPayment': 'Rvvup_Payments/js/method/pay-by-card/card',
+            'rvvupPaypalScript': 'Rvvup_Payments/js/method/paypal/cart'
         }
     },
     paths: {

@@ -310,6 +310,10 @@ class OrderDataBuilder
             && ($billingAddress->getFirstname() !== null || $billingAddress->getLastname() !== null)
         ) {
             $email = $billingAddress->getEmail() ?: $quote->getCustomerEmail();
+            if (!$email && $quote->getCustomer()) {
+                $email = $quote->getCustomer()->getEmail();
+            }
+
             return [
                 'givenName' => $billingAddress->getFirstname() ?? '',
                 'surname' => $billingAddress->getLastname() ?? '',
