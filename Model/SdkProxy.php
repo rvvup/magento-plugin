@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Model;
 
 use GuzzleHttp\Client;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
@@ -13,13 +14,17 @@ use Rvvup\Sdk\GraphQlSdk;
 class SdkProxy
 {
     /** @var ConfigInterface */
-    private $config;
+    protected $config;
+
     /** @var UserAgentBuilder */
-    private $userAgent;
+    protected $userAgent;
+
     /** @var GraphQlSdkFactory */
-    private $sdkFactory;
+    protected $sdkFactory;
+
     /** @var LoggerInterface */
-    private $logger;
+    protected $logger;
+
     /** @var GraphQlSdk */
     private $subject;
 
@@ -39,7 +44,7 @@ class SdkProxy
     private $monetizedMethods = [];
 
     /** @var StoreManagerInterface */
-    private $storeManager;
+    protected $storeManager;
 
     /**
      * @param ConfigInterface $config
@@ -69,8 +74,9 @@ class SdkProxy
      * Get proxied instance
      *
      * @return GraphQlSdk
+     * @throws NoSuchEntityException
      */
-    private function getSubject(): GraphQlSdk
+    protected function getSubject(): GraphQlSdk
     {
         $storeId = $this->storeManager->getStore()->getId();
         if (!isset($this->subject[$storeId])) {
@@ -97,6 +103,7 @@ class SdkProxy
      * @param string|null $currency
      * @param array|null $inputOptions
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getMethods(string $value = null, string $currency = null, ?array $inputOptions = null): array
     {

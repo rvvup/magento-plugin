@@ -81,4 +81,5 @@
                 type="Rvvup\Payments\Plugin\ConfirmationEmail"
                 sortOrder="1"/>
     </type>
+    <preference for="Rvvup\Payments\Model\SdkProxy" type="Rvvup\Payments\Model\AdminSdkProxy"/>
 </config>
