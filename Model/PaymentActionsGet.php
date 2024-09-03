@@ -12,9 +12,8 @@ use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\PaymentInterface as PaymentInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Quote\Model\QuoteRepository;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
@@ -93,6 +92,9 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     public function execute(string $cartId, ?string $customerId = null): array
     {
         $quote = $this->quoteRepository->get($cartId);
+        if ($quote != null) {
+            throw new InputException(__('Test'));
+        }
         $this->ensureCustomerEmailExists($quote);
         if (!$quote->getCustomerEmail()) {
             throw new InputException(__('Missing email address'));
