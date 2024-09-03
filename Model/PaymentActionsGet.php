@@ -93,6 +93,7 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     public function execute(string $cartId, ?string $customerId = null): array
     {
         $quote = $this->quoteRepository->get($cartId);
+        $this->ensureCustomerEmailExists($quote);
         if (!$quote->getCustomerEmail()) {
             throw new InputException(__('Missing email address'));
         }
@@ -154,6 +155,23 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         }
 
         return $paymentActionsDataArray;
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @return void
+     */
+    private function ensureCustomerEmailExists(CartInterface &$quote): void
+    {
+        if (!$quote->getCustomerEmail()) {
+            $email = $quote->getBillingAddress()->getEmail();
+            if (!$email) {
+                $email = $quote->getShippingAddress()->getEmail();
+            }
+            if ($email) {
+                $quote->setCustomerEmail($email);
+            }
+        }
     }
 
     /**
