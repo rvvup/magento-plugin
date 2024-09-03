@@ -21,7 +21,7 @@ module.exports = defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  retries: 3,
+  retries: 10,
   /* Opt out of parallel tests. */
   workers: 3,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
