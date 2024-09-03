@@ -167,9 +167,9 @@ class SdkProxy
     /**
      * {@inheritdoc}
      */
-    public function voidPayment($orderId, $paymentId)
+    public function voidPayment($orderId, $paymentId, $reason = null)
     {
-        return $this->getSubject()->voidPayment($orderId, $paymentId);
+        return $this->getSubject()->voidPayment($orderId, $paymentId, $reason);
     }
 
     /**
