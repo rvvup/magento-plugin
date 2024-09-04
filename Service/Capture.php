@@ -203,9 +203,6 @@ class Capture
         $payment = $quote->getPayment();
 
         try {
-            if (!$quote->getCustomerEmail()) {
-                $this->saveCustomerEmail($quote);
-            }
             if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
                 return $this->validationInterfaceFactory->create(
                     [
@@ -265,28 +262,6 @@ class Capture
                     ]
                 ]
             );
-        }
-    }
-
-    /**
-     * @param CartInterface $quote
-     * @return void
-     */
-    public function saveCustomerEmail(CartInterface $quote): void
-    {
-        $email = $quote->getBillingAddress()->getEmail();
-
-        if (!$email) {
-            $email = $quote->getShippingAddress()->getEmail();
-        }
-
-        if (!$email && $quote->getCustomerId()) {
-            $email = $quote->getCustomer()->getEmail();
-        }
-
-        if ($email) {
-            $quote->setCustomerEmail($email);
-            $this->cartRepository->save($quote);
         }
     }
 

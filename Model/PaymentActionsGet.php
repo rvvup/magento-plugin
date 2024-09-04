@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model;
 
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Payment\Gateway\Command\CommandException;
@@ -92,6 +93,10 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     public function execute(string $cartId, ?string $customerId = null): array
     {
         $quote = $this->quoteRepository->get($cartId);
+        $this->ensureCustomerEmailExists($quote);
+        if (!$quote->getCustomerEmail()) {
+            throw new InputException(__('Missing email address'));
+        }
         $quote->reserveOrderId();
         $this->quoteRepository->save($quote);
 
@@ -150,6 +155,23 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         }
 
         return $paymentActionsDataArray;
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @return void
+     */
+    private function ensureCustomerEmailExists(CartInterface &$quote): void
+    {
+        if (!$quote->getCustomerEmail()) {
+            $email = $quote->getBillingAddress()->getEmail();
+            if (!$email) {
+                $email = $quote->getShippingAddress()->getEmail();
+            }
+            if ($email) {
+                $quote->setCustomerEmail($email);
+            }
+        }
     }
 
     /**
