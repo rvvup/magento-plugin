@@ -324,6 +324,13 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Service\VirtualCheckout">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+            <argument name="url" xsi:type="object">Magento\Backend\Model\Url</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Model\CartExpressPaymentRemove">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
