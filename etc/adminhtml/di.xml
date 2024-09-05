@@ -61,11 +61,6 @@
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
-    <type name="Rvvup\Payments\Service\VirtualCheckout">
-        <arguments>
-            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
-        </arguments>
-    </type>
     <type name="Rvvup\Payments\Controller\Adminhtml\Create\PaymentLink">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>

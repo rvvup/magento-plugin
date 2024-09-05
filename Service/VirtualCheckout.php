@@ -13,7 +13,6 @@ use Magento\Framework\UrlInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Block\Adminhtml\Order\View\Info;
 use Magento\Store\Model\App\Emulation;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
@@ -40,9 +39,6 @@ class VirtualCheckout
     /** @var Payment */
     private $paymentResource;
 
-    /** @var Info */
-    private $info;
-
     /** @var Emulation */
     private $emulation;
 
@@ -64,7 +60,6 @@ class VirtualCheckout
      * @param Payment $paymentResource
      * @param SerializerInterface $json
      * @param Curl $curl
-     * @param Info $info
      * @param Emulation $emulation
      * @param LoggerInterface $logger
      * @param StoreManagerInterface $storeManager
@@ -77,7 +72,6 @@ class VirtualCheckout
         Payment                  $paymentResource,
         SerializerInterface      $json,
         Curl                     $curl,
-        Info                     $info,
         Emulation                $emulation,
         LoggerInterface          $logger,
         StoreManagerInterface    $storeManager,
@@ -89,7 +83,6 @@ class VirtualCheckout
         $this->paymentResource = $paymentResource;
         $this->json = $json;
         $this->curl = $curl;
-        $this->info = $info;
         $this->emulation = $emulation;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
@@ -156,7 +149,13 @@ class VirtualCheckout
         }
 
         $this->emulation->startEnvironmentEmulation($adminStoreId, Area::AREA_ADMINHTML);
-        $url = $this->info->getViewUrl($orderId);
+        $url = $this->url->getUrl('sales/order/view',
+            [
+                'order_id' => $orderId,
+                '_type' => 'adminhtml',
+                '_scope' => $adminStoreId
+            ]
+        );
         $this->emulation->stopEnvironmentEmulation();
         return $url;
     }
@@ -265,7 +264,7 @@ class VirtualCheckout
      */
     private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
-        $url = $this->url->getBaseUrl(['_scope' => $storeId])
+        $url = $this->url->getBaseUrl(['_scope' => $storeId, '_type' => 'frontend'])
             . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
 
         $postData = [
