@@ -129,20 +129,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $checkoutId = $this->request->getParam('checkout_id', false);
             $storeId = $this->getStoreId();
 
-            // Ensure required params are present
-            if (!$merchantId || !$rvvupOrderId) {
-                /**
-                 * If one of these values is missing the request is likely not from the Rvvup backend
-                 * so returning a 400 should be fine to indicate the request is invalid and won't cause
-                 * Rvvup to make repeated requests to the webhook.
-                 */
-                return $this->returnInvalidResponse('Missing required params', [
-                    'rvvupOrderId' => $rvvupOrderId,
-                    'merchantId' => $merchantId,
-                    'paymentId' => $paymentId,
-                    'paymentLinkId' => $paymentLinkId,
-                    'checkoutId' => $checkoutId,
-                ]);
+            if (!$merchantId) {
+                return $this->returnInvalidResponse('Merchant id is not present', []);
             }
 
             // Merchant ID does not match, no need to process
@@ -192,11 +180,16 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 $payload['store_id'] = $order->getStoreId();
             }
 
-            if ($payload['event_type'] == Complete::TYPE) {
+            if ($eventType == Complete::TYPE) {
+                if (!$rvvupOrderId || !$refundId) {
+                    return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
+                }
                 $this->refundPool->getProcessor($eventType)->execute($payload);
                 return $this->returnSuccessfulResponse();
-            } elseif ($payload['event_type'] == self::PAYMENT_COMPLETED ||
-                $payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+            } elseif ($eventType == self::PAYMENT_COMPLETED || $eventType == Method::STATUS_PAYMENT_AUTHORIZED) {
+                if (!$rvvupOrderId) {
+                    return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
+                }
                 $date = date('Y-m-d H:i:s', strtotime('now'));
                 $webhook = $this->webhookRepository->new(
                     [
@@ -276,6 +269,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         return $response;
     }
 
+    /**
+     * @return ResultInterface
+     */
     private function returnExceptionResponse(): ResultInterface
     {
         $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
