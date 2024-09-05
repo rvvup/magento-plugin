@@ -153,7 +153,7 @@ class VirtualCheckout
             'sales/order/view',
             [
                 'order_id' => $orderId,
-                '_type' => 'adminhtml',
+                '_type' => UrlInterface::URL_TYPE_WEB,
                 '_scope' => $adminStoreId
             ]
         );
@@ -265,7 +265,7 @@ class VirtualCheckout
      */
     private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
-        $url = $this->url->getBaseUrl(['_scope' => $storeId, '_type' => 'frontend'])
+        $url = $this->url->getBaseUrl(['_scope' => $storeId, '_type' => UrlInterface::URL_TYPE_WEB])
             . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
 
         $postData = [
