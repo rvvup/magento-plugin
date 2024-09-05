@@ -13,6 +13,8 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Magento\Store\App\Request\StorePathInfoValidator;
 use Magento\Store\Model\StoreManagerInterface;
@@ -119,19 +121,22 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     public function execute(): ResultInterface
     {
-        try {
-            $merchantId = $this->request->getParam('merchant_id', false);
-            $rvvupOrderId = $this->request->getParam('order_id', false);
-            $eventType = $this->request->getParam('event_type', false);
-            $paymentId = $this->request->getParam('payment_id', false);
-            $refundId = $this->request->getParam('refund_id', false);
-            $paymentLinkId = $this->request->getParam('payment_link_id', false);
-            $checkoutId = $this->request->getParam('checkout_id', false);
-            $storeId = $this->getStoreId();
+        $merchantId = $this->request->getParam('merchant_id', false);
+        $rvvupOrderId = $this->request->getParam('order_id', false);
+        $eventType = $this->request->getParam('event_type', false);
+        $paymentId = $this->request->getParam('payment_id', false);
+        $refundId = $this->request->getParam('refund_id', false);
+        $paymentLinkId = $this->request->getParam('payment_link_id', false);
+        $checkoutId = $this->request->getParam('checkout_id', false);
+        $storeId = null;
 
+        try {
             if (!$merchantId) {
                 return $this->returnInvalidResponse('Merchant id is not present', []);
             }
+            list($quote, $order) = $this->orderOrQuoteResolver($rvvupOrderId, $paymentLinkId, $checkoutId);
+
+            $storeId = $this->getStoreId($quote, $order);
 
             // Merchant ID does not match, no need to process
             if ($merchantId !== $this->config->getMerchantId()) {
@@ -145,48 +150,35 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 );
             }
 
-            $payload = [
-                'order_id' => $rvvupOrderId,
-                'merchant_id' => $merchantId,
-                'refund_id' => $refundId,
-                'payment_id' => $paymentId,
-                'event_type' => $eventType,
-                'store_id' => $storeId,
-                'payment_link_id' => $paymentLinkId,
-                'checkout_id' => $checkoutId,
-                'origin' => 'webhook'
-            ];
-
-            $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
-            if ($quote && $quote->getId()) {
-                $payload['quote_id'] = $quote->getId();
-                $payload['store_id'] = $quote->getStoreId();
-            } elseif (isset($payload['payment_link_id']) && $payload['payment_link_id']) {
-                $order = $this->captureService->getOrderByPaymentField(
-                    Method::PAYMENT_LINK_ID,
-                    $paymentLinkId
-                );
-            } elseif (isset($payload['checkout_id']) && $payload['checkout_id']) {
-                $order = $this->captureService->getOrderByPaymentField(
-                    Method::MOTO_ID,
-                    $checkoutId
-                );
-            } else {
-                $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-            }
-
-            if (isset($order) && $order->getId()) {
-                $payload['magento_order_id'] = $order->getId();
-                $payload['store_id'] = $order->getStoreId();
-            }
-
             if ($eventType == Complete::TYPE) {
+                $payload = [
+                    'order_id' => $rvvupOrderId,
+                    'merchant_id' => $merchantId,
+                    'refund_id' => $refundId,
+                    'store_id' => $storeId,
+                ];
+
                 if (!$rvvupOrderId || !$refundId) {
                     return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
                 }
                 $this->refundPool->getProcessor($eventType)->execute($payload);
                 return $this->returnSuccessfulResponse();
             } elseif ($eventType == self::PAYMENT_COMPLETED || $eventType == Method::STATUS_PAYMENT_AUTHORIZED) {
+                $payload = [
+                    'order_id' => $rvvupOrderId,
+                    'merchant_id' => $merchantId,
+                    'payment_id' => $paymentId,
+                    'event_type' => $eventType,
+                    'store_id' => $storeId,
+                    'payment_link_id' => $paymentLinkId,
+                    'checkout_id' => $checkoutId,
+                    'origin' => 'webhook'
+                ];
+                if (isset($quote)) {
+                    $payload['quote_id'] = $quote->getId();
+                } elseif (isset($order)) {
+                    $payload['magento_order_id'] = $order->getId();
+                }
                 if (!$rvvupOrderId) {
                     return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
                 }
@@ -203,8 +195,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
             return $this->returnSuccessfulResponse();
         } catch (Exception $e) {
-            $this->logger->debug('Webhook exception:' . $e->getMessage(), [
+            $this->logger->error('Webhook exception:' . $e->getMessage(), [
+                'merchant_id' => $merchantId,
+                'event_type' => $eventType,
                 'order_id' => $rvvupOrderId,
+                'resolved_store_id' => $storeId
             ]);
             return $this->returnExceptionResponse();
         }
@@ -281,12 +276,41 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     }
 
     /**
-     * @return string
+     * @param Quote|null $quote
+     * @param OrderInterface|null $order
+     * @return int
      * @throws NoSuchEntityException
      */
-    private function getStoreId(): string
+    private function getStoreId(?Quote $quote, ?OrderInterface $order): int
     {
-        $storeId = $this->storeManager->getStore()->getId();
-        return (string) $storeId;
+        if (isset($quote)) {
+            return $quote->getStoreId();
+        }
+        if (isset($order) && $order->getId()) {
+            return $order->getStoreId();
+        }
+
+        return $this->storeManager->getStore()->getId();
+    }
+
+    private function orderOrQuoteResolver($rvvupOrderId, $paymentLinkId, $checkoutId): array
+    {
+        if (isset($rvvupOrderId) && $rvvupOrderId) {
+            $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
+            if ($quote && $quote->getId()) {
+                return [$quote, null];
+            }
+        }
+        if (isset($paymentLinkId) && $paymentLinkId) {
+            $order = $this->captureService->getOrderByPaymentField(Method::PAYMENT_LINK_ID, $paymentLinkId);
+        } elseif (isset($checkoutId) && $checkoutId) {
+            $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId);
+        } elseif ($rvvupOrderId) {
+            $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+        }
+        if (isset($order)) {
+            return [null, $order];
+        }
+        return [null, null];
     }
 }
