@@ -131,13 +131,12 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $storeId = $this->getStoreId($quote, $order);
 
             // Merchant ID does not match, no need to process
-            if ($merchantId !== $this->config->getMerchantId()) {
+            if ($merchantId !== $this->config->getMerchantIdByStore($storeId)) {
                 return $this->returnSkipResponse(
                     'Invalid merchant id',
                     [
                         'merchant_id' => $merchantId,
-                        'config_merchant_id' => $this->config->getMerchantId(),
-                        'rvvup_id' => $rvvupOrderId
+                        'config_merchant_id' => $this->config->getMerchantIdByStore($storeId),
                     ]
                 );
             }

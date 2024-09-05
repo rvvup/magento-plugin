@@ -20,6 +20,8 @@ class Config implements ConfigInterface
      */
     private $jwt;
 
+    private $rvvupJwtByStoreMap;
+
     /**
      * @var StoreManagerInterface
      */
@@ -35,6 +37,7 @@ class Config implements ConfigInterface
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
+        $this->rvvupJwtByStoreMap = [];
     }
 
     /**
@@ -103,6 +106,28 @@ class Config implements ConfigInterface
         return $trimmedValue;
     }
 
+    private function getJwtConfigByStore(int $storeId): ?string
+    {
+        $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG . self::XML_PATH_JWT, ScopeInterface::SCOPE_STORE, $storeId);
+
+        if ($value === null) {
+            return null;
+        }
+
+        // JWT should be a string.
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $trimmedValue = trim($value);
+
+        if ($trimmedValue === '') {
+            return null;
+        }
+
+        return $trimmedValue;
+    }
+
     /**
      * Get the endpoint URL.
      *
@@ -132,6 +157,12 @@ class Config implements ConfigInterface
 
         return $jwt === null ? '' : (string) $jwt->merchantId;
     }
+
+    public function getMerchantIdByStore(int $storeId): ?string
+    {
+        return $this->getStringConfigFromJwt($storeId, "merchantId");
+    }
+
 
     /**
      * Get the Authorization Token.
@@ -196,6 +227,38 @@ class Config implements ConfigInterface
 
         return $this->jwt[$scopeCode];
     }
+
+    private function getStringConfigFromJwt(int $storeId, string $configKey): ?string
+    {
+        $jwt = $this->getJwtByStore($storeId);
+        if ($jwt == null) {
+            return null;
+        }
+        return $jwt[$configKey];
+    }
+
+    private function getJwtByStore(int $storeId): ?array
+    {
+        if (isset($this->rvvupJwtByStoreMap[$storeId])) {
+            return $this->rvvupJwtByStoreMap[$storeId];
+        }
+        $jwt = $this->getJwtConfigByStore($storeId);
+        if ($jwt == null) {
+            return null;
+        }
+        $parts = explode('.', $jwt);
+        if (!$parts || count($parts) <= 1) {
+            return null;
+        }
+        $payload = $parts[1];
+        if ($payload == null) {
+            return null;
+        }
+        $decodedPayload = json_decode(base64_decode($payload), true);
+        $this->rvvupJwtByStoreMap[$storeId] = $decodedPayload;
+        return $this->rvvupJwtByStoreMap[$storeId];
+    }
+
 
     /**
      *

@@ -66,6 +66,14 @@ interface ConfigInterface
     public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
 
     /**
+     * Get the Merchant ID by store ID.
+     *
+     * @param int $storeId to get the config for
+     * @return string|null The merchant ID or NULL if not found
+     */
+    public function getMerchantIdByStore(int $storeId): ?string;
+
+    /**
      * Get the Authorization Token.
      *
      * @param string $scopeType
