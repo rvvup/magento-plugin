@@ -10,7 +10,7 @@ interface WebhookRepositoryInterface
      * @param array $data
      * @return WebhookInterface
      */
-    public function new(array $data = []): WebhookInterface;
+    public function addToWebhookQueue(array $data = []): WebhookInterface;
 
     /**
      * @param WebhookInterface $webhook

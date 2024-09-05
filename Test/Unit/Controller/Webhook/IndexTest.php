@@ -9,6 +9,7 @@ use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Model\Order;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Magento\Store\App\Request\StorePathInfoValidator;
@@ -16,6 +17,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Controller\Webhook\Index;
+use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool;
 use Rvvup\Payments\Model\WebhookRepository;
@@ -76,7 +78,6 @@ class IndexTest extends TestCase
             $this->createMock(StoreRepositoryInterface::class),
             $this->createMock(Http::class),
             $this->config,
-            $this->serializer,
             $resultFactory,
             $this->logger,
             $this->webhookRepository,
@@ -154,6 +155,129 @@ class IndexTest extends TestCase
             'checkout_id' => false,
             'origin' => 'webhook'
         ]]);
+
+        $response = $this->controller->execute();
+
+        $this->assertSame($this->resultMock, $response);
+    }
+
+    /**
+     * @dataProvider paymentEvents
+     */
+    public function testPaymentEventsAddsToWebhookQueueForFrontendStoreOrders($eventType)
+    {
+        $this->request->method('getParam')->willReturnMap([
+            ['merchant_id', false, 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W'],
+            ['order_id', false, 'OR01J7BV2CNG46PQY5CK6M1X9MJ2'],
+            ['payment_id', false, 'PA01J7BV2D778CS3Z8XQSKGVRYYZ'],
+            ['event_type', false, $eventType],
+        ]);
+        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $quoteMock = $this->createMock(Quote::class);
+        $quoteMock->method('getId')->willReturn(123);
+        $quoteMock->method('getStoreId')->willReturn(5);
+        $this->captureService->method('getQuoteByRvvupId')->willReturn($quoteMock);
+
+        $this->expectsResult(202);
+
+        $this->webhookRepository->expects($this->once())
+            ->method('addToWebhookQueue')
+            ->with([
+                'order_id' => 'OR01J7BV2CNG46PQY5CK6M1X9MJ2',
+                'merchant_id' => 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W',
+                'payment_id' => 'PA01J7BV2D778CS3Z8XQSKGVRYYZ',
+                'event_type' => $eventType,
+                'store_id' => 5,
+                'payment_link_id' => false,
+                'checkout_id' => false,
+                'origin' => 'webhook',
+                'quote_id' => 123
+
+            ]);
+
+        $response = $this->controller->execute();
+
+        $this->assertSame($this->resultMock, $response);
+    }
+
+    /**
+     * @dataProvider paymentEvents
+     */
+    public function testPaymentEventsAddsToWebhookQueueForPaymentLinks($eventType)
+    {
+        $this->request->method('getParam')->willReturnMap([
+            ['merchant_id', false, 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W'],
+            ['order_id', false, 'OR01J7BV2CNG46PQY5CK6M1X9MJ2'],
+            ['payment_id', false, 'PA01J7BV2D778CS3Z8XQSKGVRYYZ'],
+            ['payment_link_id', false, 'PL01J7BVM004DDWDFM73BGXTT1J4'],
+            ['event_type', false, $eventType],
+        ]);
+        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
+        $orderMock = $this->createMock(Order::class);
+        $orderMock->method('getId')->willReturn(123);
+        $orderMock->method('getStoreId')->willReturn(5);
+        $this->captureService->method('getOrderByPaymentField')
+            ->with(Method::PAYMENT_LINK_ID, 'PL01J7BVM004DDWDFM73BGXTT1J4')
+            ->willReturn($orderMock);
+
+        $this->expectsResult(202);
+
+        $this->webhookRepository->expects($this->once())
+            ->method('addToWebhookQueue')
+            ->with([
+                'order_id' => 'OR01J7BV2CNG46PQY5CK6M1X9MJ2',
+                'merchant_id' => 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W',
+                'payment_id' => 'PA01J7BV2D778CS3Z8XQSKGVRYYZ',
+                'event_type' => $eventType,
+                'store_id' => 5,
+                'payment_link_id' => 'PL01J7BVM004DDWDFM73BGXTT1J4',
+                'checkout_id' => false,
+                'origin' => 'webhook',
+                'magento_order_id' => 123
+            ]);
+
+        $response = $this->controller->execute();
+
+        $this->assertSame($this->resultMock, $response);
+    }
+
+    /**
+     * @dataProvider paymentEvents
+     */
+    public function testPaymentEventsAddsToWebhookQueueForVirtualTerminalOrders($eventType)
+    {
+        $this->request->method('getParam')->willReturnMap([
+            ['merchant_id', false, 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W'],
+            ['order_id', false, 'OR01J7BV2CNG46PQY5CK6M1X9MJ2'],
+            ['payment_id', false, 'PA01J7BV2D778CS3Z8XQSKGVRYYZ'],
+            ['checkout_id', false, 'CO01J7BVM004DDWDFM73BGXTT1J4'],
+            ['event_type', false, $eventType],
+        ]);
+        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
+        $orderMock = $this->createMock(Order::class);
+        $orderMock->method('getId')->willReturn(123);
+        $orderMock->method('getStoreId')->willReturn(5);
+        $this->captureService->method('getOrderByPaymentField')
+            ->with(Method::MOTO_ID, 'CO01J7BVM004DDWDFM73BGXTT1J4')
+            ->willReturn($orderMock);
+
+        $this->expectsResult(202);
+
+        $this->webhookRepository->expects($this->once())
+            ->method('addToWebhookQueue')
+            ->with([
+                'order_id' => 'OR01J7BV2CNG46PQY5CK6M1X9MJ2',
+                'merchant_id' => 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W',
+                'payment_id' => 'PA01J7BV2D778CS3Z8XQSKGVRYYZ',
+                'event_type' => $eventType,
+                'store_id' => 5,
+                'payment_link_id' => false,
+                'checkout_id' => 'CO01J7BVM004DDWDFM73BGXTT1J4',
+                'origin' => 'webhook',
+                'magento_order_id' => 123
+            ]);
 
         $response = $this->controller->execute();
 

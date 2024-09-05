@@ -12,7 +12,6 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
@@ -37,9 +36,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /** @var ConfigInterface */
     private $config;
-
-    /** @var SerializerInterface */
-    private $serializer;
 
     /** @var ResultFactory */
     private $resultFactory;
@@ -77,7 +73,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param StoreRepositoryInterface $storeRepository
      * @param Http $http
      * @param ConfigInterface $config
-     * @param SerializerInterface $serializer
      * @param ResultFactory $resultFactory
      * @param LoggerInterface $logger
      * @param WebhookRepository $webhookRepository
@@ -91,7 +86,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         StoreRepositoryInterface $storeRepository,
         Http                     $http,
         ConfigInterface          $config,
-        SerializerInterface      $serializer,
         ResultFactory            $resultFactory,
         LoggerInterface          $logger,
         WebhookRepository        $webhookRepository,
@@ -102,7 +96,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     ) {
         $this->request = $request;
         $this->config = $config;
-        $this->serializer = $serializer;
         $this->resultFactory = $resultFactory;
         $this->logger = $logger;
         $this->webhookRepository = $webhookRepository;
@@ -182,14 +175,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 if (!$rvvupOrderId) {
                     return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
                 }
-                $date = date('Y-m-d H:i:s', strtotime('now'));
-                $webhook = $this->webhookRepository->new(
-                    [
-                        'payload' => $this->serializer->serialize($payload),
-                        'created_at' => $date
-                    ]
-                );
-                $this->webhookRepository->save($webhook);
+                $this->webhookRepository->addToWebhookQueue($payload);
                 return $this->returnSuccessfulResponse();
             }
 
