@@ -149,7 +149,8 @@ class VirtualCheckout
         }
 
         $this->emulation->startEnvironmentEmulation($adminStoreId, Area::AREA_ADMINHTML);
-        $url = $this->url->getUrl('sales/order/view',
+        $url = $this->url->getUrl(
+            'sales/order/view',
             [
                 'order_id' => $orderId,
                 '_type' => 'adminhtml',
