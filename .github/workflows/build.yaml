@@ -69,7 +69,7 @@ jobs:
         run: composer install --no-ansi --no-interaction --no-progress --no-scripts
 
       - name: Run PHPUnit
-        run: ./vendor/bin/phpunit
+        run: ./vendor/bin/phpunit --testdox
 
   build-php81-magento-ce-243:
     name: Build (Magento Community 2.4.3 w/ PHP 7.4)
