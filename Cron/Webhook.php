@@ -12,6 +12,7 @@ use Rvvup\Payments\Controller\Webhook\Index;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollection;
 use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollectionFactory;
+use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Model\WebhookRepository;
 use Rvvup\Payments\Service\Capture;
 
@@ -98,11 +99,11 @@ class Webhook
                         if (!$this->validateMoto($data, $webhookId)) {
                             continue;
                         }
-                    } elseif ($data['event_type'] == Index::PAYMENT_COMPLETED) {
+                    } elseif ($data['event_type'] == WebhookEventType::PAYMENT_COMPLETED) {
                         if (!$this->validatePaymentCompleted($orderId, $webhookId)) {
                             continue;
                         }
-                    } elseif ($data['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+                    } elseif ($data['event_type'] == WebhookEventType::PAYMENT_AUTHORIZED) {
                         if (!$this->validatePaymentAuthorized($orderId, $webhookId)) {
                             continue;
                         }

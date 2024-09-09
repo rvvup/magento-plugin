@@ -21,8 +21,8 @@ use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
-use Rvvup\Payments\Model\ProcessRefund\Complete;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
+use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Model\WebhookRepository;
 use Rvvup\Payments\Service\Capture;
 
@@ -32,8 +32,6 @@ use Rvvup\Payments\Service\Capture;
  */
 class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 {
-    public const PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
-
     /** @var RequestInterface */
     private $request;
 
@@ -150,7 +148,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 );
             }
 
-            if ($eventType == Complete::TYPE) {
+            if ($eventType == WebhookEventType::REFUND_COMPLETED) {
                 $payload = [
                     'order_id' => $rvvupOrderId,
                     'merchant_id' => $merchantId,
@@ -163,7 +161,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 }
                 $this->refundPool->getProcessor($eventType)->execute($payload);
                 return $this->returnSuccessfulResponse();
-            } elseif ($eventType == self::PAYMENT_COMPLETED || $eventType == Method::STATUS_PAYMENT_AUTHORIZED) {
+            } elseif ($eventType == WebhookEventType::PAYMENT_COMPLETED ||
+                $eventType == WebhookEventType::PAYMENT_AUTHORIZED
+            ) {
                 $payload = [
                     'order_id' => $rvvupOrderId,
                     'merchant_id' => $merchantId,

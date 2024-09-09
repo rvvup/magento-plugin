@@ -15,8 +15,6 @@ use Rvvup\Payments\Service\Capture;
 
 class Complete implements ProcessorInterface
 {
-    public const TYPE = 'REFUND_COMPLETED';
-
     /**
      * @var LoggerInterface|RvvupLog
      */

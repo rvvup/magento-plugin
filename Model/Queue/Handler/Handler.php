@@ -19,6 +19,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\RvvupConfigProvider;
+use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
 
@@ -155,7 +156,7 @@ class Handler
                 return;
             }
 
-            if ($payload['event_type'] == Method::STATUS_PAYMENT_AUTHORIZED) {
+            if ($payload['event_type'] == WebhookEventType::PAYMENT_AUTHORIZED) {
                 if (isset($payload['quote_id']) && $payload['quote_id']) {
                     $quote = $this->cartRepository->get((int)$payload['quote_id']);
                 } else {
