@@ -63,7 +63,6 @@ class Method extends Adapter
     public const STATUS_PENDING = 'PENDING';
     public const STATUS_REQUIRES_ACTION = 'REQUIRES_ACTION';
     public const STATUS_AUTHORIZED = "AUTHORIZED";
-    public const STATUS_PAYMENT_AUTHORIZED = "PAYMENT_AUTHORIZED";
     public const STATUS_AUTHORIZATION_EXPIRED = "AUTHORIZATION_EXPIRED";
     public const STATUS_FAILED = "FAILED";
     public const STATUS_SUCCEEDED = 'SUCCEEDED';
