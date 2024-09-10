@@ -12,9 +12,8 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Rvvup\Payments\Model\Config;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\UserAgentBuilder;
 use Rvvup\Sdk\GraphQlSdkFactory;
 
@@ -29,7 +28,7 @@ class Webhook implements ObserverInterface
     /** @var ScopeConfigInterface */
     private $scopeConfig;
 
-    /** @var Config */
+    /** @var RvvupConfigurationInterface */
     private $config;
 
     /** @var GraphQlSdkFactory */
@@ -46,14 +45,14 @@ class Webhook implements ObserverInterface
 
     /**
      * @param StoreManagerInterface $storeManager
-     * @param Config $config
+     * @param RvvupConfigurationInterface $config
      * @param ScopeConfigInterface $scopeConfig
      * @param GraphQlSdkFactory $sdkFactory
      * @param UserAgentBuilder $userAgentBuilder
      */
     public function __construct(
         StoreManagerInterface $storeManager,
-        Config $config,
+        RvvupConfigurationInterface $config,
         ScopeConfigInterface $scopeConfig,
         GraphQlSdkFactory $sdkFactory,
         UserAgentBuilder $userAgentBuilder
@@ -88,7 +87,7 @@ class Webhook implements ObserverInterface
                 } elseif ($storeId) {
                     $store = $this->storeManager->getStore($storeId);
                     $url = $store->getBaseUrl(UrlInterface::URL_TYPE_LINK, true) . 'rvvup/webhook';
-                    $this->registerWebhookUrl($url, ScopeInterface::SCOPE_STORE, $storeId);
+                    $this->registerWebhookUrl($url, $storeId);
                 }
             }
         }
@@ -102,27 +101,26 @@ class Webhook implements ObserverInterface
     {
         foreach ($stores as $store) {
             $url = $store->getBaseUrl(UrlInterface::URL_TYPE_LINK, true) . 'rvvup/webhook';
-            $this->registerWebhookUrl($url, ScopeInterface::SCOPE_STORE, (string)$store->getId());
+            $this->registerWebhookUrl($url, $store->getId());
         }
     }
 
     /**
      * Register rvvup webhook url
      * @param string $url
-     * @param string $scope
-     * @param string $scopeId
+     * @param int $storeId
      * @return void
      * @throws NoSuchEntityException
      */
-    private function registerWebhookUrl(string $url, string $scope, string $scopeId): void
+    private function registerWebhookUrl(string $url, int $storeId): void
     {
-        $merchantId = $this->config->getMerchantId($scope, $scopeId);
-        $endpoint = $this->config->getEndpoint($scope, $scopeId);
+        $merchantId = $this->config->getMerchantId($storeId);
+        $endpoint = $this->config->getGraphQlUrl($storeId);
         if ($this->merchantId !== $merchantId && $this->endpoint !== $endpoint) {
             $connection = $this->sdkFactory->create([
                 'endpoint' => $endpoint,
                 'merchantId' => $merchantId,
-                'authToken' => $this->config->getAuthToken($scope, $scopeId),
+                'authToken' => $this->config->getBasicAuthToken($storeId),
                 'userAgent' => $this->userAgentBuilder->get(),
                 'debug' => false,
                 'adapter' => (new Client()),

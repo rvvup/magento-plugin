@@ -29,6 +29,14 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
+    public function isDebugEnabled(int $storeId): bool
+    {
+        return $this->scopeConfig->getValue(self::RVVUP_CONFIG_PATH . "debug", ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getMerchantId(int $storeId): ?string
     {
         return $this->getStringConfigFromJwt($storeId, "merchantId");
@@ -44,6 +52,18 @@ class RvvupConfiguration implements RvvupConfigurationInterface
             return null;
         }
         return str_replace('graphql', 'api/2024-03-01', $audience);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getGraphQlUrl(int $storeId): ?string
+    {
+        $audience = $this->getStringConfigFromJwt($storeId, "aud");
+        if ($audience == null) {
+            return null;
+        }
+        return $audience;
     }
 
     /**
@@ -69,6 +89,20 @@ class RvvupConfiguration implements RvvupConfigurationInterface
         }
 
         return $trimmedValue;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getBasicAuthToken(int $storeId): ?string
+    {
+        $username = $this->getStringConfigFromJwt($storeId, "username");
+        $password = $this->getStringConfigFromJwt($storeId, "password");
+        if ($username == null || $password == null) {
+            return null;
+        }
+
+        return base64_encode($username . ':' . $password);
     }
 
     /**
