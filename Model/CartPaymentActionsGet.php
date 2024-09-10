@@ -87,7 +87,7 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
         }
         $data = ['quote' => $cart, 'validate' => !$expressActions];
         $this->commandPool->get('initialize')->execute($data);
-        $data = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
+        $data = $this->commandPool->get('createPayment')->execute(['payment' => $payment, 'storeId' => $cart->getStoreId()]);
         return $data['data']['paymentCreate']['summary']['paymentActions'];
     }
 

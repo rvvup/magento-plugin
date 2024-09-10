@@ -214,7 +214,7 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     private function createRvvupPayment(CartInterface $quote): array
     {
         $payment = $quote->getPayment();
-        $result = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
+        $result = $this->commandPool->get('createPayment')->execute(['payment' => $payment, 'storeId' => $quote->getStoreId()]);
         $id = $result['data']['paymentCreate']['id'];
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $id);
         $this->paymentResource->save($payment);
