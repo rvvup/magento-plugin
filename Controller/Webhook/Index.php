@@ -18,6 +18,7 @@ use Magento\Store\Api\StoreRepositoryInterface;
 use Magento\Store\App\Request\StorePathInfoValidator;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
@@ -167,13 +168,15 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                     'checkout_id' => $checkoutId,
                     'origin' => 'webhook'
                 ];
+                if (!$rvvupOrderId) {
+                    return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
+                }
                 if (isset($quote)) {
                     $payload['quote_id'] = $quote->getId();
                 } elseif (isset($order)) {
                     $payload['magento_order_id'] = $order->getId();
-                }
-                if (!$rvvupOrderId) {
-                    return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
+                } else {
+                    return $this->returnNotFound('Order/quote not found for ' . $eventType);
                 }
                 $this->webhookRepository->addToWebhookQueue($payload);
                 return $this->returnSuccessfulResponse();
@@ -251,6 +254,18 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     }
 
     /**
+     * @param string $reason
+     * @return ResultInterface
+     */
+    private function returnNotFound(string $reason): ResultInterface
+    {
+        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
+        $response->setHttpResponseCode(404);
+        $response->setData(['reason' => $reason]);
+        return $response;
+    }
+
+    /**
      * @return ResultInterface
      */
     private function returnExceptionResponse(): ResultInterface
@@ -276,7 +291,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             return $order->getStoreId();
         }
 
-        return $this->storeManager->getStore()->getId();
+        return (int) $this->storeManager->getStore()->getId();
     }
 
     private function orderOrQuoteResolver($rvvupOrderId, $paymentLinkId, $checkoutId): array
@@ -292,7 +307,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         } elseif (isset($checkoutId) && $checkoutId) {
             $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId);
         } elseif ($rvvupOrderId) {
-            $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+            try {
+                $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
+            } catch (PaymentValidationException $e) {
+                return [null, null];
+            }
         }
         if (isset($order)) {
             return [null, $order];

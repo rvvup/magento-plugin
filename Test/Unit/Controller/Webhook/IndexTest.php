@@ -17,6 +17,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Controller\Webhook\Index;
+use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool;
@@ -155,6 +156,27 @@ class IndexTest extends TestCase
             'checkout_id' => false,
             'origin' => 'webhook'
         ]]);
+
+        $response = $this->controller->execute();
+
+        $this->assertSame($this->resultMock, $response);
+    }
+
+    /**
+     * @dataProvider paymentEvents
+     */
+    public function testPaymentEventsRequiresAnOrderOrQuoteAttachedToRvvupOrderId($eventType)
+    {
+        $this->request->method('getParam')->willReturnMap([
+            ['merchant_id', false, 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W'],
+            ['order_id', false, 'OR01J7DD0ZCZYFDEYZ63F4E0KX55'],
+            ['event_type', false, $eventType],
+        ]);
+        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
+        $this->captureService->method('getOrderByRvvupId')->willThrowException(new PaymentValidationException(__('Error')));
+
+        $this->expectsResult(404, ['reason' => 'Order/quote not found for ' . $eventType]);
 
         $response = $this->controller->execute();
 
