@@ -25,4 +25,52 @@ class RvvupConfigurationTest extends TestCase
             ->willReturn(self::TEST_JWT);
         $this->assertEquals('ME01J7DGTETXY622TSVCZJWMNGHN', $this->rvvupConfiguration->getMerchantId(1));
     }
+    public function testGetMerchantIdReturnsNullIfJwtDoesNotContainPayload()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+            ->willReturn("test");
+        $this->assertEquals(null, $this->rvvupConfiguration->getMerchantId(1));
+    }
+    public function testGetMerchantIdReturnsNull()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+            ->willReturn(null);
+        $this->assertEquals(null, $this->rvvupConfiguration->getMerchantId(1));
+    }
+
+    public function testGetRestApiUrl()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+            ->willReturn(self::TEST_JWT);
+
+        $this->assertEquals('https://api.rvvup.com/api/2024-03-01', $this->rvvupConfiguration->getRestApiUrl(1));
+    }
+    public function testGetRestApiUrlReturnsNull()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+            ->willReturn(null);
+        $this->assertEquals(null, $this->rvvupConfiguration->getRestApiUrl(1));
+    }
+
+    public function testGetBearerTokenReturnsNullIfNotString()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+            ->willReturn(123);
+        $this->assertEquals(null, $this->rvvupConfiguration->getBearerToken(1));
+    }
+
+    public function testGetBearerTokenReturnsTrimmedToken()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+            ->willReturn("  " . self::TEST_JWT . "  ");
+        $this->assertEquals(self::TEST_JWT, $this->rvvupConfiguration->getBearerToken(1));
+    }
+
+
+    public function testGetBearerToken()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+            ->willReturn(self::TEST_JWT);
+        $this->assertEquals(self::TEST_JWT, $this->rvvupConfiguration->getBearerToken(1));
+    }
 }

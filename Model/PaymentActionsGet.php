@@ -12,9 +12,8 @@ use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\PaymentInterface as PaymentInterface;
-use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Quote\Model\QuoteRepository;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
@@ -214,7 +213,10 @@ class PaymentActionsGet implements PaymentActionsGetInterface
     private function createRvvupPayment(CartInterface $quote): array
     {
         $payment = $quote->getPayment();
-        $result = $this->commandPool->get('createPayment')->execute(['payment' => $payment, 'storeId' => $quote->getStoreId()]);
+        $result = $this->commandPool->get('createPayment')->execute([
+            'payment' => $payment,
+            'storeId' => $quote->getStoreId()
+        ]);
         $id = $result['data']['paymentCreate']['id'];
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $id);
         $this->paymentResource->save($payment);

@@ -72,7 +72,7 @@ class PaymentLink extends Action implements HttpPostActionInterface
             try {
                 $order = $this->orderRepository->get($orderId);
                 $body = $this->paymentLinkService->createPaymentLink(
-                    $storeId,
+                    (int) $storeId,
                     $amount,
                     $order->getIncrementId(),
                     $currencyCode

@@ -19,7 +19,7 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\Config;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Sdk\Curl;
 
 class VirtualCheckout
@@ -30,7 +30,7 @@ class VirtualCheckout
     /** @var Curl */
     private $curl;
 
-    /** @var Config */
+    /** @var RvvupConfigurationInterface */
     private $config;
 
     /** @var OrderRepositoryInterface */
@@ -55,7 +55,7 @@ class VirtualCheckout
     private $url;
 
     /**
-     * @param Config $config
+     * @param RvvupConfigurationInterface $config
      * @param OrderRepositoryInterface $orderRepository
      * @param Payment $paymentResource
      * @param SerializerInterface $json
@@ -67,7 +67,7 @@ class VirtualCheckout
      * @param UrlInterface $url
      */
     public function __construct(
-        Config                   $config,
+        RvvupConfigurationInterface $config,
         OrderRepositoryInterface $orderRepository,
         Payment                  $paymentResource,
         SerializerInterface      $json,
@@ -98,7 +98,7 @@ class VirtualCheckout
      * @return array
      * @throws NoSuchEntityException
      */
-    public function createVirtualCheckout(string $amount, string $storeId, string $orderId, string $currencyCode): array
+    public function createVirtualCheckout(string $amount, int $storeId, string $orderId, string $currencyCode): array
     {
         $params = $this->buildRequestData($amount, $storeId, $orderId, $currencyCode);
         $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
@@ -109,11 +109,11 @@ class VirtualCheckout
 
     /**
      * @param string $virtualCheckoutId
-     * @param string $storeId
+     * @param int $storeId
      * @param OrderInterface $order
      * @return string|null
      */
-    public function getRvvupIdByMotoId(string $virtualCheckoutId, string $storeId, OrderInterface $order): ?string
+    public function getRvvupIdByMotoId(string $virtualCheckoutId, int $storeId, OrderInterface $order): ?string
     {
         try {
             $paymentSessionId = $this->getPaymentSessionId($virtualCheckoutId, $storeId);
@@ -162,7 +162,7 @@ class VirtualCheckout
     }
 
     /**
-     * @param string $storeId
+     * @param int $storeId
      * @param string $virtualCheckoutId
      * @param string $paymentSessionId
      * @param OrderInterface $order
@@ -171,7 +171,7 @@ class VirtualCheckout
      * @throws NoSuchEntityException
      */
     private function getRvvupIdByPaymentSessionId(
-        string $storeId,
+        int $storeId,
         string $virtualCheckoutId,
         string $paymentSessionId,
         OrderInterface $order
@@ -197,11 +197,11 @@ class VirtualCheckout
 
     /**
      * @param string $virtualCheckoutId
-     * @param string $storeId
+     * @param int $storeId
      * @return string
      * @throws NoSuchEntityException
      */
-    private function getPaymentSessionId(string $virtualCheckoutId, string $storeId): string
+    private function getPaymentSessionId(string $virtualCheckoutId, int $storeId): string
     {
         $url = $this->getApiUrl($storeId) . '/' . $virtualCheckoutId;
 
@@ -244,26 +244,26 @@ class VirtualCheckout
     }
 
     /** @todo move to rest api sdk
-     * @param string $storeId
+     * @param int $storeId
      * @return string
      * @throws NoSuchEntityException
      */
-    private function getApiUrl(string $storeId): string
+    private function getApiUrl(int $storeId): string
     {
-        $merchantId = $this->config->getMerchantId(ScopeInterface::SCOPE_STORE, $storeId);
-        $baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
-        return str_replace('graphql', "api/2024-03-01/$merchantId/checkouts", $baseUrl);
+        $merchantId = $this->config->getMerchantId($storeId);
+        $baseUrl = $this->config->getRestApiUrl($storeId);
+        return "$baseUrl/$merchantId/checkouts";
     }
 
     /**
      * @param string $amount
-     * @param string $storeId
+     * @param int $storeId
      * @param string $orderId
      * @param string $currencyCode
      * @return array
      * @throws NoSuchEntityException
      */
-    private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): array
+    private function buildRequestData(string $amount, int $storeId, string $orderId, string $currencyCode): array
     {
         $url = $this->url->getBaseUrl(['_scope' => $storeId, '_type' => UrlInterface::URL_TYPE_WEB])
             . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
@@ -284,14 +284,14 @@ class VirtualCheckout
     }
 
     /**
-     * @param string $storeId
+     * @param int $storeId
      * @param string|null $orderId
      * @return string[]
      * @throws NoSuchEntityException
      */
-    private function getHeaders(string $storeId, ?string $orderId = null)
+    private function getHeaders(int $storeId, ?string $orderId = null)
     {
-        $token = $this->config->getJwtConfig(ScopeInterface::SCOPE_STORE, $storeId);
+        $token = $this->config->getBearerToken($storeId);
         $result =  [
             'Content-Type: application/json',
             'Accept: application/json',
