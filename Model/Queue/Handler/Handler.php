@@ -22,6 +22,7 @@ use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Service\QuoteRetriever;
 
 class Handler
 {
@@ -74,6 +75,7 @@ class Handler
      * @param Json $json
      * @param OrderRepositoryInterface $orderRepository
      * @param CartRepositoryInterface $cartRepository
+     * @param QuoteRetriever $quoteRetriever
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -87,7 +89,8 @@ class Handler
         Emulation $emulation,
         Json $json,
         OrderRepositoryInterface $orderRepository,
-        CartRepositoryInterface $cartRepository
+        CartRepositoryInterface $cartRepository,
+        QuoteRetriever $quoteRetriever
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
@@ -101,6 +104,7 @@ class Handler
         $this->json = $json;
         $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
+        $this->quoteRetriever = $quoteRetriever;
     }
 
     /**
@@ -160,9 +164,9 @@ class Handler
                 if (isset($payload['quote_id']) && $payload['quote_id']) {
                     $quote = $this->cartRepository->get((int)$payload['quote_id']);
                 } else {
-                    $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
+                    $quote = $this->quoteRetriever->getUsingRvvupOrderIdForStore($rvvupOrderId, $storeId);
                 }
-                if (!$quote || !$quote->getId()) {
+                if (!$quote) {
                     $this->logger->debug(
                         'Webhook exception: Can not find quote by rvvupId for authorize payment status',
                         [

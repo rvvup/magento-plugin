@@ -7,6 +7,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\MessageQueue\PublisherInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Quote\Model\Quote;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Controller\Webhook\Index;
 use Rvvup\Payments\Gateway\Method;
@@ -15,6 +16,7 @@ use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollectionFactory;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Model\WebhookRepository;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Service\QuoteRetriever;
 
 class Webhook
 {
@@ -33,8 +35,11 @@ class Webhook
     /** @var Capture */
     private $captureService;
 
+    /** @var QuoteRetriever */
+    private $quoteRetriever;
+
     /** @var LoggerInterface */
-    private LoggerInterface $logger;
+    private $logger;
 
     /**
      * @param WebhookCollectionFactory $webhookCollectionFactory
@@ -42,6 +47,7 @@ class Webhook
      * @param Json $json
      * @param WebhookRepository $webhookRepository
      * @param Capture $captureService
+     * @param QuoteRetriever $quoteRetriever
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -50,12 +56,14 @@ class Webhook
         Json                     $json,
         WebhookRepository        $webhookRepository,
         Capture                  $captureService,
+        QuoteRetriever           $quoteRetriever,
         LoggerInterface          $logger
     ) {
         $this->webhookCollectionFactory = $webhookCollectionFactory;
         $this->json = $json;
         $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
+        $this->quoteRetriever = $quoteRetriever;
         $this->captureService = $captureService;
         $this->logger = $logger;
     }
@@ -176,8 +184,8 @@ class Webhook
      */
     private function validatePaymentAuthorized(string $orderId, int $webhookId): bool
     {
-        $quote = $this->captureService->getQuoteByRvvupId($orderId);
-        if (!$quote || !$quote->getId()) {
+        $quote = $this->quoteRetriever->getUsingRvvupOrderId($orderId);
+        if (!$quote) {
             $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
             return false;
         }

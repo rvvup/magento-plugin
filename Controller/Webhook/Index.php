@@ -21,11 +21,11 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
-use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Model\WebhookRepository;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Service\QuoteRetriever;
 
 /**
  * The purpose of this controller is to accept incoming webhooks from Rvvup to update the status of payments
@@ -70,6 +70,9 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var Capture  */
     private $captureService;
 
+    /** @var QuoteRetriever  */
+    private $quoteRetriever;
+
     /**
      * @param RequestInterface $request
      * @param StoreRepositoryInterface $storeRepository
@@ -82,6 +85,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param StorePathInfoValidator $storePathInfoValidator
      * @param RefundPool $refundPool
      * @param Capture $captureService
+     * @param QuoteRetriever $quoteRetriever
      */
     public function __construct(
         RequestInterface         $request,
@@ -94,7 +98,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         StoreManagerInterface    $storeManager,
         StorePathInfoValidator   $storePathInfoValidator,
         RefundPool               $refundPool,
-        Capture                  $captureService
+        Capture                  $captureService,
+        QuoteRetriever           $quoteRetriever
     ) {
         $this->request = $request;
         $this->config = $config;
@@ -107,6 +112,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->storeRepository = $storeRepository;
         $this->refundPool = $refundPool;
         $this->captureService = $captureService;
+        $this->quoteRetriever = $quoteRetriever;
     }
 
     /**
@@ -298,8 +304,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     private function orderOrQuoteResolver($rvvupOrderId, $paymentLinkId, $checkoutId): array
     {
         if (isset($rvvupOrderId) && $rvvupOrderId) {
-            $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId);
-            if ($quote && $quote->getId()) {
+            $quote = $this->quoteRetriever->getUsingRvvupOrderId($rvvupOrderId);
+            if ($quote) {
                 return [$quote, null];
             }
         }

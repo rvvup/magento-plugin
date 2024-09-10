@@ -15,6 +15,7 @@ use Magento\Framework\Session\SessionManagerInterface;
 use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Service\QuoteRetriever;
 use Rvvup\Payments\Service\Result;
 use Rvvup\Payments\Service\VirtualCheckout;
 
@@ -51,6 +52,9 @@ class In implements HttpGetActionInterface
     /** @var VirtualCheckout */
     private $virtualCheckoutService;
 
+    /** @var QuoteRetriever */
+    private $quoteRetriever;
+
     /**
      * @param RequestInterface $request
      * @param ResultFactory $resultFactory
@@ -59,6 +63,7 @@ class In implements HttpGetActionInterface
      * @param Capture $captureService
      * @param Result $resultService
      * @param VirtualCheckout $virtualCheckoutService
+     * @param QuoteRetriever $quoteRetriever
      */
     public function __construct(
         RequestInterface $request,
@@ -67,7 +72,8 @@ class In implements HttpGetActionInterface
         ManagerInterface $messageManager,
         Capture $captureService,
         Result $resultService,
-        VirtualCheckout $virtualCheckoutService
+        VirtualCheckout $virtualCheckoutService,
+        QuoteRetriever $quoteRetriever
     ) {
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -76,6 +82,7 @@ class In implements HttpGetActionInterface
         $this->captureService = $captureService;
         $this->resultService = $resultService;
         $this->virtualCheckoutService = $virtualCheckoutService;
+        $this->quoteRetriever = $quoteRetriever;
     }
 
     /**
@@ -86,7 +93,7 @@ class In implements HttpGetActionInterface
     {
         $rvvupId = (string) $this->request->getParam('rvvup-order-id');
         $paymentStatus = $this->request->getParam('payment-status');
-        $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
+        $quote = $this->quoteRetriever->getUsingRvvupOrderId($rvvupId);
         $checkoutId = $this->request->getParam('checkout_id');
         $storeId = (string) $this->request->getParam('store_id');
         $origin = 'customer-flow';

@@ -299,39 +299,6 @@ class Capture
     }
 
     /**
-     * @param string $rvvupId
-     * @param string|null $storeId
-     * @return Quote|null
-     */
-    public function getQuoteByRvvupId(string $rvvupId, string $storeId = null): ?Quote
-    {
-        /** @var Collection $collection */
-        $collection = $this->collectionFactory->create();
-        $collection->addFieldToFilter(
-            'additional_information',
-            [
-                'like' => "%\"rvvup_order_id\":\"$rvvupId\"%"
-            ]
-        );
-        $items = $collection->getItems();
-        if (count($items) !== 1) {
-            return null;
-        }
-        $quoteId = end($items)->getQuoteId();
-        try {
-            $quote = $this->cartRepository->get($quoteId);
-
-            if ($storeId && $quote->getStoreId() != (int)$storeId) {
-                return null;
-            }
-
-            return $quote;
-        } catch (NoSuchEntityException $ex) {
-            return null;
-        }
-    }
-
-    /**
      * @param string $field
      * @param string $value
      * @return Quote|null

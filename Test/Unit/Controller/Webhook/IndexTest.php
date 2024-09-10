@@ -23,6 +23,7 @@ use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool;
 use Rvvup\Payments\Model\WebhookRepository;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Service\QuoteRetriever;
 
 class IndexTest extends TestCase
 {
@@ -56,6 +57,9 @@ class IndexTest extends TestCase
     /** @var Capture */
     private $captureService;
 
+    /** @var QuoteRetriever */
+    private $quoteRetriever;
+
     /** @var Index */
     private $controller;
 
@@ -72,6 +76,7 @@ class IndexTest extends TestCase
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
         $this->storePathInfoValidator = $this->createMock(StorePathInfoValidator::class);
         $this->captureService = $this->createMock(Capture::class);
+        $this->quoteRetriever = $this->createMock(QuoteRetriever::class);
 
         $resultFactory = $this->createMock(ResultFactory::class);
         $this->controller = new Index(
@@ -85,7 +90,8 @@ class IndexTest extends TestCase
             $this->storeManager,
             $this->storePathInfoValidator,
             $this->refundPool,
-            $this->captureService
+            $this->captureService,
+            $this->quoteRetriever
         );
 
         $resultFactory->method('create')->willReturn($this->resultMock);
@@ -120,7 +126,7 @@ class IndexTest extends TestCase
         $quoteMock = $this->createMock(Quote::class);
         $quoteMock->method('getId')->willReturn(123);
         $quoteMock->method('getStoreId')->willReturn(1);
-        $this->captureService->method('getQuoteByRvvupId')->willReturn($quoteMock);
+        $this->quoteRetriever->method('getUsingRvvupOrderId')->willReturn($quoteMock);
 
 
         $this->expectsResult(210, ['reason' => 'Invalid merchant id', 'metadata' => [
@@ -173,7 +179,7 @@ class IndexTest extends TestCase
             ['event_type', false, $eventType],
         ]);
         $this->config->method('getMerchantId')->with(1)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
-        $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
+        $this->quoteRetriever->method('getUsingRvvupOrderId')->willReturn(null);
         $this->captureService->method('getOrderByRvvupId')->willThrowException(new PaymentValidationException(__('Error')));
 
         $this->expectsResult(404, ['reason' => 'Order/quote not found for ' . $eventType]);
@@ -198,7 +204,7 @@ class IndexTest extends TestCase
         $quoteMock = $this->createMock(Quote::class);
         $quoteMock->method('getId')->willReturn(123);
         $quoteMock->method('getStoreId')->willReturn(5);
-        $this->captureService->method('getQuoteByRvvupId')->willReturn($quoteMock);
+        $this->quoteRetriever->method('getUsingRvvupOrderId')->willReturn($quoteMock);
 
         $this->expectsResult(202);
 
@@ -235,7 +241,7 @@ class IndexTest extends TestCase
             ['event_type', false, $eventType],
         ]);
         $this->config->method('getMerchantId')->with(5)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
-        $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
+        $this->quoteRetriever->method('getUsingRvvupOrderId')->willReturn(null);
         $orderMock = $this->createMock(Order::class);
         $orderMock->method('getId')->willReturn(123);
         $orderMock->method('getStoreId')->willReturn(5);
@@ -277,7 +283,7 @@ class IndexTest extends TestCase
             ['event_type', false, $eventType],
         ]);
         $this->config->method('getMerchantId')->with(5)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
-        $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
+        $this->quoteRetriever->method('getUsingRvvupOrderId')->willReturn(null);
         $orderMock = $this->createMock(Order::class);
         $orderMock->method('getId')->willReturn(123);
         $orderMock->method('getStoreId')->willReturn(5);

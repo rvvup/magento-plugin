@@ -64,7 +64,7 @@ class Validation extends DataObject implements ValidationInterface
     ): ValidationInterface {
         $data = $this->getDefaultData();
 
-        if ($quote == null || empty($quote->getId())) {
+        if ($quote == null) {
             $message = __(
                 'This checkout cannot complete because another payment is in progress. '
                 . $rvvupId
