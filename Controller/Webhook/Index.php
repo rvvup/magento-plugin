@@ -20,6 +20,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
@@ -35,7 +36,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /** @var RequestInterface */
     private $request;
 
-    /** @var ConfigInterface */
+    /** @var RvvupConfigurationInterface */
     private $config;
 
     /** @var ResultFactory */
@@ -73,7 +74,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param RequestInterface $request
      * @param StoreRepositoryInterface $storeRepository
      * @param Http $http
-     * @param ConfigInterface $config
+     * @param RvvupConfigurationInterface $config
      * @param ResultFactory $resultFactory
      * @param LoggerInterface $logger
      * @param WebhookRepository $webhookRepository
@@ -86,7 +87,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         RequestInterface         $request,
         StoreRepositoryInterface $storeRepository,
         Http                     $http,
-        ConfigInterface          $config,
+        RvvupConfigurationInterface $config,
         ResultFactory            $resultFactory,
         LoggerInterface          $logger,
         WebhookRepository        $webhookRepository,
@@ -131,12 +132,12 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             $storeId = $this->getStoreId($quote, $order);
 
             // Merchant ID does not match, no need to process
-            if ($merchantId !== $this->config->getMerchantId()) {
+            if ($merchantId !== $this->config->getMerchantId($storeId)) {
                 return $this->returnSkipResponse(
                     'Invalid merchant id',
                     [
                         'merchant_id' => $merchantId,
-                        'config_merchant_id' => $this->config->getMerchantId(),
+                        'config_merchant_id' => $this->config->getMerchantId($storeId),
                         'rvvup_id' => $rvvupOrderId
                     ]
                 );
