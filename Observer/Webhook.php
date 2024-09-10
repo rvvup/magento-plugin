@@ -74,7 +74,7 @@ class Webhook implements ObserverInterface
     {
         $event = $observer->getEvent();
         $configData = $event->getData('configData');
-        $storeId = $event->getRequest()->getParam('store');
+        $storeId = (string) $event->getRequest()->getParam('store');
         $websiteId = $event->getRequest()->getParam('website');
         if (isset($configData)) {
             $section = $configData['section'];
@@ -101,18 +101,18 @@ class Webhook implements ObserverInterface
     {
         foreach ($stores as $store) {
             $url = $store->getBaseUrl(UrlInterface::URL_TYPE_LINK, true) . 'rvvup/webhook';
-            $this->registerWebhookUrl($url, $store->getId());
+            $this->registerWebhookUrl($url, (string) $store->getId());
         }
     }
 
     /**
      * Register rvvup webhook url
      * @param string $url
-     * @param int $storeId
+     * @param string $storeId
      * @return void
      * @throws NoSuchEntityException
      */
-    private function registerWebhookUrl(string $url, int $storeId): void
+    private function registerWebhookUrl(string $url, string $storeId): void
     {
         $merchantId = $this->config->getMerchantId($storeId);
         $endpoint = $this->config->getGraphQlUrl($storeId);

@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Model;
 
 use GuzzleHttp\Client;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
@@ -73,7 +74,7 @@ class SdkProxy
      */
     private function getSubject(): GraphQlSdk
     {
-        $storeId = $this->storeManager->getStore()->getId();
+        $storeId = (string) $this->storeManager->getStore()->getId();
         if (!isset($this->subject[$storeId])) {
             $endpoint = $this->config->getGraphQlUrl($storeId);
             $merchant = $this->config->getMerchantId($storeId);

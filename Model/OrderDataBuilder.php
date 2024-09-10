@@ -174,7 +174,7 @@ class OrderDataBuilder
     private function renderBase(CartInterface $quote, bool $express = false): array
     {
         $payment = $quote->getPayment();
-        $storeId = $quote->getStoreId();
+        $storeId = (string) $quote->getStoreId();
 
         // Validate the quote/order is paid via Rvvup.
         if ($payment === null

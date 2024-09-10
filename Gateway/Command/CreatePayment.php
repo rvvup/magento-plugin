@@ -45,7 +45,7 @@ class CreatePayment implements CommandInterface
     {
         /** @var \Magento\Sales\Model\Order\Payment $payment */
         $payment = $commandSubject['payment'];
-        $storeId = (int) $commandSubject['storeId'];
+        $storeId = (string) $commandSubject['storeId'];
         $method = str_replace(Method::PAYMENT_TITLE_PREFIX, '', $payment->getMethod());
         $orderId = $payment->getAdditionalInformation()[Method::ORDER_ID];
         $type = 'STANDARD';

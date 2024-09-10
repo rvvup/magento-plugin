@@ -78,15 +78,14 @@ class PaymentLink
     }
 
     /**
-     * @param int $storeId
+     * @param string $storeId
      * @param float $amount
      * @param string $orderId
      * @param string $currencyCode
      * @return array
-     * @throws NoSuchEntityException
      */
     public function createPaymentLink(
-        int $storeId,
+        string $storeId,
         float $amount,
         string $orderId,
         string $currencyCode
@@ -97,13 +96,12 @@ class PaymentLink
     }
 
     /**
-     * @param int $storeId
+     * @param string $storeId
      * @param string $paymentLinkId
      * @return array
-     * @throws NoSuchEntityException
      */
     public function cancelPaymentLink(
-        int $storeId,
+        string $storeId,
         string $paymentLinkId
     ): array {
         $token = $this->config->getBearerToken($storeId);
@@ -140,11 +138,10 @@ class PaymentLink
     }
 
     /** @todo move to rest api sdk
-     * @param int $storeId
+     * @param string $storeId
      * @return string
-     * @throws NoSuchEntityException
      */
-    private function getApiUrl(int $storeId)
+    private function getApiUrl(string $storeId): string
     {
         $merchantId = $this->config->getMerchantId($storeId);
         $baseUrl = $this->config->getRestApiUrl($storeId);
@@ -183,13 +180,12 @@ class PaymentLink
 
     /**
      * @param string $amount
-     * @param int $storeId
+     * @param string $storeId
      * @param string $orderId
      * @param string $currencyCode
      * @return array
-     * @throws NoSuchEntityException
      */
-    private function getData(string $amount, int $storeId, string $orderId, string $currencyCode): array
+    private function getData(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
         $postData = [
             'amount' => ['amount' => $amount, 'currency' => $currencyCode],

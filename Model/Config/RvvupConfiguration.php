@@ -29,7 +29,7 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
-    public function isDebugEnabled(int $storeId): bool
+    public function isDebugEnabled(string $storeId): bool
     {
         return $this->scopeConfig->getValue(self::RVVUP_CONFIG_PATH . "debug", ScopeInterface::SCOPE_STORE, $storeId);
     }
@@ -37,7 +37,7 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
-    public function getMerchantId(int $storeId): ?string
+    public function getMerchantId(string $storeId): ?string
     {
         return $this->getStringConfigFromJwt($storeId, "merchantId");
     }
@@ -45,7 +45,7 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
-    public function getRestApiUrl(int $storeId): ?string
+    public function getRestApiUrl(string $storeId): ?string
     {
         $audience = $this->getStringConfigFromJwt($storeId, "aud");
         if ($audience == null) {
@@ -57,7 +57,7 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
-    public function getGraphQlUrl(int $storeId): ?string
+    public function getGraphQlUrl(string $storeId): ?string
     {
         $audience = $this->getStringConfigFromJwt($storeId, "aud");
         if ($audience == null) {
@@ -69,7 +69,7 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
-    public function getBearerToken(int $storeId): ?string
+    public function getBearerToken(string $storeId): ?string
     {
         $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG_PATH . "jwt", ScopeInterface::SCOPE_STORE, $storeId);
 
@@ -94,7 +94,7 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
-    public function getBasicAuthToken(int $storeId): ?string
+    public function getBasicAuthToken(string $storeId): ?string
     {
         $username = $this->getStringConfigFromJwt($storeId, "username");
         $password = $this->getStringConfigFromJwt($storeId, "password");
@@ -106,11 +106,11 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     }
 
     /**
-     * @param int $storeId store id
+     * @param string $storeId store id
      * @param string $configKey config key
      * @return string|null string config value or null if not found
      */
-    private function getStringConfigFromJwt(int $storeId, string $configKey): ?string
+    private function getStringConfigFromJwt(string $storeId, string $configKey): ?string
     {
         $jwt = $this->getDecodedPayload($storeId);
         if ($jwt == null) {
@@ -121,10 +121,10 @@ class RvvupConfiguration implements RvvupConfigurationInterface
 
     /**
      * Get decoded payload
-     * @param int $storeId store id
+     * @param string $storeId store id
      * @return array|null payload
      */
-    private function getDecodedPayload(int $storeId): ?array
+    private function getDecodedPayload(string $storeId): ?array
     {
         if (isset($this->rvvupDecodedPayloadByStoreMap[$storeId])) {
             return $this->rvvupDecodedPayloadByStoreMap[$storeId];

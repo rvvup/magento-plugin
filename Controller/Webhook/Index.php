@@ -280,19 +280,19 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /**
      * @param Quote|null $quote
      * @param OrderInterface|null $order
-     * @return int
+     * @return string
      * @throws NoSuchEntityException
      */
-    private function getStoreId(?Quote $quote, ?OrderInterface $order): int
+    private function getStoreId(?Quote $quote, ?OrderInterface $order): string
     {
         if (isset($quote)) {
-            return $quote->getStoreId();
+            return (string) $quote->getStoreId();
         }
         if (isset($order) && $order->getId()) {
-            return $order->getStoreId();
+            return (string) $order->getStoreId();
         }
 
-        return (int) $this->storeManager->getStore()->getId();
+        return (string) $this->storeManager->getStore()->getId();
     }
 
     private function orderOrQuoteResolver($rvvupOrderId, $paymentLinkId, $checkoutId): array

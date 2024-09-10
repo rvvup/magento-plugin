@@ -88,7 +88,7 @@ class Log
             try {
                 $payload = $item->getData('payload');
                 $data = $this->json->unserialize($payload);
-                $storeId = $data['metadata']['magento']['storeId'];
+                $storeId = (string) $data['metadata']['magento']['storeId'];
 
                 if (!isset($batch[$storeId])) {
                     $batch[$storeId] = [];
@@ -112,7 +112,7 @@ class Log
      * @param array $data
      * @return void
      */
-    private function notifyRvvup(int $storeId, array $data): void
+    private function notifyRvvup(string $storeId, array $data): void
     {
         try {
             $token = $this->config->getBearerToken($storeId);

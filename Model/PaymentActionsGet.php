@@ -215,7 +215,7 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         $payment = $quote->getPayment();
         $result = $this->commandPool->get('createPayment')->execute([
             'payment' => $payment,
-            'storeId' => $quote->getStoreId()
+            'storeId' => (string) $quote->getStoreId()
         ]);
         $id = $result['data']['paymentCreate']['id'];
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $id);

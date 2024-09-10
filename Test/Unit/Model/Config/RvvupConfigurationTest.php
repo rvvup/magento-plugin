@@ -21,80 +21,80 @@ class RvvupConfigurationTest extends TestCase
 
     public function testGetMerchantId()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(self::TEST_JWT);
-        $this->assertEquals('ME01J7DGTETXY622TSVCZJWMNGHN', $this->rvvupConfiguration->getMerchantId(1));
+        $this->assertEquals('ME01J7DGTETXY622TSVCZJWMNGHN', $this->rvvupConfiguration->getMerchantId("1"));
     }
     public function testGetMerchantIdReturnsNullIfJwtDoesNotContainPayload()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn("test");
-        $this->assertEquals(null, $this->rvvupConfiguration->getMerchantId(1));
+        $this->assertEquals(null, $this->rvvupConfiguration->getMerchantId("1"));
     }
     public function testGetMerchantIdReturnsNull()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(null);
-        $this->assertEquals(null, $this->rvvupConfiguration->getMerchantId(1));
+        $this->assertEquals(null, $this->rvvupConfiguration->getMerchantId("1"));
     }
 
     public function testGetRestApiUrl()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(self::TEST_JWT);
 
-        $this->assertEquals('https://api.rvvup.com/api/2024-03-01', $this->rvvupConfiguration->getRestApiUrl(1));
+        $this->assertEquals('https://api.rvvup.com/api/2024-03-01', $this->rvvupConfiguration->getRestApiUrl("1"));
     }
     public function testGetRestApiUrlReturnsNull()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(null);
-        $this->assertEquals(null, $this->rvvupConfiguration->getRestApiUrl(1));
+        $this->assertEquals(null, $this->rvvupConfiguration->getRestApiUrl("1"));
     }
 
     public function testGetGraphQlUrl()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(self::TEST_JWT);
 
-        $this->assertEquals('https://api.rvvup.com/graphql', $this->rvvupConfiguration->getGraphQlUrl(1));
+        $this->assertEquals('https://api.rvvup.com/graphql', $this->rvvupConfiguration->getGraphQlUrl("1"));
     }
     public function testGetGraphQlUrlReturnsNull()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(null);
-        $this->assertEquals(null, $this->rvvupConfiguration->getGraphQlUrl(1));
+        $this->assertEquals(null, $this->rvvupConfiguration->getGraphQlUrl("1"));
     }
 
     public function testGetBearerTokenReturnsNullIfNotString()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(123);
-        $this->assertEquals(null, $this->rvvupConfiguration->getBearerToken(1));
+        $this->assertEquals(null, $this->rvvupConfiguration->getBearerToken("1"));
     }
 
     public function testGetBearerTokenReturnsTrimmedToken()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn("  " . self::TEST_JWT . "  ");
-        $this->assertEquals(self::TEST_JWT, $this->rvvupConfiguration->getBearerToken(1));
+        $this->assertEquals(self::TEST_JWT, $this->rvvupConfiguration->getBearerToken("1"));
     }
 
 
     public function testGetBearerToken()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(self::TEST_JWT);
-        $this->assertEquals(self::TEST_JWT, $this->rvvupConfiguration->getBearerToken(1));
+        $this->assertEquals(self::TEST_JWT, $this->rvvupConfiguration->getBearerToken("1"));
     }
 
 
     public function testGetBasicAuthToken()
     {
-        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, 1)
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(self::TEST_JWT);
 
-        $this->assertEquals('cnZ2dXBVc2VybmFtZTpydnZ1cFBhc3N3b3Jk', $this->rvvupConfiguration->getBasicAuthToken(1));
+        $this->assertEquals('cnZ2dXBVc2VybmFtZTpydnZ1cFBhc3N3b3Jk', $this->rvvupConfiguration->getBasicAuthToken("1"));
     }
 
 }

@@ -96,9 +96,8 @@ class VirtualCheckout
      * @param string $orderId
      * @param string $currencyCode
      * @return array
-     * @throws NoSuchEntityException
      */
-    public function createVirtualCheckout(string $amount, int $storeId, string $orderId, string $currencyCode): array
+    public function createVirtualCheckout(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
         $params = $this->buildRequestData($amount, $storeId, $orderId, $currencyCode);
         $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
@@ -109,11 +108,11 @@ class VirtualCheckout
 
     /**
      * @param string $virtualCheckoutId
-     * @param int $storeId
+     * @param string $storeId
      * @param OrderInterface $order
      * @return string|null
      */
-    public function getRvvupIdByMotoId(string $virtualCheckoutId, int $storeId, OrderInterface $order): ?string
+    public function getRvvupIdByMotoId(string $virtualCheckoutId, string $storeId, OrderInterface $order): ?string
     {
         try {
             $paymentSessionId = $this->getPaymentSessionId($virtualCheckoutId, $storeId);
@@ -162,16 +161,15 @@ class VirtualCheckout
     }
 
     /**
-     * @param int $storeId
+     * @param string $storeId
      * @param string $virtualCheckoutId
      * @param string $paymentSessionId
      * @param OrderInterface $order
      * @return mixed
      * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
      */
     private function getRvvupIdByPaymentSessionId(
-        int $storeId,
+        string $storeId,
         string $virtualCheckoutId,
         string $paymentSessionId,
         OrderInterface $order
@@ -197,11 +195,10 @@ class VirtualCheckout
 
     /**
      * @param string $virtualCheckoutId
-     * @param int $storeId
+     * @param string $storeId
      * @return string
-     * @throws NoSuchEntityException
      */
-    private function getPaymentSessionId(string $virtualCheckoutId, int $storeId): string
+    private function getPaymentSessionId(string $virtualCheckoutId, string $storeId): string
     {
         $url = $this->getApiUrl($storeId) . '/' . $virtualCheckoutId;
 
@@ -244,11 +241,10 @@ class VirtualCheckout
     }
 
     /** @todo move to rest api sdk
-     * @param int $storeId
+     * @param string $storeId
      * @return string
-     * @throws NoSuchEntityException
      */
-    private function getApiUrl(int $storeId): string
+    private function getApiUrl(string $storeId): string
     {
         $merchantId = $this->config->getMerchantId($storeId);
         $baseUrl = $this->config->getRestApiUrl($storeId);
@@ -257,13 +253,12 @@ class VirtualCheckout
 
     /**
      * @param string $amount
-     * @param int $storeId
+     * @param string $storeId
      * @param string $orderId
      * @param string $currencyCode
      * @return array
-     * @throws NoSuchEntityException
      */
-    private function buildRequestData(string $amount, int $storeId, string $orderId, string $currencyCode): array
+    private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
         $url = $this->url->getBaseUrl(['_scope' => $storeId, '_type' => UrlInterface::URL_TYPE_WEB])
             . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
@@ -284,12 +279,11 @@ class VirtualCheckout
     }
 
     /**
-     * @param int $storeId
+     * @param string $storeId
      * @param string|null $orderId
      * @return string[]
-     * @throws NoSuchEntityException
      */
-    private function getHeaders(int $storeId, ?string $orderId = null)
+    private function getHeaders(string $storeId, ?string $orderId = null): array
     {
         $token = $this->config->getBearerToken($storeId);
         $result =  [
