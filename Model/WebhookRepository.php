@@ -2,6 +2,7 @@
 
 namespace Rvvup\Payments\Model;
 
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Rvvup\Payments\Api\Data\WebhookInterface;
@@ -49,6 +50,19 @@ class WebhookRepository implements WebhookRepositoryInterface
         );
 
         return $this->save($webhook);
+    }
+
+    /**
+     * @param int $webhookId
+     * @return void
+     * @throws AlreadyExistsException
+     * @throws NoSuchEntityException
+     */
+    public function updateWebhookQueueToProcessed(int $webhookId): void
+    {
+        $webhook = $this->getById($webhookId);
+        $webhook->setData('is_processed', true);
+        $this->save($webhook);
     }
 
     /**

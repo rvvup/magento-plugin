@@ -114,20 +114,13 @@ class Webhook
                         $uniquePayloads[] = $payload;
                         $this->addWebhookToQueue($webhookId);
                     } else {
-                        $webhook = $this->webhookRepository->getById($webhookId);
-                        $webhook->setData('is_processed', true);
-                        $this->webhookRepository->save($webhook);
+                        $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
                     }
                 } else {
-                    $webhook = $this->webhookRepository->getById($webhookId);
-                    $webhook->setData('is_processed', true);
-                    $this->webhookRepository->save($webhook);
+                    $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
                 }
             } catch (\Exception $exception) {
-                $webhookId = (int) $item->getData('webhook_id');
-                $webhook = $this->webhookRepository->getById($webhookId);
-                $webhook->setData('is_processed', true);
-                $this->webhookRepository->save($webhook);
+                $this->webhookRepository->updateWebhookQueueToProcessed((int) $item->getData('webhook_id'));
                 $this->logger->addRvvupError(
                     'Failed to process Rvvup webhook:' . $item->getData($payload),
                     $exception->getMessage(),
@@ -149,9 +142,7 @@ class Webhook
                 'id' => (string) $webhookId,
             ])
         );
-        $webhook = $this->webhookRepository->getById($webhookId);
-        $webhook->setData('is_processed', true);
-        $this->webhookRepository->save($webhook);
+        $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
     }
 
     /**
@@ -169,9 +160,7 @@ class Webhook
             $orderPayment = end($items);
             $order = $orderPayment->getOrder();
             if (!$order) {
-                $webhook = $this->webhookRepository->getById($webhookId);
-                $webhook->setData('is_processed', true);
-                $this->webhookRepository->save($webhook);
+                $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
                 return false;
             }
         }
@@ -189,9 +178,7 @@ class Webhook
     {
         $quote = $this->captureService->getQuoteByRvvupId($orderId);
         if (!$quote || !$quote->getId()) {
-            $webhook = $this->webhookRepository->getById($webhookId);
-            $webhook->setData('is_processed', true);
-            $this->webhookRepository->save($webhook);
+            $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
             return false;
         }
         return true;
@@ -212,9 +199,7 @@ class Webhook
         );
 
         if (!$order || !$order->getId()) {
-            $webhook = $this->webhookRepository->getById($webhookId);
-            $webhook->setData('is_processed', true);
-            $this->webhookRepository->save($webhook);
+            $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
             return false;
         }
 
@@ -236,9 +221,7 @@ class Webhook
         );
 
         if (!$order || !$order->getId()) {
-            $webhook = $this->webhookRepository->getById($webhookId);
-            $webhook->setData('is_processed', true);
-            $this->webhookRepository->save($webhook);
+            $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
             return false;
         }
 
