@@ -20,6 +20,8 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Config\RvvupConfiguration;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Service\Capture;
 
 class OrderDataBuilder
@@ -30,7 +32,7 @@ class OrderDataBuilder
     /** @var UrlInterface  */
     private $urlBuilder;
 
-    /** @var ConfigInterface  */
+    /** @var RvvupConfigurationInterface  */
     private $config;
 
     /** @var CartRepositoryInterface  */
@@ -54,7 +56,7 @@ class OrderDataBuilder
     /**
      * @param AddressRepositoryInterface $customerAddressRepository
      * @param UrlInterface $urlBuilder
-     * @param ConfigInterface $config
+     * @param RvvupConfigurationInterface $config
      * @param CartRepositoryInterface $cartRepository
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -65,7 +67,7 @@ class OrderDataBuilder
     public function __construct(
         AddressRepositoryInterface $customerAddressRepository,
         UrlInterface $urlBuilder,
-        ConfigInterface $config,
+        RvvupConfigurationInterface $config,
         CartRepositoryInterface $cartRepository,
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
@@ -172,6 +174,7 @@ class OrderDataBuilder
     private function renderBase(CartInterface $quote, bool $express = false): array
     {
         $payment = $quote->getPayment();
+        $storeId = $quote->getStoreId();
 
         // Validate the quote/order is paid via Rvvup.
         if ($payment === null
@@ -206,11 +209,11 @@ class OrderDataBuilder
         if ($payment->getAdditionalInformation(Method::EXPRESS_PAYMENT_KEY)
         && !$payment->getAdditionalInformation(Method::CREATE_NEW)) {
             unset($orderDataArray["type"]);
-            $orderDataArray['merchantId'] = $this->config->getMerchantId();
+            $orderDataArray['merchantId'] = $this->config->getMerchantId($storeId);
             $orderDataArray['express'] = true;
         } else {
             $orderDataArray["merchant"] = [
-                "id" => $this->config->getMerchantId(),
+                "id" => $this->config->getMerchantId($storeId),
             ];
             $orderDataArray["redirectToStoreUrl"] = $this->urlBuilder->getUrl('rvvup/redirect/in');
             $orderDataArray["items"] = $this->renderItems($quote);
