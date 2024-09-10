@@ -6,15 +6,15 @@ namespace Rvvup\Payments\Model\Payment;
 
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\Model\Api\ApiProxyFactory;
 use Throwable;
 
 class PaymentDataGet implements PaymentDataGetInterface
 {
     /**
-     * @var \Rvvup\Payments\Model\SdkProxy
+     * @var \Rvvup\Payments\Model\Api\ApiProxyFactory
      */
-    private $sdkProxy;
+    private $apiProxyFactory;
 
     /**
      * @var \Psr\Log\LoggerInterface|RvvupLog
@@ -26,9 +26,9 @@ class PaymentDataGet implements PaymentDataGetInterface
      * @param \Psr\Log\LoggerInterface $logger
      * @return void
      */
-    public function __construct(SdkProxy $sdkProxy, LoggerInterface $logger)
+    public function __construct(ApiProxyFactory $apiProxyFactory, LoggerInterface $logger)
     {
-        $this->sdkProxy = $sdkProxy;
+        $this->apiProxyFactory = $apiProxyFactory;
         $this->logger = $logger;
     }
 
@@ -38,10 +38,10 @@ class PaymentDataGet implements PaymentDataGetInterface
      * @param string $rvvupId
      * @return array
      */
-    public function execute(string $rvvupId): array
+    public function execute(int $storeId, string $rvvupId): array
     {
         try {
-            return $this->sdkProxy->getOrder($rvvupId);
+            return $this->apiProxyFactory->forStore($storeId)->getOrder($rvvupId);
         } catch (Throwable $t) {
             $this->logger->error('Failed to get data from Rvvup for order id', [Method::ORDER_ID => $rvvupId]);
             return [];

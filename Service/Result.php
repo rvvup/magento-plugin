@@ -5,17 +5,16 @@ namespace Rvvup\Payments\Service;
 
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment;
+use Magento\Store\Model\App\Emulation;
+use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
-use Psr\Log\LoggerInterface;
-use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\Cancel;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
@@ -53,6 +52,8 @@ class Result
 
     /** @var Payment */
     private $paymentResource;
+
+    private $storeAwareSdkProxy;
 
     /**
      * @param ResultFactory $resultFactory
@@ -122,7 +123,7 @@ class Result
             }
 
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
-            $rvvupData = $this->paymentDataGet->execute($rvvupId);
+            $rvvupData = $this->paymentDataGet->execute($order->getStoreId(), $rvvupId);
 
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
                 if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {

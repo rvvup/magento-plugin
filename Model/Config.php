@@ -20,8 +20,11 @@ class Config implements ConfigInterface
      */
     private $jwt;
 
+<<<<<<< Updated upstream
     private $rvvupJwtByStoreMap;
 
+=======
+>>>>>>> Stashed changes
     /**
      * @var StoreManagerInterface
      */
@@ -37,7 +40,6 @@ class Config implements ConfigInterface
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
-        $this->rvvupJwtByStoreMap = [];
     }
 
     /**

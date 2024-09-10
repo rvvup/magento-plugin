@@ -241,7 +241,7 @@ class Handler
             }
         }
 
-        $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
+        $rvvupData = $this->paymentDataGet->execute($order->getStoreId(), $rvvupOrderId);
         if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
             $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
                     Method::ORDER_ID => $rvvupOrderId

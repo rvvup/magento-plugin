@@ -9,8 +9,9 @@ interface PaymentDataGetInterface
     /**
      * Get the Rvvup payment data from the API by Rvvup order ID.
      *
+     * @param int $storeId
      * @param string $rvvupId
      * @return array
      */
-    public function execute(string $rvvupId): array;
+    public function execute(int $storeId, string $rvvupId): array;
 }
