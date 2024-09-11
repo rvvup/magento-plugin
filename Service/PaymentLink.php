@@ -6,23 +6,23 @@ use Laminas\Http\Request;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
-use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Store\Model\ScopeInterface;
-use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\Config;
-use Rvvup\Payments\Sdk\Curl;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
+use Rvvup\Payments\Sdk\Curl;
 
 class PaymentLink
 {
     /** @var Curl */
     private $curl;
 
-    /** @var Config */
+    /** @var RvvupConfigurationInterface */
     private $config;
 
     /** @var SerializerInterface */
@@ -49,7 +49,7 @@ class PaymentLink
 
     /**
      * @param Curl $curl
-     * @param Config $config
+     * @param RvvupConfigurationInterface $config
      * @param SerializerInterface $json
      * @param OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
      * @param OrderManagementInterface $orderManagement
@@ -59,7 +59,7 @@ class PaymentLink
      */
     public function __construct(
         Curl                               $curl,
-        Config                             $config,
+        RvvupConfigurationInterface        $config,
         SerializerInterface                $json,
         OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
         OrderManagementInterface           $orderManagement,
@@ -83,7 +83,6 @@ class PaymentLink
      * @param string $orderId
      * @param string $currencyCode
      * @return array
-     * @throws NoSuchEntityException
      */
     public function createPaymentLink(
         string $storeId,
@@ -100,13 +99,12 @@ class PaymentLink
      * @param string $storeId
      * @param string $paymentLinkId
      * @return array
-     * @throws NoSuchEntityException
      */
     public function cancelPaymentLink(
         string $storeId,
         string $paymentLinkId
     ): array {
-        $token = $this->config->getJwtConfig(ScopeInterface::SCOPE_STORE, $storeId);
+        $token = $this->config->getBearerToken($storeId);
         $url = $this->getApiUrl($storeId) . '/' . $paymentLinkId;
 
         $params = [
@@ -142,13 +140,11 @@ class PaymentLink
     /** @todo move to rest api sdk
      * @param string $storeId
      * @return string
-     * @throws NoSuchEntityException
      */
-    private function getApiUrl(string $storeId)
+    private function getApiUrl(string $storeId): string
     {
-        $merchantId = $this->config->getMerchantId(ScopeInterface::SCOPE_STORE, $storeId);
-        $baseUrl = $this->config->getEndpoint(ScopeInterface::SCOPE_STORE, $storeId);
-        $baseUrl = str_replace('graphql', 'api/2024-03-01', $baseUrl);
+        $merchantId = $this->config->getMerchantId($storeId);
+        $baseUrl = $this->config->getRestApiUrl($storeId);
 
         return "$baseUrl/$merchantId/payment-links";
     }
@@ -188,7 +184,6 @@ class PaymentLink
      * @param string $orderId
      * @param string $currencyCode
      * @return array
-     * @throws NoSuchEntityException
      */
     private function getData(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
@@ -199,7 +194,7 @@ class PaymentLink
             'reusable' => false
         ];
 
-        $token = $this->config->getJwtConfig(ScopeInterface::SCOPE_STORE, $storeId);
+        $token = $this->config->getBearerToken($storeId);
 
         $headers = [
             'Content-Type: application/json',

@@ -21,6 +21,8 @@
     <preference for="Rvvup\Payments\Api\GuestCartPaymentActionsGetInterface"
                 type="Rvvup\Payments\Model\GuestCartPaymentActionsGet"/>
     <preference for="Rvvup\Payments\Model\ConfigInterface" type="Rvvup\Payments\Model\Config"/>
+    <preference for="Rvvup\Payments\Model\Config\RvvupConfigurationInterface"
+                type="Rvvup\Payments\Model\Config\RvvupConfiguration"/>
     <preference for="Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface"
                 type="Rvvup\Payments\Model\PaymentMethodsAssetsGet"/>
     <preference for="Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface"

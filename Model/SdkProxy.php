@@ -3,8 +3,10 @@
 namespace Rvvup\Payments\Model;
 
 use GuzzleHttp\Client;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
 use Rvvup\Sdk\Exceptions\NetworkException;
 use Rvvup\Sdk\GraphQlSdkFactory;
@@ -12,7 +14,7 @@ use Rvvup\Sdk\GraphQlSdk;
 
 class SdkProxy
 {
-    /** @var ConfigInterface */
+    /** @var RvvupConfigurationInterface */
     private $config;
     /** @var UserAgentBuilder */
     private $userAgent;
@@ -42,7 +44,7 @@ class SdkProxy
     private $storeManager;
 
     /**
-     * @param ConfigInterface $config
+     * @param RvvupConfigurationInterface $config
      * @param UserAgentBuilder $userAgent
      * @param GraphQlSdkFactory $sdkFactory
      * @param StoreManagerInterface $storeManager
@@ -50,7 +52,7 @@ class SdkProxy
      * @param LoggerInterface $logger
      */
     public function __construct(
-        ConfigInterface $config,
+        RvvupConfigurationInterface $config,
         UserAgentBuilder $userAgent,
         GraphQlSdkFactory $sdkFactory,
         StoreManagerInterface $storeManager,
@@ -72,12 +74,12 @@ class SdkProxy
      */
     private function getSubject(): GraphQlSdk
     {
-        $storeId = $this->storeManager->getStore()->getId();
+        $storeId = (string) $this->storeManager->getStore()->getId();
         if (!isset($this->subject[$storeId])) {
-            $endpoint = $this->config->getEndpoint();
-            $merchant = $this->config->getMerchantId();
-            $authToken = $this->config->getAuthToken();
-            $debugMode = $this->config->isDebugEnabled();
+            $endpoint = $this->config->getGraphQlUrl($storeId);
+            $merchant = $this->config->getMerchantId($storeId);
+            $authToken = $this->config->getBasicAuthToken($storeId);
+            $debugMode = $this->config->isDebugEnabled($storeId);
             /** @var GraphQlSdk instance */
             $this->subject[$storeId] = $this->sdkFactory->create([
                 'endpoint' => $endpoint,
