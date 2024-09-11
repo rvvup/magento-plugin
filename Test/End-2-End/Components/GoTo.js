@@ -5,7 +5,10 @@ export default class GoTo {
   constructor(page) {
     this.page = page;
     this.product = new GoToProduct(page);
-      this.admin = new GoToAdmin(page);
+  }
+
+  admin(username) {
+      return new GoToAdmin(this.page, username);
   }
 
   async checkout() {
@@ -27,12 +30,13 @@ class GoToProduct {
 }
 
 class GoToAdmin {
-    constructor(page) {
+    constructor(page, username) {
         this.page = page;
+        this.username = username;
     }
 
     async ordersList() {
-        await new AdminLogin(this.page).login();
+        await new AdminLogin(this.page).login(this.username);
 
         await this.page.getByRole('link', {name: 'Sales'}).click();
         await this.page.getByRole('link', {name: 'Orders'}).click();
