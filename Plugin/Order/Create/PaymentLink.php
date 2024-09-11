@@ -88,7 +88,7 @@ class PaymentLink
                 if ($payment->getMethod() == 'rvvup_payment-link') {
                     if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $result->getStoreId())) {
                         list($id, $message) = $this->createRvvupPayByLink(
-                            (string)$result->getStoreId(),
+                            (int) $result->getStoreId(),
                             $result->getGrandTotal(),
                             $result->getId(),
                             $result->getOrderCurrencyCode(),
@@ -125,7 +125,7 @@ class PaymentLink
         if (isset($data['comment'])) {
             if (!$payment->getAdditionalInformation(Method::PAYMENT_LINK_ID)) {
                 $quote = $result->getQuote();
-                $storeId = (string)$quote->getStore()->getId();
+                $storeId = (int) $quote->getStore()->getId();
                 $amount = (float)$quote->getGrandTotal();
                 $orderId = $quote->reserveOrderId()->getReservedOrderId();
                 if ($this->quoteSession->getData('reordered')) {
@@ -138,7 +138,7 @@ class PaymentLink
                     return $result;
                 }
                 if ($result->getQuote()->getPayment()->getMethod() == 'rvvup_payment-link') {
-                    if ($this->config->isActive(ScopeInterface::SCOPE_STORE, $storeId)) {
+                    if ($this->config->isActive(ScopeInterface::SCOPE_STORE, (string) $storeId)) {
                         list($id, $message) =
                             $this->createRvvupPayByLink(
                                 $storeId,
@@ -176,7 +176,7 @@ class PaymentLink
      * @return array|null
      */
     private function createRvvupPayByLink(
-        string $storeId,
+        int $storeId,
         float $amount,
         string $orderId,
         string $currencyCode,

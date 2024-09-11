@@ -8,8 +8,7 @@ define([
         'Magento_Checkout/js/model/url-builder',
         'Rvvup_Payments/js/model/checkout/payment/order-payment-action',
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'Magento_ReCaptchaWebapiUi/js/webapiReCaptchaRegistry'
+        'Magento_Checkout/js/model/full-screen-loader'
     ], function (
         $,
         _,
@@ -21,9 +20,10 @@ define([
         orderPaymentAction,
         rvvupMethodProperties,
         loader,
-        recaptchaRegistry
     ) {
         'use strict';
+    const recaptchaRegistryModule = 'Magento_ReCaptchaWebapiUi/js/webapiReCaptchaRegistry';
+    const recaptchaRegistry = require.defined(recaptchaRegistryModule) ? require(recaptchaRegistryModule) : null;
 
     const getOrderPaymentActions = function (serviceUrl, headers, messageContainer) {
         return storage.get(
@@ -120,6 +120,10 @@ define([
                     cartId: quote.getQuoteId()
                 });
 
+            if (!recaptchaRegistry) { // if recaptcha module is not present
+                return getOrderPaymentActions(serviceUrl, {}, messageContainer);
+            }
+
             const reCaptchaId = 'recaptcha-checkout-place-order';
             // ReCaptcha is enabled for placing orders, so trigger the recaptcha flow
             if (recaptchaRegistry.triggers && recaptchaRegistry.triggers.hasOwnProperty(reCaptchaId)) {
@@ -141,8 +145,6 @@ define([
 
                 return recaptchaDeferred;
             }
-
-            return getOrderPaymentActions(serviceUrl, {}, messageContainer);
         };
     }
 );

@@ -7,6 +7,7 @@ use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\SdkProxy;
 
@@ -16,7 +17,7 @@ class CreatePayment implements CommandInterface
     private $sdkProxy;
 
     /**
-     * @var ConfigInterface
+     * @var RvvupConfigurationInterface
      */
     private $config;
 
@@ -27,12 +28,12 @@ class CreatePayment implements CommandInterface
 
     /**
      * @param SdkProxy $sdkProxy
-     * @param ConfigInterface $config
+     * @param RvvupConfigurationInterface $config
      * @param Payment $paymentResource
      */
     public function __construct(
         SdkProxy $sdkProxy,
-        ConfigInterface $config,
+        RvvupConfigurationInterface $config,
         Payment $paymentResource
     ) {
         $this->sdkProxy = $sdkProxy;
@@ -44,6 +45,7 @@ class CreatePayment implements CommandInterface
     {
         /** @var \Magento\Sales\Model\Order\Payment $payment */
         $payment = $commandSubject['payment'];
+        $storeId = (string) $commandSubject['storeId'];
         $method = str_replace(Method::PAYMENT_TITLE_PREFIX, '', $payment->getMethod());
         $orderId = $payment->getAdditionalInformation()[Method::ORDER_ID];
         $type = 'STANDARD';
@@ -60,7 +62,7 @@ class CreatePayment implements CommandInterface
                 'type' => $type,
                 'captureType' => 'AUTOMATIC_PLUGIN',
                 'idempotencyKey' => $idempotencyKey,
-                'merchantId' => $this->config->getMerchantId()
+                'merchantId' => $this->config->getMerchantId($storeId)
             ]
         ];
 

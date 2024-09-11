@@ -16,7 +16,6 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\CartPaymentActionsGetInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterface;
 use Rvvup\Payments\Api\Data\PaymentActionInterfaceFactory;
-use Rvvup\Payments\Gateway\Method;
 use Throwable;
 
 class CartPaymentActionsGet implements CartPaymentActionsGetInterface
@@ -87,7 +86,10 @@ class CartPaymentActionsGet implements CartPaymentActionsGetInterface
         }
         $data = ['quote' => $cart, 'validate' => !$expressActions];
         $this->commandPool->get('initialize')->execute($data);
-        $data = $this->commandPool->get('createPayment')->execute(['payment' => $payment]);
+        $data = $this->commandPool->get('createPayment')->execute([
+            'payment' => $payment,
+            'storeId' => (string) $cart->getStoreId()
+        ]);
         return $data['data']['paymentCreate']['summary']['paymentActions'];
     }
 

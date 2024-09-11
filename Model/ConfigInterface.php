@@ -49,31 +49,6 @@ interface ConfigInterface
     public function getJwtConfig(string $scopeType = ScopeInterface::SCOPE_STORE): ?string;
 
     /**
-     * Get the endpoint URL.
-     *
-     * @param string $scopeType
-     * @return string
-     */
-    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE): string;
-
-    /**
-     * Get the Merchant ID.
-     *
-     * @param string $scopeType
-     * @param string|null $scopeCode
-     * @return string
-     */
-    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
-
-    /**
-     * Get the Authorization Token.
-     *
-     * @param string $scopeType
-     * @return string
-     */
-    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE): string;
-
-    /**
      * Check whether debug mode is enabled.
      *
      * @param string $scopeType

@@ -104,55 +104,6 @@ class Config implements ConfigInterface
     }
 
     /**
-     * Get the endpoint URL.
-     *
-     * @param string $scopeType
-     * @param string|null $scopeCode
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    public function getEndpoint(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
-    {
-        $jwt = $this->getJwt($scopeType, $scopeCode);
-
-        return $jwt === null ? '' : (string) $jwt->aud;
-    }
-
-    /**
-     * Get the Merchant ID.
-     *
-     * @param string $scopeType
-     * @param string|null $scopeCode
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    public function getMerchantId(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
-    {
-        $jwt = $this->getJwt($scopeType, $scopeCode);
-
-        return $jwt === null ? '' : (string) $jwt->merchantId;
-    }
-
-    /**
-     * Get the Authorization Token.
-     *
-     * @param string $scopeType
-     * @param string|null $scope
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    public function getAuthToken(string $scopeType = ScopeInterface::SCOPE_STORE, string $scope = null): string
-    {
-        $jwt = $this->getJwt($scopeType, $scope);
-
-        if ($jwt === null) {
-            return '';
-        }
-
-        return base64_encode($jwt->username . ':' . $jwt->password);
-    }
-
-    /**
      * Check whether debug mode is enabled.
      *
      * @param string $scopeType

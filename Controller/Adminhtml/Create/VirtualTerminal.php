@@ -6,7 +6,6 @@ namespace Rvvup\Payments\Controller\Adminhtml\Create;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
@@ -48,7 +47,7 @@ class VirtualTerminal extends Action implements HttpPostActionInterface
     public function execute()
     {
         $amount = $this->_request->getParam('amount');
-        $storeId = $this->_request->getParam('store_id');
+        $storeId = (string) $this->_request->getParam('store_id');
         $orderId = $this->_request->getParam('order_id');
         $currencyCode = $this->_request->getParam('currency_code');
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
