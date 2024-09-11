@@ -3,11 +3,8 @@ import GoTo from "./Components/GoTo";
 import {v7 as uuidv7} from 'uuid';
 import CardCheckout from "./Components/PaymentMethods/CardCheckout";
 
-test.describe.configure({mode: 'serial'});
-
-
 test("payment link order", async ({browser, page}) => {
-    await new GoTo(page).admin.ordersList();
+    await new GoTo(page).admin('e2e-tests-payment-link').ordersList();
 
     await page.getByRole('button', {name: 'Create New Order'}).click();
     await page.getByRole('button', {name: 'Create New Customer'}).click();
