@@ -19,7 +19,7 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Controller\Webhook\Index;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\ConfigInterface;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool;
 use Rvvup\Payments\Model\WebhookRepository;
 use Rvvup\Payments\Service\Capture;
@@ -63,7 +63,7 @@ class IndexTest extends TestCase
     protected function setUp(): void
     {
         $this->request = $this->createMock(RequestInterface::class);
-        $this->config = $this->createMock(ConfigInterface::class);
+        $this->config = $this->createMock(RvvupConfigurationInterface::class);
         $this->serializer = $this->createMock(SerializerInterface::class);
         $this->resultMock = $this->createMock(Json::class);
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -116,7 +116,7 @@ class IndexTest extends TestCase
             ['order_id', false, 'OR01J7BNKYDP40GA334Z0CPY4P46'],
             ['event_type', false, 'PAYMENT_COMPLETED'],
         ]);
-        $this->config->method('getMerchantId')->willReturn('ME01J7BNWNEG9T1JYA59E74HNHPJ');
+        $this->config->method('getMerchantId')->with(1)->willReturn('ME01J7BNWNEG9T1JYA59E74HNHPJ');
         $quoteMock = $this->createMock(Quote::class);
         $quoteMock->method('getId')->willReturn(123);
         $quoteMock->method('getStoreId')->willReturn(1);
@@ -144,7 +144,7 @@ class IndexTest extends TestCase
             ['order_id', false, false],
             ['event_type', false, $eventType],
         ]);
-        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->config->method('getMerchantId')->with(1)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
 
         $this->expectsResult(400, ['reason' => 'Missing parameters required for '.$eventType, 'metadata' => [
             'order_id' => false,
@@ -172,7 +172,7 @@ class IndexTest extends TestCase
             ['order_id', false, 'OR01J7DD0ZCZYFDEYZ63F4E0KX55'],
             ['event_type', false, $eventType],
         ]);
-        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->config->method('getMerchantId')->with(1)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
         $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
         $this->captureService->method('getOrderByRvvupId')->willThrowException(new PaymentValidationException(__('Error')));
 
@@ -194,7 +194,7 @@ class IndexTest extends TestCase
             ['payment_id', false, 'PA01J7BV2D778CS3Z8XQSKGVRYYZ'],
             ['event_type', false, $eventType],
         ]);
-        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->config->method('getMerchantId')->with(5)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
         $quoteMock = $this->createMock(Quote::class);
         $quoteMock->method('getId')->willReturn(123);
         $quoteMock->method('getStoreId')->willReturn(5);
@@ -234,7 +234,7 @@ class IndexTest extends TestCase
             ['payment_link_id', false, 'PL01J7BVM004DDWDFM73BGXTT1J4'],
             ['event_type', false, $eventType],
         ]);
-        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->config->method('getMerchantId')->with(5)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
         $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
         $orderMock = $this->createMock(Order::class);
         $orderMock->method('getId')->willReturn(123);
@@ -276,7 +276,7 @@ class IndexTest extends TestCase
             ['checkout_id', false, 'CO01J7BVM004DDWDFM73BGXTT1J4'],
             ['event_type', false, $eventType],
         ]);
-        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->config->method('getMerchantId')->with(5)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
         $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
         $orderMock = $this->createMock(Order::class);
         $orderMock->method('getId')->willReturn(123);
@@ -318,7 +318,7 @@ class IndexTest extends TestCase
             ['order_id', false, false],
             ['event_type', false, 'UNKNOWN_EVENT'],
         ]);
-        $this->config->method('getMerchantId')->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
+        $this->config->method('getMerchantId')->with(1)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
 
         $this->expectsResult(202);
 

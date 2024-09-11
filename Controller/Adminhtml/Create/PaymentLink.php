@@ -55,7 +55,7 @@ class PaymentLink extends Action implements HttpPostActionInterface
     {
         $amount = (float)$this->_request->getParam('amount');
         $amount = (float)number_format($amount, 2, '.', '');
-        $storeId = $this->_request->getParam('store_id');
+        $storeId = (string) $this->_request->getParam('store_id');
         $orderId = $this->_request->getParam('order_id');
         $currencyCode = $this->_request->getParam('currency_code');
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
