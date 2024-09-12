@@ -9,6 +9,7 @@ use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
 use Rvvup\Payments\Api\HashRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\SdkProxy;
 use Rvvup\Payments\Service\Hash;
 use Psr\Log\LoggerInterface;
 
@@ -28,11 +29,15 @@ class Validation extends DataObject implements ValidationInterface
     /** @var HashRepositoryInterface */
     private $hashRepository;
 
+    /** @var SdkProxy */
+    private $sdkProxy;
+
     /**
      * @param Hash|null $hashService
      * @param OrderIncrementIdChecker|null $orderIncrementIdChecker
      * @param LoggerInterface|null $logger
      * @param HashRepositoryInterface $hashRepository
+     * @param SdkProxy $sdkProxy
      * @param array $data
      */
     public function __construct(
@@ -40,12 +45,14 @@ class Validation extends DataObject implements ValidationInterface
         OrderIncrementIdChecker $orderIncrementIdChecker,
         LoggerInterface $logger,
         HashRepositoryInterface $hashRepository,
+        SdkProxy $sdkProxy,
         array $data = []
     ) {
         $this->logger = $logger;
         $this->orderIncrementChecker = $orderIncrementIdChecker;
         $this->hashService = $hashService;
         $this->hashRepository = $hashRepository;
+        $this->sdkProxy = $sdkProxy;
         parent::__construct($data);
     }
 
@@ -199,6 +206,11 @@ class Validation extends DataObject implements ValidationInterface
                 $data[ValidationInterface::MESSAGE] = $message;
             }
             $this->setValidationData($data);
+            if ($this->sdkProxy->isOrderVoidable($rvvupId)) {
+                $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
+                $reason = 'INVALID_DATA';
+                $this->sdkProxy->voidPayment($rvvupId, $rvvupPaymentId, $reason);
+            }
             return $this;
         }
         if ($rvvupId !== $lastTransactionId) {
