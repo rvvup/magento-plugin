@@ -218,7 +218,7 @@ class Handler
     }
 
     /**
-     * @param OrderInterface $order
+     * @param OrderInterface|null $order
      * @param string $rvvupOrderId
      * @param string $rvvupPaymentId
      * @param string $origin
