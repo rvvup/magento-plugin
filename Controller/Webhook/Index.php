@@ -184,15 +184,13 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
             return $this->returnSkipResponse("Event type not supported", []);
         } catch (Exception $e) {
-            $this->logger->addRvvupError(
-                'Webhook Exception',
-                $e->getMessage(),
-                $rvvupOrderId,
-                null,
-                null,
-                'webhook'
-            );
-            return $this->returnExceptionResponse();
+            $this->logger->error('Webhook exception:' . $e->getMessage(), [
+                'merchant_id' => $merchantId,
+                'event_type' => $eventType,
+                'order_id' => $rvvupOrderId,
+                'resolved_store_id' => $storeId
+            ]);
+            return $this->returnExceptionResponse('Internal Server Exception', ['cause' => $e->getMessage()]);
         }
     }
 
@@ -270,10 +268,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     /**
      * @return ResultInterface
      */
-    private function returnExceptionResponse(): ResultInterface
+    private function returnExceptionResponse(string $reason, array $metadata): ResultInterface
     {
         $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(500);
+        $response->setData(['reason' => $reason, 'metadata' => $metadata]);
 
         return $response;
     }
