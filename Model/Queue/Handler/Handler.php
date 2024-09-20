@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Model\Queue\Handler;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -15,7 +16,6 @@ use Magento\Store\Model\App\Emulation;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
-use Magento\Framework\Serialize\Serializer\Json;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\RvvupConfigProvider;
@@ -163,11 +163,13 @@ class Handler
                     $quote = $this->captureService->getQuoteByRvvupId($rvvupOrderId, $storeId);
                 }
                 if (!$quote || !$quote->getId()) {
-                    $this->logger->debug(
-                        'Webhook exception: Can not find quote by rvvupId for authorize payment status',
-                        [
-                            'order_id' => $rvvupOrderId,
-                        ]
+                    $this->logger->addRvvupError(
+                        'Can not find quote for authorizing payment',
+                        null,
+                        $rvvupOrderId,
+                        $rvvupPaymentId,
+                        null,
+                        $origin
                     );
                     return;
                 }
