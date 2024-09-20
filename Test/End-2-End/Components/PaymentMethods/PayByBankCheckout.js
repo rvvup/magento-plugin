@@ -16,7 +16,7 @@ export default class PayByBankCheckout {
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
     await frame.getByRole("button", { name: "Mock Bank" }).click();
-    await frame.getByRole("button", { name: "Log in on this device" }).click();
+    await frame.getByRole("button", { name: "Continue on desktop" }).click();
   }
 
   async decline() {
@@ -71,7 +71,7 @@ export default class PayByBankCheckout {
 
     // we want to open modal, open natwest in a new tab, close modal,
     // complete natwest transaction, see where the redirect sends us to
-    await frame.getByRole("button", { name: "Log in on this device" }).click();
+    await frame.getByRole("button", { name: "Continue on desktop" }).click();
 
     await this.page
       .locator("input#customer-number")
