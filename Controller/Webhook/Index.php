@@ -21,7 +21,6 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
-use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Model\WebhookRepository;
@@ -183,14 +182,16 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $this->returnSuccessfulResponse();
             }
 
-            return $this->returnSuccessfulResponse();
+            return $this->returnSkipResponse("Event type not supported", []);
         } catch (Exception $e) {
-            $this->logger->error('Webhook exception:' . $e->getMessage(), [
-                'merchant_id' => $merchantId,
-                'event_type' => $eventType,
-                'order_id' => $rvvupOrderId,
-                'resolved_store_id' => $storeId
-            ]);
+            $this->logger->addRvvupError(
+                'Webhook Exception',
+                $e->getMessage(),
+                $rvvupOrderId,
+                null,
+                null,
+                'webhook'
+            );
             return $this->returnExceptionResponse();
         }
     }
