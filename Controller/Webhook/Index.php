@@ -266,6 +266,8 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     }
 
     /**
+     * @param string $reason
+     * @param array $metadata
      * @return ResultInterface
      */
     private function returnExceptionResponse(string $reason, array $metadata): ResultInterface
