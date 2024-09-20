@@ -137,10 +137,10 @@ class Validation extends DataObject implements ValidationInterface
         if (!$quote->getIsActive()) {
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
-            $message = __('Payment was already completed');
+            $cause = __('Payment was already completed');
             $this->logger->addRvvupError(
                 'The quote is not active',
-                $message,
+                $cause,
                 $rvvupId,
                 null,
                 $quote->getReservedOrderId() ?? null,
@@ -156,6 +156,14 @@ class Validation extends DataObject implements ValidationInterface
             $data[ValidationInterface::REDIRECT_TO_CHECKOUT_PAYMENT] = true;
             $data[ValidationInterface::RESTORE_QUOTE] = true;
             $this->setValidationData($data);
+            $this->logger->addRvvupError(
+                'Invalid payment status ' . $paymentStatus,
+                null,
+                $rvvupId,
+                null,
+                $quote->getReservedOrderId() ?? null,
+                $origin
+            );
             return $this;
         }
 
@@ -221,10 +229,19 @@ class Validation extends DataObject implements ValidationInterface
             $this->setValidationData($data);
             return $this;
         }
-        if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
+        $reservedId = $quote->getReservedOrderId();
+        if ($this->orderIncrementChecker->isIncrementIdUsed($reservedId)) {
             $data[ValidationInterface::IS_VALID] = false;
             $data[ValidationInterface::ALREADY_EXISTS] = true;
             $this->setValidationData($data);
+            $this->logger->addRvvupError(
+                'Increment ID is already used ' . $reservedId,
+                null,
+                $rvvupId,
+                $lastTransactionId,
+                $quote->getReservedOrderId() ?? null,
+                $origin
+            );
             return $this;
         }
 
