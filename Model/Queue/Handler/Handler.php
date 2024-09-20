@@ -122,6 +122,14 @@ class Handler
             $origin = $payload['origin'] ?? false;
 
             if (!$storeId) {
+                $this->logger->addRvvupError(
+                    'StoreId not present in webhook payload',
+                    null,
+                    $rvvupOrderId,
+                    $rvvupPaymentId,
+                    null,
+                    $origin
+                );
                 return;
             }
 
@@ -136,23 +144,13 @@ class Handler
                         $paymentLinkId
                     );
                 }
-
-                if ($order && $order->getId()) {
-                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
-                    return;
-                }
+                $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin);
                 return;
             }
 
             if ($checkoutId) {
-                $order = $this->captureService->getOrderByPaymentField(
-                    Method::MOTO_ID,
-                    $checkoutId
-                );
-                if ($order && $order->getId()) {
-                    $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
-                    return;
-                }
+                $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId);
+                $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin);
                 return;
             }
 
@@ -210,14 +208,41 @@ class Handler
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-            if ($order && $order->getId()) {
-                $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
-            }
+            $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin);
             return;
         } catch (\Exception $e) {
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
                 'order_id' => $rvvupOrderId,
             ]);
+        }
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param string $rvvupOrderId
+     * @param string $rvvupPaymentId
+     * @param string $origin
+     * @return void
+     * @throws AlreadyExistsException
+     * @throws LocalizedException
+     */
+    private function processOrderIfPresent(
+        ?OrderInterface $order,
+        string $rvvupOrderId,
+        string $rvvupPaymentId,
+        string $origin
+    ): void {
+        if ($order && $order->getId()) {
+            $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
+        } else {
+            $this->logger->addRvvupError(
+                'Order not found for webhook',
+                null,
+                $rvvupOrderId,
+                $rvvupPaymentId,
+                null,
+                $origin
+            );
         }
     }
 
