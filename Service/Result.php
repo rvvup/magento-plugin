@@ -5,17 +5,16 @@ namespace Rvvup\Payments\Service;
 
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment;
+use Magento\Store\Model\App\Emulation;
+use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\SessionMessageInterface;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
-use Psr\Log\LoggerInterface;
-use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\Cancel;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
@@ -147,10 +146,14 @@ class Result
             }
             return $this->processResultPage($result, false);
         } catch (\Exception $e) {
-            $this->logger->error('Error while processing Rvvup Order status with message: ' . $e->getMessage(), [
-                Method::ORDER_ID => $rvvupId,
-                'rvvup_order_status' => $rvvupData['payments'][0]['status'] ?? ''
-            ]);
+            $this->logger->addRvvupError(
+                'Error while processing Rvvup Order status ',
+                $e->getMessage(),
+                $rvvupId,
+                null,
+                null,
+                $origin
+            );
 
             if (isset($order)) {
                 $order->addStatusToHistory(

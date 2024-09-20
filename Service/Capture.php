@@ -134,12 +134,17 @@ class Capture
     {
         $resultSet = $this->getOrderListByRvvupId($rvvupOrderId);
 
+        $paymentCount = $resultSet->getTotalCount();
         // We always expect 1 payment object for a Rvvup Order ID.
-        if ($resultSet->getTotalCount() !== 1) {
-            $this->logger->warning('Webhook error. Payment not found for order.', [
-                Method::ORDER_ID => $rvvupOrderId,
-                'payments_count' => $resultSet->getTotalCount()
-            ]);
+        if ($paymentCount !== 1) {
+            $this->logger->addRvvupError(
+                'Payment count is ' . $paymentCount . ' for order.',
+                null,
+                $rvvupOrderId,
+                null,
+                null,
+                null
+            );
             throw new PaymentValidationException(__('Error finding order with rvvup_id ' . $rvvupOrderId));
         }
 
@@ -203,11 +208,20 @@ class Capture
         $payment = $quote->getPayment();
 
         try {
-            if ($this->orderIncrementChecker->isIncrementIdUsed($quote->getReservedOrderId())) {
+            $reservedId = $quote->getReservedOrderId();
+            if ($this->orderIncrementChecker->isIncrementIdUsed($reservedId)) {
+                $this->logger->addRvvupError(
+                    'Increment ID is already used ' . $reservedId,
+                    null,
+                    $rvvupId,
+                    null,
+                    $reservedId ?? null,
+                    $origin
+                );
                 return $this->validationInterfaceFactory->create(
                     [
                         'data' => [
-                            ValidationInterface::ORDER_ID => $quote->getReservedOrderId(),
+                            ValidationInterface::ORDER_ID => $reservedId,
                             ValidationInterface::ALREADY_EXISTS => true]
                     ]
                 );
@@ -225,6 +239,14 @@ class Capture
             );
         } catch (NoSuchEntityException $e) {
             $this->quoteResource->rollback();
+            $this->logger->addRvvupError(
+                'Order placement within rvvup payment failed',
+                $e->getMessage(),
+                $rvvupId,
+                null,
+                $quote->getReservedOrderId(),
+                $origin
+            );
             return $this->validationInterfaceFactory->create(
                 [
                     'data' =>
@@ -236,7 +258,15 @@ class Capture
             );
         } catch (\Exception $e) {
             $this->quoteResource->rollback();
-            if (str_contains($e->getMessage(), AdapterInterface::ERROR_ROLLBACK_INCOMPLETE_MESSAGE)) {
+            if (strpos($e->getMessage(), AdapterInterface::ERROR_ROLLBACK_INCOMPLETE_MESSAGE) !== false) {
+                $this->logger->addRvvupError(
+                    'Order placement within rvvup payment failed',
+                    $e->getMessage(),
+                    $rvvupId,
+                    null,
+                    $quote->getReservedOrderId(),
+                    $origin
+                );
                 return $this->validationInterfaceFactory->create(
                     [
                         'data' => [

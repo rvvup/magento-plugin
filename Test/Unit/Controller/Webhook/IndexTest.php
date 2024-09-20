@@ -320,7 +320,7 @@ class IndexTest extends TestCase
         ]);
         $this->config->method('getMerchantId')->with(1)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
 
-        $this->expectsResult(202);
+        $this->expectsResult(210, ['reason' => 'Event type not supported', 'metadata' => []]);
 
         $response = $this->controller->execute();
 

@@ -8,11 +8,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\MessageQueue\PublisherInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Psr\Log\LoggerInterface;
-use Rvvup\Payments\Controller\Webhook\Index;
-use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollection;
 use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollectionFactory;
-use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Model\WebhookRepository;
 use Rvvup\Payments\Service\Capture;
 
@@ -86,36 +83,11 @@ class Webhook
         foreach ($collection->getItems() as $item) {
             try {
                 $payload = $item->getData('payload');
-                $data = $this->json->unserialize($payload);
                 $webhookId = (int) $item->getData('webhook_id');
-                if (isset($data['store_id'])) {
-                    $orderId = $data['order_id'];
-
-                    if (isset($data['payment_link_id']) && $data['payment_link_id']) {
-                        if (!$this->validatePaymentLink($data, $webhookId)) {
-                            continue;
-                        }
-                    } elseif (isset($data['checkout_id']) && $data['checkout_id']) {
-                        if (!$this->validateMoto($data, $webhookId)) {
-                            continue;
-                        }
-                    } elseif ($data['event_type'] == WebhookEventType::PAYMENT_COMPLETED) {
-                        if (!$this->validatePaymentCompleted($orderId, $webhookId)) {
-                            continue;
-                        }
-                    } elseif ($data['event_type'] == WebhookEventType::PAYMENT_AUTHORIZED) {
-                        if (!$this->validatePaymentAuthorized($orderId, $webhookId)) {
-                            continue;
-                        }
-                    }
-
-                    /** Process only unique payloads per each cron run in order to avoid the locks */
-                    if (!in_array($payload, $uniquePayloads)) {
-                        $uniquePayloads[] = $payload;
-                        $this->addWebhookToQueue($webhookId);
-                    } else {
-                        $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
-                    }
+                /** Process only unique payloads per each cron run in order to avoid the locks */
+                if (!in_array($payload, $uniquePayloads)) {
+                    $uniquePayloads[] = $payload;
+                    $this->addWebhookToQueue($webhookId);
                 } else {
                     $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
                 }
@@ -143,88 +115,5 @@ class Webhook
             ])
         );
         $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
-    }
-
-    /**
-     * @param string $orderId
-     * @param int $webhookId
-     * @return bool
-     * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
-     */
-    private function validatePaymentCompleted(string $orderId, int $webhookId): bool
-    {
-        $orderList = $this->captureService->getOrderListByRvvupId($orderId);
-        if ($orderList->getTotalCount() == 1) {
-            $items = $orderList->getItems();
-            $orderPayment = end($items);
-            $order = $orderPayment->getOrder();
-            if (!$order) {
-                $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * @param string $orderId
-     * @param int $webhookId
-     * @return bool
-     * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
-     */
-    private function validatePaymentAuthorized(string $orderId, int $webhookId): bool
-    {
-        $quote = $this->captureService->getQuoteByRvvupId($orderId);
-        if (!$quote || !$quote->getId()) {
-            $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * @param array $data
-     * @param int $webhookId
-     * @return bool
-     * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
-     */
-    private function validateMoto(array $data, int $webhookId): bool
-    {
-        $order = $this->captureService->getOrderByPaymentField(
-            Method::MOTO_ID,
-            $data['checkout_id']
-        );
-
-        if (!$order || !$order->getId()) {
-            $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param array $data
-     * @param int $webhookId
-     * @return bool
-     * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
-     */
-    private function validatePaymentLink(array $data, int $webhookId): bool
-    {
-        $order = $this->captureService->getOrderByPaymentField(
-            Method::PAYMENT_LINK_ID,
-            $data['payment_link_id']
-        );
-
-        if (!$order || !$order->getId()) {
-            $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
-            return false;
-        }
-
-        return true;
     }
 }

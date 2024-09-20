@@ -21,7 +21,6 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
-use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Model\ProcessRefund\ProcessorPool as RefundPool;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Model\WebhookRepository;
@@ -183,7 +182,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $this->returnSuccessfulResponse();
             }
 
-            return $this->returnSuccessfulResponse();
+            return $this->returnSkipResponse("Event type not supported", []);
         } catch (Exception $e) {
             $this->logger->error('Webhook exception:' . $e->getMessage(), [
                 'merchant_id' => $merchantId,
@@ -191,7 +190,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                 'order_id' => $rvvupOrderId,
                 'resolved_store_id' => $storeId
             ]);
-            return $this->returnExceptionResponse();
+            return $this->returnExceptionResponse('Internal Server Exception', ['cause' => $e->getMessage()]);
         }
     }
 
@@ -267,12 +266,15 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     }
 
     /**
+     * @param string $reason
+     * @param array $metadata
      * @return ResultInterface
      */
-    private function returnExceptionResponse(): ResultInterface
+    private function returnExceptionResponse(string $reason, array $metadata): ResultInterface
     {
         $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
         $response->setHttpResponseCode(500);
+        $response->setData(['reason' => $reason, 'metadata' => $metadata]);
 
         return $response;
     }
