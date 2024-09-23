@@ -11,6 +11,8 @@ use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -143,43 +145,31 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             }
 
             if ($eventType == WebhookEventType::REFUND_COMPLETED) {
-                $payload = [
-                    'order_id' => $rvvupOrderId,
-                    'merchant_id' => $merchantId,
-                    'refund_id' => $refundId,
-                    'store_id' => $storeId,
-                ];
-
-                if (!$rvvupOrderId || !$refundId) {
-                    return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
-                }
-                $this->refundPool->getProcessor($eventType)->execute($payload);
-                return $this->returnSuccessfulResponse();
-            } elseif ($eventType == WebhookEventType::PAYMENT_COMPLETED ||
-                $eventType == WebhookEventType::PAYMENT_AUTHORIZED
-            ) {
-                $payload = [
-                    'order_id' => $rvvupOrderId,
-                    'merchant_id' => $merchantId,
-                    'payment_id' => $paymentId,
-                    'event_type' => $eventType,
-                    'store_id' => $storeId,
-                    'payment_link_id' => $paymentLinkId,
-                    'checkout_id' => $checkoutId,
-                    'origin' => 'webhook'
-                ];
-                if (!$rvvupOrderId) {
-                    return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
-                }
-                if (isset($quote)) {
-                    $payload['quote_id'] = $quote->getId();
-                } elseif (isset($order)) {
-                    $payload['magento_order_id'] = $order->getId();
-                } else {
-                    return $this->returnNotFound('Order/quote not found for ' . $eventType);
-                }
-                $this->webhookRepository->addToWebhookQueue($payload);
-                return $this->returnSuccessfulResponse();
+                return $this->processRefundCompleted($rvvupOrderId, $merchantId, $refundId, $storeId);
+            } elseif ($eventType == WebhookEventType::PAYMENT_AUTHORIZED) {
+                return $this->processPayment(
+                    $eventType,
+                    $rvvupOrderId,
+                    $merchantId,
+                    $paymentId,
+                    $storeId,
+                    $paymentLinkId,
+                    $checkoutId,
+                    $quote,
+                    $order
+                );
+            } elseif ($eventType == WebhookEventType::PAYMENT_COMPLETED) {
+                return $this->processPayment(
+                    $eventType,
+                    $rvvupOrderId,
+                    $merchantId,
+                    $paymentId,
+                    $storeId,
+                    $paymentLinkId,
+                    $checkoutId,
+                    $quote,
+                    $order
+                );
             }
 
             return $this->returnSkipResponse("Event type not supported", []);
@@ -320,5 +310,77 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             return [null, $order];
         }
         return [null, null];
+    }
+
+    /**
+     * @param string|boolean $rvvupOrderId
+     * @param string|boolean $merchantId
+     * @param string|boolean $refundId
+     * @param string|null $storeId
+     * @return ResultInterface
+     * @throws LocalizedException
+     */
+    private function processRefundCompleted($rvvupOrderId, $merchantId, $refundId, ?string $storeId): ResultInterface
+    {
+        $payload = [
+            'order_id' => $rvvupOrderId,
+            'merchant_id' => $merchantId,
+            'refund_id' => $refundId,
+            'store_id' => $storeId,
+        ];
+
+        if (!$rvvupOrderId || !$refundId) {
+            return $this->returnInvalidResponse('Missing parameters required for REFUND_COMPLETED', $payload);
+        }
+        $this->refundPool->getProcessor(WebhookEventType::REFUND_COMPLETED)->execute($payload);
+        return $this->returnSuccessfulResponse();
+    }
+
+    /**
+     * @param string $eventType
+     * @param string|boolean $rvvupOrderId
+     * @param string|boolean $merchantId
+     * @param string|boolean $paymentId
+     * @param string|null $storeId
+     * @param string|boolean $paymentLinkId
+     * @param string|boolean $checkoutId
+     * @param Quote|null $quote
+     * @param OrderInterface|null $order
+     * @return ResultInterface
+     * @throws AlreadyExistsException
+     */
+    private function processPayment(
+        string          $eventType,
+        $rvvupOrderId,
+        $merchantId,
+        $paymentId,
+        ?string         $storeId,
+        $paymentLinkId,
+        $checkoutId,
+        ?Quote          $quote,
+        ?OrderInterface $order
+    ): ResultInterface {
+        $payload = [
+            'order_id' => $rvvupOrderId,
+            'merchant_id' => $merchantId,
+            'payment_id' => $paymentId,
+            'event_type' => $eventType,
+            'store_id' => $storeId,
+            'payment_link_id' => $paymentLinkId,
+            'checkout_id' => $checkoutId,
+            'origin' => 'webhook'
+        ];
+        if (!$rvvupOrderId) {
+            return $this->returnInvalidResponse('Missing parameters required for ' . $eventType, $payload);
+        }
+        if (isset($quote)) {
+            $payload['quote_id'] = $quote->getId();
+        } elseif (isset($order)) {
+            $payload['magento_order_id'] = $order->getId();
+        } else {
+            return $this->returnNotFound('Order/quote not found for ' . $eventType);
+        }
+        $this->webhookRepository->addToWebhookQueue($payload);
+        return $this->returnSuccessfulResponse();
     }
 }
