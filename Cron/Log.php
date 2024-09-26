@@ -103,7 +103,7 @@ class Log
             $this->resource->save($item);
         }
         foreach ($batch as $key => $item) {
-            $this->notifyRvvup($key, $item);
+            $this->notifyRvvup((string) $key, $item);
         }
     }
 
