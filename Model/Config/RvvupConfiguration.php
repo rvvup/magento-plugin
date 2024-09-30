@@ -144,6 +144,14 @@ class RvvupConfiguration implements RvvupConfigurationInterface
         // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
         $decodedPayload = json_decode(base64_decode($payload), true);
         $this->rvvupDecodedPayloadByStoreMap[$storeId] = $decodedPayload;
-        return $this->rvvupDecodedPayloadByStoreMap[$storeId];
+        return $decodedPayload;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clean()
+    {
+        $this->rvvupDecodedPayloadByStoreMap = [];
     }
 }

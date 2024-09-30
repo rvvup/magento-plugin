@@ -22,13 +22,13 @@ class SdkProxy
     private $sdkFactory;
     /** @var LoggerInterface */
     private $logger;
+    /** @var GetEnvironmentVersionsInterface */
+    private $getEnvironmentVersions;
+    /** @var StoreManagerInterface */
+    private $storeManager;
+
     /** @var array */
     private $subject;
-
-    /**
-     * @var \Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface
-     */
-    private $getEnvironmentVersions;
 
     /**
      * @var array|null
@@ -39,9 +39,6 @@ class SdkProxy
      * @var array
      */
     private $monetizedMethods = [];
-
-    /** @var StoreManagerInterface */
-    private $storeManager;
 
     /**
      * @param RvvupConfigurationInterface $config
@@ -65,6 +62,16 @@ class SdkProxy
         $this->storeManager = $storeManager;
         $this->getEnvironmentVersions = $getEnvironmentVersions;
         $this->logger = $logger;
+    }
+
+    /**
+     * Clean the proxy caches
+     */
+    public function clean()
+    {
+        $this->methods = null;
+        $this->monetizedMethods = [];
+        $this->subject = [];
     }
 
     /**

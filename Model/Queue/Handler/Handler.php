@@ -21,6 +21,7 @@ use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Model\Queue\QueueContextCleaner;
 
 class Handler
 {
@@ -60,6 +61,9 @@ class Handler
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
+    /** @var QueueContextCleaner */
+    private $queueContextCleaner;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -73,6 +77,7 @@ class Handler
      * @param Json $json
      * @param OrderRepositoryInterface $orderRepository
      * @param CartRepositoryInterface $cartRepository
+     * @param QueueContextCleaner $queueContextCleaner
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -86,7 +91,8 @@ class Handler
         Emulation $emulation,
         Json $json,
         OrderRepositoryInterface $orderRepository,
-        CartRepositoryInterface $cartRepository
+        CartRepositoryInterface $cartRepository,
+        QueueContextCleaner $queueContextCleaner
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
@@ -100,6 +106,7 @@ class Handler
         $this->json = $json;
         $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
+        $this->queueContextCleaner = $queueContextCleaner;
     }
 
     /**
@@ -109,6 +116,8 @@ class Handler
     public function execute(string $data)
     {
         try {
+            $this->queueContextCleaner->clean();
+
             $data = $this->json->unserialize($data);
 
             $webhook = $this->webhookRepository->getById((int)$data['id']);
