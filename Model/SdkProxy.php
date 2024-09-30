@@ -22,7 +22,7 @@ class SdkProxy
     private $sdkFactory;
     /** @var LoggerInterface */
     private $logger;
-    /** @var GraphQlSdk */
+    /** @var array */
     private $subject;
 
     /**
@@ -69,12 +69,14 @@ class SdkProxy
 
     /**
      * Get proxied instance
-     *
+     * @param string|null $storeId
      * @return GraphQlSdk
      */
-    private function getSubject(): GraphQlSdk
+    private function getSdkForStore(?string $storeId = null): GraphQlSdk
     {
-        $storeId = (string) $this->storeManager->getStore()->getId();
+        if (!isset($storeId) || $storeId === '') {
+            $storeId = (string) $this->storeManager->getStore()->getId();
+        }
         if (!isset($this->subject[$storeId])) {
             $endpoint = $this->config->getGraphQlUrl($storeId);
             $merchant = $this->config->getMerchantId($storeId);
@@ -110,7 +112,7 @@ class SdkProxy
         if (!$this->methods) {
             $value = $value === null ? $value : (string) round((float) $value, 2);
 
-            $methods = $this->getSubject()->getMethods($value, $currency, $inputOptions);
+            $methods = $this->getSdkForStore()->getMethods($value, $currency, $inputOptions);
             /**
              * Due to all Rvvup methods having the same `sort_order`values the way Magento sorts methods we need to
              * reverse the array so that they are presented in the order specified in the Rvvup dashboard
@@ -126,12 +128,12 @@ class SdkProxy
      */
     public function createOrder($orderData)
     {
-        return $this->getSubject()->createOrder($orderData);
+        return $this->getSdkForStore()->createOrder($orderData);
     }
 
     public function createPayment($paymentData)
     {
-        return $this->getSubject()->createPayment($paymentData);
+        return $this->getSdkForStore()->createPayment($paymentData);
     }
 
     /**
@@ -139,15 +141,16 @@ class SdkProxy
      */
     public function updateOrder($data)
     {
-        return $this->getSubject()->updateOrder($data);
+        return $this->getSdkForStore()->updateOrder($data);
     }
 
     /**
      * {@inheritdoc}
+     * @param string|null $storeId
      */
-    public function getOrder($orderId)
+    public function getOrder($orderId, ?string $storeId = null)
     {
-        return $this->getSubject()->getOrder($orderId);
+        return $this->getSdkForStore($storeId)->getOrder($orderId);
     }
 
     /**
@@ -155,7 +158,7 @@ class SdkProxy
      */
     public function isOrderRefundable($orderId)
     {
-        return $this->getSubject()->isOrderRefundable($orderId);
+        return $this->getSdkForStore()->isOrderRefundable($orderId);
     }
 
     /**
@@ -163,7 +166,7 @@ class SdkProxy
      */
     public function isOrderVoidable($orderId)
     {
-        return $this->getSubject()->isOrderVoidable($orderId);
+        return $this->getSdkForStore()->isOrderVoidable($orderId);
     }
 
     /**
@@ -171,19 +174,20 @@ class SdkProxy
      */
     public function voidPayment($orderId, $paymentId)
     {
-        return $this->getSubject()->voidPayment($orderId, $paymentId);
+        return $this->getSdkForStore()->voidPayment($orderId, $paymentId);
     }
 
     /**
      * @param string $orderId
      * @param string $paymentId
+     * @param string|null $storeId
      * @return false|mixed
      * @throws \JsonException
      * @throws NetworkException
      */
-    public function paymentCapture(string $orderId, string $paymentId)
+    public function paymentCapture(string $orderId, string $paymentId, ?string $storeId = null)
     {
-        return $this->getSubject()->paymentCapture($orderId, $paymentId);
+        return $this->getSdkForStore($storeId)->paymentCapture($orderId, $paymentId);
     }
 
     /**
@@ -191,7 +195,7 @@ class SdkProxy
      */
     public function refundOrder($orderId, $amount, $reason, $idempotency)
     {
-        return $this->getSubject()->refundOrder($orderId, $amount, $reason, $idempotency);
+        return $this->getSdkForStore()->refundOrder($orderId, $amount, $reason, $idempotency);
     }
 
     /**
@@ -199,12 +203,12 @@ class SdkProxy
      */
     public function refundCreate(\Rvvup\Sdk\Inputs\RefundCreateInput $input)
     {
-        return $this->getSubject()->refundCreate($input);
+        return $this->getSdkForStore()->refundCreate($input);
     }
 
     public function cancelPayment(string $paymentId, string $orderId): array
     {
-        return $this->getSubject()->cancelPayment($paymentId, $orderId);
+        return $this->getSdkForStore()->cancelPayment($paymentId, $orderId);
     }
 
     /**
@@ -216,7 +220,7 @@ class SdkProxy
         string $authorizationResponse,
         ?string $threeDSecureResponse
     ): array {
-        return $this->getSubject()->confirmCardAuthorization(
+        return $this->getSdkForStore()->confirmCardAuthorization(
             $paymentId,
             $orderId,
             $authorizationResponse,
@@ -229,7 +233,7 @@ class SdkProxy
      */
     public function ping(): bool
     {
-        return $this->getSubject()->ping();
+        return $this->getSdkForStore()->ping();
     }
 
     /**
@@ -237,7 +241,7 @@ class SdkProxy
      */
     public function registerWebhook(string $url): void
     {
-        $this->getSubject()->registerWebhook($url);
+        $this->getSdkForStore()->registerWebhook($url);
     }
 
     /**
@@ -259,7 +263,7 @@ class SdkProxy
         ];
 
         // Add any data send by the event, but keep core data untouched.
-        $this->getSubject()->createEvent($eventType, $reason, array_merge($additionalData, $data));
+        $this->getSdkForStore()->createEvent($eventType, $reason, array_merge($additionalData, $data));
     }
 
     /**
@@ -273,7 +277,7 @@ class SdkProxy
     private function getMethodsByValueAndCurrency(string $value, string $currency, ?array $inputOptions = null): array
     {
         if (!isset($this->monetizedMethods[$currency][$value])) {
-            $methods = $this->getSubject()->getMethods((string) round((float) $value, 2), $currency, $inputOptions);
+            $methods = $this->getSdkForStore()->getMethods((string) round((float) $value, 2), $currency, $inputOptions);
 
             $this->monetizedMethods[$currency][$value] = $this->filterApiMethods($methods);
         }

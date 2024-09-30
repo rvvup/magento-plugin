@@ -103,7 +103,7 @@ class In implements HttpGetActionInterface
                 (string)$order->getId(),
                 $rvvupId,
                 $origin,
-                (int)$storeId,
+                $storeId,
                 false,
                 $redirectUrl
             );
@@ -141,14 +141,14 @@ class In implements HttpGetActionInterface
                         null,
                         $rvvupId,
                         $origin,
-                        $quote->getStoreId()
+                        (string)$quote->getStoreId()
                     );
                 }
                 return $this->resultService->processOrderResult(
                     (string)$quote->getReservedOrderId(),
                     $rvvupId,
                     $origin,
-                    $quote->getStoreId(),
+                    (string)$quote->getStoreId(),
                     true
                 );
             }
@@ -172,7 +172,7 @@ class In implements HttpGetActionInterface
                 (string)$orderId,
                 $rvvupId,
                 $origin,
-                $quote->getStoreId(),
+                (string)$quote->getStoreId(),
                 true
             );
         }
@@ -193,7 +193,8 @@ class In implements HttpGetActionInterface
             $lastTransactionId,
             $rvvupPaymentId,
             $rvvupId,
-            $origin
+            $origin,
+            $storeId
         )) {
             $this->messageManager->addErrorMessage(
                 __(
@@ -208,7 +209,7 @@ class In implements HttpGetActionInterface
             (string)$orderId,
             $rvvupId,
             $origin,
-            $quote->getStoreId()
+            (string)$quote->getStoreId()
         );
     }
 
