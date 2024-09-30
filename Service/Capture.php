@@ -241,7 +241,7 @@ class Capture
             $this->quoteResource->rollback();
             $this->logger->addRvvupError(
                 'Order placement within rvvup payment failed',
-                $e->getMessage(),
+                $e->getTraceAsString(),
                 $rvvupId,
                 null,
                 $quote->getReservedOrderId(),
@@ -261,7 +261,7 @@ class Capture
             if (strpos($e->getMessage(), AdapterInterface::ERROR_ROLLBACK_INCOMPLETE_MESSAGE) !== false) {
                 $this->logger->addRvvupError(
                     'Order placement within rvvup payment failed',
-                    $e->getMessage(),
+                    $e->getTraceAsString(),
                     $rvvupId,
                     null,
                     $quote->getReservedOrderId(),
@@ -278,7 +278,7 @@ class Capture
             }
             $this->logger->addRvvupError(
                 'Order placement within rvvup payment failed',
-                $e->getMessage(),
+                $e->getTraceAsString(),
                 $rvvupId,
                 null,
                 $quote->getReservedOrderId(),
