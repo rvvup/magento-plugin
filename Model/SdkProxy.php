@@ -145,10 +145,11 @@ class SdkProxy
     }
 
     /**
-     * {@inheritdoc}
+     * @param string $orderId
      * @param string|null $storeId
+     * @return false|mixed
      */
-    public function getOrder($orderId, ?string $storeId = null)
+    public function getOrder(string $orderId, ?string $storeId = null)
     {
         return $this->getSdkForStore($storeId)->getOrder($orderId);
     }
