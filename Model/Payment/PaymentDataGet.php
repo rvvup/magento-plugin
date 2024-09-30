@@ -36,12 +36,13 @@ class PaymentDataGet implements PaymentDataGetInterface
      * Get the Rvvup payment data from the API by Rvvup order ID.
      *
      * @param string $rvvupId
+     * @param string|null $storeId
      * @return array
      */
-    public function execute(string $rvvupId): array
+    public function execute(string $rvvupId, string $storeId): array
     {
         try {
-            return $this->sdkProxy->getOrder($rvvupId);
+            return $this->sdkProxy->getOrder($rvvupId, $storeId);
         } catch (Throwable $t) {
             $this->logger->error('Failed to get data from Rvvup for order id', [Method::ORDER_ID => $rvvupId]);
             return [];

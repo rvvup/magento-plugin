@@ -301,6 +301,7 @@ class Capture
      * @param string $rvvupPaymentId
      * @param string $rvvupId
      * @param string $origin
+     * @param string $storeId
      * @return bool
      */
     public function paymentCapture(
@@ -308,11 +309,12 @@ class Capture
         string $lastTransactionId,
         string $rvvupPaymentId,
         string $rvvupId,
-        string $origin
+        string $origin,
+        string $storeId
     ): bool {
         try {
             if ($payment->getMethodInstance()->getCaptureType() !== 'MANUAL') {
-                $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId);
+                $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId, $storeId);
             }
         } catch (\Exception $e) {
             $this->logger->addRvvupError(

@@ -191,6 +191,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Gateway\Command\Capture">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+
     <virtualType name="RvvupPaymentLinksPool" type="Rvvup\Payments\Gateway\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
