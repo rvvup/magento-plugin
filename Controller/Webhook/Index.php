@@ -245,18 +245,6 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
     /**
      * @param string $reason
-     * @return ResultInterface
-     */
-    private function returnNotFound(string $reason): ResultInterface
-    {
-        $response = $this->resultFactory->create($this->resultFactory::TYPE_JSON);
-        $response->setHttpResponseCode(404);
-        $response->setData(['reason' => $reason]);
-        return $response;
-    }
-
-    /**
-     * @param string $reason
      * @param array $metadata
      * @return ResultInterface
      */
@@ -378,7 +366,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         } elseif (isset($order)) {
             $payload['magento_order_id'] = $order->getId();
         } else {
-            return $this->returnNotFound('Order/quote not found for ' . $eventType);
+            return $this->returnSkipResponse('Order/quote not found for ' . $eventType, []);
         }
         $this->webhookRepository->addToWebhookQueue($payload);
         return $this->returnSuccessfulResponse();

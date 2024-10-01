@@ -176,7 +176,7 @@ class IndexTest extends TestCase
         $this->captureService->method('getQuoteByRvvupId')->willReturn(null);
         $this->captureService->method('getOrderByRvvupId')->willThrowException(new PaymentValidationException(__('Error')));
 
-        $this->expectsResult(404, ['reason' => 'Order/quote not found for ' . $eventType]);
+        $this->expectsResult(210, ['reason' => 'Order/quote not found for ' . $eventType, 'metadata' => []]);
 
         $response = $this->controller->execute();
 
