@@ -104,7 +104,7 @@ class HasCartRestrictedProduct implements SpecificationInterface
                         'product_type' => $item->getProductType(),
                         'cart_item_skus' => $cartItemSkus ?? null,
                         'store_id' => $quote->getStoreId()
-                    ],
+                    ]
                 );
 
                 return true;

@@ -11,7 +11,6 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollection;
 use Rvvup\Payments\Model\ResourceModel\WebhookModel\WebhookCollectionFactory;
 use Rvvup\Payments\Model\WebhookRepository;
-use Rvvup\Payments\Service\Capture;
 
 class Webhook
 {
@@ -27,18 +26,14 @@ class Webhook
     /** @var WebhookRepository */
     private $webhookRepository;
 
-    /** @var Capture */
-    private $captureService;
-
     /** @var LoggerInterface */
-    private LoggerInterface $logger;
+    private $logger;
 
     /**
      * @param WebhookCollectionFactory $webhookCollectionFactory
      * @param PublisherInterface $publisher
      * @param Json $json
      * @param WebhookRepository $webhookRepository
-     * @param Capture $captureService
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -46,14 +41,12 @@ class Webhook
         PublisherInterface       $publisher,
         Json                     $json,
         WebhookRepository        $webhookRepository,
-        Capture                  $captureService,
         LoggerInterface          $logger
     ) {
         $this->webhookCollectionFactory = $webhookCollectionFactory;
         $this->json = $json;
         $this->publisher = $publisher;
         $this->webhookRepository = $webhookRepository;
-        $this->captureService = $captureService;
         $this->logger = $logger;
     }
 
@@ -95,7 +88,7 @@ class Webhook
                 $this->webhookRepository->updateWebhookQueueToProcessed((int) $item->getData('webhook_id'));
                 $this->logger->addRvvupError(
                     'Failed to process Rvvup webhook:' . $item->getData('payload'),
-                    $exception->getMessage(),
+                    $exception->getMessage()
                 );
             }
         }
@@ -108,12 +101,7 @@ class Webhook
      */
     private function addWebhookToQueue(int $webhookId): void
     {
-        $this->publisher->publish(
-            'rvvup.webhook',
-            $this->json->serialize([
-                'id' => (string) $webhookId,
-            ])
-        );
+        $this->publisher->publish('rvvup.webhook', $this->json->serialize(['id' => (string)$webhookId]));
         $this->webhookRepository->updateWebhookQueueToProcessed($webhookId);
     }
 }

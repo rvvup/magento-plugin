@@ -11,9 +11,9 @@
         "guzzlehttp/guzzle": ">=6",
         "magento/module-catalog": "^103.0 || ^104.0",
         "magento/module-grouped-product": ">=100.1",
-        "rvvup/sdk": "1.2.3",
+        "rvvup/sdk": "dev-test-against-2.3.2",
         "ext-json": "*",
-        "php": "^7.3 || ^8.0"
+        "php": "^7.2 || ^8.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^6 || ^7 || ^8 || ^9 || ^10 || ^11",
