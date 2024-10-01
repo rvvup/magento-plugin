@@ -90,7 +90,7 @@ class Result
      * @param string|null $orderId
      * @param string $rvvupId
      * @param string $origin
-     * @param int $storeId
+     * @param string $storeId
      * @param bool $reservedOrderId
      * @param string|null $redirectUrl
      * @return Redirect
@@ -100,11 +100,11 @@ class Result
         ?string $orderId,
         string $rvvupId,
         string $origin,
-        int $storeId,
+        string $storeId,
         bool $reservedOrderId = false,
         string $redirectUrl = null
     ): Redirect {
-        $this->emulation->startEnvironmentEmulation($storeId);
+        $this->emulation->startEnvironmentEmulation((int)$storeId);
 
         if (!$orderId) {
             return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
@@ -121,7 +121,7 @@ class Result
             }
 
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
-            $rvvupData = $this->paymentDataGet->execute($rvvupId);
+            $rvvupData = $this->paymentDataGet->execute($rvvupId, $storeId);
 
             if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
                 if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {

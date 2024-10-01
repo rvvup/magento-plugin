@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model\Queue\Handler;
 
-use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -22,6 +21,7 @@ use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Model\Queue\QueueContextCleaner;
 
 class Handler
 {
@@ -31,7 +31,7 @@ class Handler
     /** @var SerializerInterface */
     private $serializer;
 
-    /** @var SearchCriteriaBuilder */
+    /** @var PaymentDataGetInterface */
     private $paymentDataGet;
 
     /** @var ProcessorPool */
@@ -61,6 +61,9 @@ class Handler
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
+    /** @var QueueContextCleaner */
+    private $queueContextCleaner;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -74,6 +77,7 @@ class Handler
      * @param Json $json
      * @param OrderRepositoryInterface $orderRepository
      * @param CartRepositoryInterface $cartRepository
+     * @param QueueContextCleaner $queueContextCleaner
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -87,7 +91,8 @@ class Handler
         Emulation $emulation,
         Json $json,
         OrderRepositoryInterface $orderRepository,
-        CartRepositoryInterface $cartRepository
+        CartRepositoryInterface $cartRepository,
+        QueueContextCleaner $queueContextCleaner
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
@@ -101,6 +106,7 @@ class Handler
         $this->json = $json;
         $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
+        $this->queueContextCleaner = $queueContextCleaner;
     }
 
     /**
@@ -110,6 +116,8 @@ class Handler
     public function execute(string $data)
     {
         try {
+            $this->queueContextCleaner->clean();
+
             $data = $this->json->unserialize($data);
 
             $webhook = $this->webhookRepository->getById((int)$data['id']);
@@ -131,6 +139,8 @@ class Handler
                     $origin
                 );
                 return;
+            } else {
+                $storeId = (string) $storeId;
             }
 
             $this->emulation->startEnvironmentEmulation((int) $storeId);
@@ -144,13 +154,13 @@ class Handler
                         $paymentLinkId
                     );
                 }
-                $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin);
+                $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
                 return;
             }
 
             if ($checkoutId) {
                 $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId);
-                $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin);
+                $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
                 return;
             }
 
@@ -202,13 +212,14 @@ class Handler
                     $lastTransactionId,
                     $rvvupPaymentId,
                     $rvvupOrderId,
-                    $origin
+                    $origin,
+                    $storeId
                 );
                 return;
             }
 
             $order = $this->captureService->getOrderByRvvupId($rvvupOrderId);
-            $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin);
+            $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
             return;
         } catch (\Exception $e) {
             $this->logger->error('Queue handling exception:' . $e->getMessage(), [
@@ -222,6 +233,7 @@ class Handler
      * @param string $rvvupOrderId
      * @param string $rvvupPaymentId
      * @param string $origin
+     * @param string $storeId
      * @return void
      * @throws AlreadyExistsException
      * @throws LocalizedException
@@ -230,10 +242,11 @@ class Handler
         ?OrderInterface $order,
         string $rvvupOrderId,
         string $rvvupPaymentId,
-        string $origin
+        string $origin,
+        string $storeId
     ): void {
         if ($order && $order->getId()) {
-            $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin);
+            $this->processOrder($order, $rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
         } else {
             $this->logger->addRvvupError(
                 'Order not found for webhook',
@@ -251,6 +264,7 @@ class Handler
      * @param string $rvvupOrderId
      * @param string $rvvupPaymentId
      * @param string $origin
+     * @param string $storeId
      * @return void
      * @throws AlreadyExistsException
      * @throws LocalizedException
@@ -259,7 +273,8 @@ class Handler
         OrderInterface $order,
         string $rvvupOrderId,
         string $rvvupPaymentId,
-        string $origin
+        string $origin,
+        string $storeId
     ): void {
         // if Payment method is not Rvvup, exit.
         if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
@@ -268,7 +283,7 @@ class Handler
             }
         }
 
-        $rvvupData = $this->paymentDataGet->execute($rvvupOrderId);
+        $rvvupData = $this->paymentDataGet->execute($rvvupOrderId, $storeId);
         if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
             $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
                     Method::ORDER_ID => $rvvupOrderId

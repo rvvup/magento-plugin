@@ -46,4 +46,9 @@ interface RvvupConfigurationInterface
      * @return string|null The basic authentication token or NULL if not found
      */
     public function getBasicAuthToken(string $storeId): ?string;
+
+    /**
+     * Clean the configuration cache.
+     */
+    public function clean();
 }

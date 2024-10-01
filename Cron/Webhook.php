@@ -94,7 +94,7 @@ class Webhook
             } catch (\Exception $exception) {
                 $this->webhookRepository->updateWebhookQueueToProcessed((int) $item->getData('webhook_id'));
                 $this->logger->addRvvupError(
-                    'Failed to process Rvvup webhook:' . $item->getData($payload),
+                    'Failed to process Rvvup webhook:' . $item->getData('payload'),
                     $exception->getMessage(),
                 );
             }
