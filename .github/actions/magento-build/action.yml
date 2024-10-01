@@ -18,6 +18,7 @@ runs:
       with:
         php-version: ${{ inputs.php-version }}
         tools: composer:${{ inputs.composer-version }}
+        coverage: xdebug2
 
     - if: "${{ inputs.composer-version == 'v2' }}"
       run: |

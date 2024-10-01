@@ -87,3 +87,17 @@ jobs:
           php-version: 7.4
           magento-version: magento/project-community-edition:2.4.3
 
+  build-php74-magento-ce-232:
+    name: Build (Magento Community 2.3.2 w/ PHP 7.2.0)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Configure
+        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+      - name: Build
+        uses: ./.github/actions/magento-build
+        with:
+          php-version: 7.2.0
+          composer-version: v1
+          magento-version: magento/project-community-edition:2.3.2
