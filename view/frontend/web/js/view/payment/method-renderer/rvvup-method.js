@@ -355,7 +355,7 @@ define([
                     console.log('button already rendered');
                     return;
                 }
-                const createError = new Error("unable_to_place_order")
+                const createError = "Something went wrong, please try again later.";
 
                 rvvup_paypal.Buttons({
                     style: getPayPalCheckoutButtonStyle(),
@@ -428,13 +428,12 @@ define([
                     onError: function (error) {
                         self.resetDefaultData();
                         loader.stopLoader();
-                        if (!error || error.message === createError.message) {
+                        if (!error || error === createError) {
                             return;
                         }
-                        console.error(error);
                         errorProcessor.process({
                                 responseText:
-                                    JSON.stringify({message: error.message})
+                                    JSON.stringify({message: error.message || error})
                             },
                             self.messageContainer)
                     },
