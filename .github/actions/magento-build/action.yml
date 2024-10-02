@@ -31,7 +31,7 @@ runs:
         composer config repositories.repo.magento.com composer https://repo.magento.com
         COMPOSER_MEMORY_LIMIT=-1 composer create-project --repository-url=https://repo.magento.com/ ${{ inputs.magento-version }} build
         cd build
-        composer require rvvup/sdk
+        composer require rvvup/sdk:dev-test-against-2.3.2
         cp ../CI/config.php app/etc/config.php
         mkdir -p app/code/Rvvup/Payments
         rsync -a --exclude=.gitignore --exclude=*.md --exclude=phpcs.xml --exclude=phpunit.xml --exclude=phpstan.neon --exclude=renovate.json --exclude=composer.json --exclude=.github/ --exclude=build/ --exclude=.git/ ../ app/code/Rvvup/Payments

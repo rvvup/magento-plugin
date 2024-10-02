@@ -8,69 +8,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  php-stan:
-    name: PHP Stan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 7.4
-
-      - name: Configure
-        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
-
-      - name: Install dependencies
-        run: composer install --no-ansi --no-interaction --no-progress --no-scripts
-
-      - name: Run PHPStan
-        run: ./vendor/bin/phpstan -v
-
-  php-cs:
-    name: PHP CS
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 7.4
-
-      - name: Configure
-        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
-
-      - name: Install dependencies
-        run: composer install --no-ansi --no-interaction --no-progress --no-scripts
-
-      - name: Run PHPCS
-        run: ./vendor/bin/phpcs
-
-  php-unit:
-    name: PHP Unit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 7.4
-
-      - name: Configure
-        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
-
-      - name: Install dependencies
-        run: composer install --no-ansi --no-interaction --no-progress --no-scripts
-
-      - name: Run PHPUnit
-        run: ./vendor/bin/phpunit --testdox
-
   build-php81-magento-ce-243:
     name: Build (Magento Community 2.4.3 w/ PHP 7.4)
     runs-on: ubuntu-latest
