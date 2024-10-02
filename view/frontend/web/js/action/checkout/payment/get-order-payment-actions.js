@@ -22,9 +22,6 @@ define([
         loader,
     ) {
         'use strict';
-    const recaptchaRegistryModule = 'Magento_ReCaptchaWebapiUi/js/webapiReCaptchaRegistry';
-    const recaptchaRegistry = require.defined(recaptchaRegistryModule) ? require(recaptchaRegistryModule) : null;
-
     const getOrderPaymentActions = function (serviceUrl, headers, messageContainer) {
         return storage.get(
             serviceUrl,
@@ -95,19 +92,6 @@ define([
         });
     }
 
-    const removeReCaptchaListener = function (reCaptchaId) {
-        // Old version of Magento Security Package does not have _isInvisibleType property
-        if (!recaptchaRegistry._isInvisibleType) {
-            return;
-        }
-        // Do not remove it for invisible reCaptcha
-        if (recaptchaRegistry._isInvisibleType.hasOwnProperty('recaptcha-checkout-place-order') &&
-            recaptchaRegistry._isInvisibleType['recaptcha-checkout-place-order'] === true
-        ) {
-            return;
-        }
-        recaptchaRegistry.removeListener(reCaptchaId)
-    }
         /**
          * API request to get Order Payment Actions for Rvvup Payments.
          */
@@ -120,31 +104,7 @@ define([
                     cartId: quote.getQuoteId()
                 });
 
-            if (!recaptchaRegistry) { // if recaptcha module is not present
                 return getOrderPaymentActions(serviceUrl, {}, messageContainer);
-            }
-
-            const reCaptchaId = 'recaptcha-checkout-place-order';
-            // ReCaptcha is enabled for placing orders, so trigger the recaptcha flow
-            if (recaptchaRegistry.triggers && recaptchaRegistry.triggers.hasOwnProperty(reCaptchaId)) {
-                var recaptchaDeferred = $.Deferred();
-                recaptchaRegistry.addListener(reCaptchaId, function (token) {
-                    //Add reCaptcha value to rvvup place-order request
-                    getOrderPaymentActions(serviceUrl, {'X-ReCaptcha': token}, messageContainer)
-                        .done(function () {
-                            recaptchaDeferred.resolve.apply(recaptchaDeferred, arguments);
-                        }).fail(function () {
-                        recaptchaDeferred.reject.apply(recaptchaDeferred, arguments);
-                    });
-                });
-
-                recaptchaRegistry.triggers[reCaptchaId]();
-
-                // Remove Recaptcha to prevent non-place order actions from triggering the listener
-                removeReCaptchaListener(reCaptchaId);
-
-                return recaptchaDeferred;
-            }
         };
     }
 );
