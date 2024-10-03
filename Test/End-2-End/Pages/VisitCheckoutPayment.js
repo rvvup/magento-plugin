@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import Cart from "../Components/Cart";
 import GoTo from "../Components/GoTo";
+import {v7 as uuidv7} from 'uuid';
 
 export default class VisitCheckoutPayment {
   constructor(page) {
@@ -14,7 +15,7 @@ export default class VisitCheckoutPayment {
 
     await this.page
       .getByRole("textbox", { name: "Email Address" })
-      .fill("johndoe@example.com");
+      .fill(uuidv7() + "@example.com");
     await this.page.getByLabel("First name").fill("John");
     await this.page.getByLabel("Last name").fill("Doe");
     await this.page.getByLabel("Street Address: Line 1").fill("123 Main St");
@@ -51,7 +52,7 @@ export default class VisitCheckoutPayment {
 
     await this.page
       .getByRole("textbox", { name: "Email Address" })
-      .fill("johndoe@example.com");
+      .fill(uuidv7() + "@example.com");
     await this.page.getByLabel("First name").fill("John");
     await this.page.getByLabel("Last name").fill("Doe");
     await this.page.getByLabel("Street Address: Line 1").fill("123 Main St");
@@ -76,7 +77,7 @@ export default class VisitCheckoutPayment {
 
     await this.page
       .getByRole("textbox", { name: "Email Address" })
-      .fill("johndoe@example.com");
+      .fill(uuidv7() + "@example.com");
     await this.page.getByLabel("First name").fill("John");
     await this.page.getByLabel("Last name").fill("Doe");
     await this.page.getByLabel("Street Address: Line 1").fill("123 Main St");
