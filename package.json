@@ -12,6 +12,7 @@
   "devDependencies": {
     "@playwright/test": "^1.41.1",
     "@types/node": "^20.11.8",
-    "prettier": "3.3.3"
+    "prettier": "3.3.3",
+    "uuid": "^10.0.0"
   }
 }
