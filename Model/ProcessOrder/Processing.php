@@ -68,8 +68,10 @@ class Processing implements ProcessorInterface
     {
         /** @var \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult */
         $processOrderResult = $this->processOrderResultFactory->create();
-
-        if ($order->getPayment() === null || strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
+        if ($order->getPayment() === null) {
+            throw new PaymentValidationException(__('Missing payment for order.'));
+        }
+        if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
             throw new PaymentValidationException(__('Order is not paid via Rvvup'));
         }
 
