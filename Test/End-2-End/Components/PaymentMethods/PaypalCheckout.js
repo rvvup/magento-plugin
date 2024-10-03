@@ -1,3 +1,5 @@
+import {v7 as uuidv7} from 'uuid';
+
 export default class PaypalCheckout {
   constructor(page) {
     this.page = page;
@@ -49,7 +51,7 @@ export default class PaypalCheckout {
       await paypalCardForm.getByPlaceholder("Postcode").fill("SW1A 1AA");
       await paypalCardForm
         .getByPlaceholder("Email")
-        .fill("johndoe@example.com");
+        .fill(uuidv7() + "@example.com");
     }
     await paypalCardForm
       .getByRole("button", { name: /Buy Now|Continue/i })
