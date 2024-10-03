@@ -10,7 +10,6 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
 use Magento\Quote\Model\QuoteManagement;
@@ -28,7 +27,6 @@ use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 
 class Capture
 {
@@ -45,9 +43,6 @@ class Capture
 
     /** @var OrderRepositoryInterface */
     private $orderRepository;
-
-    /** @var QuoteResource */
-    private $quoteResource;
 
     /** @var QuoteManagement */
     private $quoteManagement;
@@ -80,7 +75,6 @@ class Capture
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
      * @param OrderRepositoryInterface $orderRepository
-     * @param QuoteResource $quoteResource
      * @param QuoteManagement $quoteManagement
      * @param SdkProxy $sdkProxy
      * @param CollectionFactory $collectionFactory
@@ -96,7 +90,6 @@ class Capture
         SearchCriteriaBuilder $searchCriteriaBuilder,
         OrderPaymentRepositoryInterface $orderPaymentRepository,
         OrderRepositoryInterface $orderRepository,
-        QuoteResource $quoteResource,
         QuoteManagement $quoteManagement,
         SdkProxy $sdkProxy,
         CollectionFactory $collectionFactory,
@@ -112,7 +105,6 @@ class Capture
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderPaymentRepository = $orderPaymentRepository;
         $this->orderRepository = $orderRepository;
-        $this->quoteResource = $quoteResource;
         $this->quoteManagement = $quoteManagement;
         $this->sdkProxy = $sdkProxy;
         $this->collectionFactory = $collectionFactory;
@@ -204,7 +196,6 @@ class Capture
      */
     public function createOrder(string $rvvupId, Quote $quote, string $origin): ValidationInterface
     {
-        $this->quoteResource->beginTransaction();
         $payment = $quote->getPayment();
 
         try {
@@ -228,7 +219,6 @@ class Capture
             }
 
             $orderId = $this->quoteManagement->placeOrder($quote->getEntityId(), $payment);
-            $this->quoteResource->commit();
             return $this->validationInterfaceFactory->create(
                 [
                     'data' => [
@@ -238,7 +228,6 @@ class Capture
                 ]
             );
         } catch (NoSuchEntityException $e) {
-            $this->quoteResource->rollback();
             $this->logger->addRvvupError(
                 'Order placement within rvvup payment failed',
                 $e->getMessage(),
@@ -257,7 +246,6 @@ class Capture
                 ]
             );
         } catch (\Exception $e) {
-            $this->quoteResource->rollback();
             if (strpos($e->getMessage(), AdapterInterface::ERROR_ROLLBACK_INCOMPLETE_MESSAGE) !== false) {
                 $this->logger->addRvvupError(
                     'Order placement within rvvup payment failed',

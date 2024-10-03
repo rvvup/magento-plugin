@@ -3,19 +3,19 @@
 namespace Rvvup\Payments\Model\ProcessOrder;
 
 use Exception;
-use Psr\Log\LoggerInterface;
-use Magento\Sales\Model\Order;
-use Rvvup\Payments\Model\Logger;
-use Rvvup\Payments\Gateway\Method;
-use Magento\Sales\Api\Data\OrderInterface;
-use Rvvup\Payments\Controller\Redirect\In;
-use Rvvup\Payments\Model\RvvupConfigProvider;
-use Magento\Framework\Stdlib\DateTime\DateTime;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
-use Rvvup\Payments\Exception\PaymentValidationException;
 use Magento\Framework\Event\ManagerInterface as EventManager;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
+use Psr\Log\LoggerInterface;
+use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
+use Rvvup\Payments\Controller\Redirect\In;
+use Rvvup\Payments\Exception\PaymentValidationException;
+use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Model\RvvupConfigProvider;
 
 class Processing implements ProcessorInterface
 {
@@ -68,13 +68,11 @@ class Processing implements ProcessorInterface
     {
         /** @var \Rvvup\Payments\Api\Data\ProcessOrderResultInterface $processOrderResult */
         $processOrderResult = $this->processOrderResultFactory->create();
-
-        if ($order->getPayment() === null
-            || strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0
-        ) {
-            if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
-                throw new PaymentValidationException(__('Order is not paid via Rvvup'));
-            }
+        if ($order->getPayment() === null) {
+            throw new PaymentValidationException(__('Missing payment for order.'));
+        }
+        if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
+            throw new PaymentValidationException(__('Order is not paid via Rvvup'));
         }
 
         try {
