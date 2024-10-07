@@ -110,7 +110,7 @@ define([
         if (isInvisibleCaptcha(reCaptchaId)) {
             return;
         }
-        recaptchaRegistry.removeListener(reCaptchaId)
+        recaptchaRegistry.removeListener(reCaptchaId);
     }
         /**
          * API request to get Order Payment Actions for Rvvup Payments.
