@@ -95,18 +95,22 @@ define([
         });
     }
 
-    const removeReCaptchaListener = function (reCaptchaId) {
-        // Old version of Magento Security Package does not have _isInvisibleType property
+    const isInvisibleCaptcha = function (reCaptchaId) {
         if (!recaptchaRegistry._isInvisibleType) {
+            // Old version of Magento Security Package does not have _isInvisibleType property, so we assume it was.
+            return true;
+        }
+        return recaptchaRegistry._isInvisibleType &&
+            recaptchaRegistry._isInvisibleType.hasOwnProperty(reCaptchaId) &&
+            recaptchaRegistry._isInvisibleType[reCaptchaId] === true;
+    }
+
+    const removeReCaptchaListener = function (reCaptchaId) {
+        // Do not remove the listener for invisible reCaptcha
+        if (isInvisibleCaptcha(reCaptchaId)) {
             return;
         }
-        // Do not remove it for invisible reCaptcha
-        if (recaptchaRegistry._isInvisibleType.hasOwnProperty('recaptcha-checkout-place-order') &&
-            recaptchaRegistry._isInvisibleType['recaptcha-checkout-place-order'] === true
-        ) {
-            return;
-        }
-        recaptchaRegistry.removeListener(reCaptchaId)
+        recaptchaRegistry.removeListener(reCaptchaId);
     }
         /**
          * API request to get Order Payment Actions for Rvvup Payments.
@@ -124,10 +128,21 @@ define([
                 return getOrderPaymentActions(serviceUrl, {}, messageContainer);
             }
 
-            const reCaptchaId = 'recaptcha-checkout-place-order';
+            var reCaptchaId = 'recaptcha-checkout-place-order';
+            /*
+             * From version 1.1.6 of Magento Security Package, there are multiple recaptcha instances on the page,
+             * so we need to find the active one for placing an order.
+             */
+            var $activeReCaptcha = $('.recaptcha-checkout-place-order:visible .g-recaptcha');
+            if ($activeReCaptcha.length > 0) {
+                reCaptchaId = $activeReCaptcha.last().attr('id');
+            }
             // ReCaptcha is enabled for placing orders, so trigger the recaptcha flow
             if (recaptchaRegistry.triggers && recaptchaRegistry.triggers.hasOwnProperty(reCaptchaId)) {
                 var recaptchaDeferred = $.Deferred();
+                if (recaptchaRegistry.tokens.hasOwnProperty(reCaptchaId)) {
+                    delete recaptchaRegistry.tokens[reCaptchaId];
+                }
                 recaptchaRegistry.addListener(reCaptchaId, function (token) {
                     //Add reCaptcha value to rvvup place-order request
                     getOrderPaymentActions(serviceUrl, {'X-ReCaptcha': token}, messageContainer)
