@@ -96,17 +96,17 @@ define([
     }
 
     const isInvisibleCaptcha = function (reCaptchaId) {
+        if (!recaptchaRegistry._isInvisibleType) {
+            // Old version of Magento Security Package does not have _isInvisibleType property, so we assume it was.
+            return true;
+        }
         return recaptchaRegistry._isInvisibleType &&
             recaptchaRegistry._isInvisibleType.hasOwnProperty(reCaptchaId) &&
             recaptchaRegistry._isInvisibleType[reCaptchaId] === true;
     }
 
     const removeReCaptchaListener = function (reCaptchaId) {
-        // Old version of Magento Security Package does not have _isInvisibleType property
-        if (!recaptchaRegistry._isInvisibleType) {
-            return;
-        }
-        // Do not remove it for invisible reCaptcha
+        // Do not remove the listener for invisible reCaptcha
         if (isInvisibleCaptcha(reCaptchaId)) {
             return;
         }
