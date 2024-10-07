@@ -140,7 +140,7 @@ define([
             // ReCaptcha is enabled for placing orders, so trigger the recaptcha flow
             if (recaptchaRegistry.triggers && recaptchaRegistry.triggers.hasOwnProperty(reCaptchaId)) {
                 var recaptchaDeferred = $.Deferred();
-                if (isInvisibleCaptcha(reCaptchaId) && recaptchaRegistry.tokens.hasOwnProperty(reCaptchaId)) {
+                if (recaptchaRegistry.tokens.hasOwnProperty(reCaptchaId)) {
                     delete recaptchaRegistry.tokens[reCaptchaId];
                 }
                 recaptchaRegistry.addListener(reCaptchaId, function (token) {
