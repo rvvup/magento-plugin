@@ -4,8 +4,6 @@ import RvvupMethodCheckout from "./Components/PaymentMethods/RvvupMethodCheckout
 import OrderConfirmation from "./Components/OrderConfirmation";
 import GoTo from "./Components/GoTo";
 
-test.describe.configure({ mode: 'serial' });
-
 test("full refund", async ({
                                page,
                            }) => {
@@ -16,7 +14,7 @@ test("full refund", async ({
 
     const orderId = await new OrderConfirmation(page).expectOnOrderConfirmation();
 
-    await new GoTo(page).admin.creditMemoForOrder(orderId);
+    await new GoTo(page).admin('e2e-tests-refunds').creditMemoForOrder(orderId);
 
 
     await page.getByRole('button', { name: 'Refund', exact: true }).click();
@@ -34,7 +32,7 @@ test("partial refund", async ({
 
     const orderId = await new OrderConfirmation(page).expectOnOrderConfirmation();
 
-    await new GoTo(page).admin.creditMemoForOrder(orderId);
+    await new GoTo(page).admin('e2e-tests-partial-refunds').creditMemoForOrder(orderId);
 
     await page.locator('#shipping_amount').fill('0');
     await page.locator('#shipping_amount').press('Enter');
