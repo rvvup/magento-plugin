@@ -13,6 +13,7 @@
         "magento/module-grouped-product": ">=100.4",
         "rvvup/sdk": "1.2.3",
         "ext-json": "*",
+        "what3words/module-what3words": "3.0.12",
         "php": "^7.3 || ^8.0"
     },
     "require-dev": {

@@ -19,4 +19,7 @@ bin/magento config:set system/smtp/transport smtp
 bin/magento config:set system/smtp/host $MAGENTO_SMTP_HOST
 bin/magento config:set system/smtp/port $MAGENTO_SMTP_PORT
 
+echo "Importing GB geodata for in store pickup"
+bin/magento inventory-geonames:import gb
+
 bin/magento sampledata:deploy
