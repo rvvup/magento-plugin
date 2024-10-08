@@ -8,5 +8,8 @@
         <job name="rvvup_logs" instance="Rvvup\Payments\Cron\Log" method="execute">
             <schedule>*/15 * * * *</schedule>
         </job>
+        <job name="rvvup_processed_logs_cleaner" instance="Rvvup\Payments\Cron\ProcessedLogsCleaner" method="execute">
+            <schedule>* * * * *</schedule>
+        </job>
     </group>
 </config>
