@@ -12,6 +12,8 @@ class Cache
     /** @var CacheInterface */
     private $cache;
 
+    private const FIFTEEN_MINUTES_AS_SECONDS = 15 * 60;
+
     /**
      * @param CacheInterface $cache
      */
@@ -43,7 +45,7 @@ class Cache
     public function set(string $orderId, string $type, string $value, string $orderStatus): void
     {
         $identifier = Method::PAYMENT_TITLE_PREFIX . $orderId . '_' . $type . '_' . $orderStatus;
-        $this->cache->save($value, $identifier, [], strtotime('15 mins'));
+        $this->cache->save($value, $identifier, [], self::FIFTEEN_MINUTES_AS_SECONDS);
     }
 
     public function clear(string $orderId, string $orderState): void
