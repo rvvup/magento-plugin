@@ -11,5 +11,8 @@
         <job name="rvvup_processed_logs_cleaner" instance="Rvvup\Payments\Cron\ProcessedLogsCleaner" method="execute">
             <schedule>* * * * *</schedule>
         </job>
+        <job name="rvvup_processed_webhooks_cleaner" instance="Rvvup\Payments\Cron\ProcessedWebhooksCleaner" method="execute">
+            <schedule>* * * * *</schedule>
+        </job>
     </group>
 </config>
