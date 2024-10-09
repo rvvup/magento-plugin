@@ -8,5 +8,11 @@
         <job name="rvvup_logs" instance="Rvvup\Payments\Cron\Log" method="execute">
             <schedule>*/15 * * * *</schedule>
         </job>
+        <job name="rvvup_processed_logs_cleaner" instance="Rvvup\Payments\Cron\ProcessedLogsCleaner" method="execute">
+            <schedule>15 1 * * *</schedule>
+        </job>
+        <job name="rvvup_processed_webhooks_cleaner" instance="Rvvup\Payments\Cron\ProcessedWebhooksCleaner" method="execute">
+            <schedule>15 2 * * *</schedule>
+        </job>
     </group>
 </config>
