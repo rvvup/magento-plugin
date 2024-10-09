@@ -15,9 +15,7 @@ class ProcessedWebhooksCleaner
     /**
      * @param WebhookResource $resource
      */
-    public function __construct(
-        WebhookResource $resource
-    )
+    public function __construct(WebhookResource $resource)
     {
         $this->resource = $resource;
     }
@@ -28,7 +26,12 @@ class ProcessedWebhooksCleaner
      */
     public function execute(): void
     {
-        $this->resource->getConnection()->query('DELETE FROM ' . $this->resource->getMainTable()
-            . ' WHERE is_processed = true AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY); ORDER BY webhook_id ASC LIMIT 100');
+        $connection = $this->resource->getConnection();
+        $selectQuery = $connection
+            ->select()
+            ->from(['webhooks' => $this->resource->getMainTable()])
+            ->where('webhooks.is_processed = true AND webhooks.created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)');
+
+        $connection->query($selectQuery->deleteFromSelect('webhooks'));
     }
 }

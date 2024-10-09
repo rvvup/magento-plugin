@@ -15,9 +15,7 @@ class ProcessedLogsCleaner
     /**
      * @param LogResource $resource
      */
-    public function __construct(
-        LogResource $resource
-    )
+    public function __construct(LogResource $resource)
     {
         $this->resource = $resource;
     }
@@ -28,7 +26,13 @@ class ProcessedLogsCleaner
      */
     public function execute(): void
     {
-        $this->resource->getConnection()->query('DELETE FROM ' . $this->resource->getMainTable()
-            . ' WHERE is_processed = true ORDER BY entity_id ASC LIMIT 100');
+        $connection = $this->resource->getConnection();
+
+        $selectQuery = $connection
+            ->select()
+            ->from(['logs' => $this->resource->getMainTable()])
+            ->where('logs.is_processed = true');
+
+        $connection->query($selectQuery->deleteFromSelect('logs'));
     }
 }
