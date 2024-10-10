@@ -17,11 +17,11 @@ use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Model\Queue\QueueContextCleaner;
 use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
-use Rvvup\Payments\Model\Queue\QueueContextCleaner;
 
 class Handler
 {
@@ -187,12 +187,7 @@ class Handler
                 $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
                 $validate = $this->captureService->validate($quote, $rvvupOrderId, null, $origin);
                 if (!$validate->getIsValid()) {
-                    if ($validate->getRedirectToCart()) {
-                        return;
-                    }
-                    if ($validate->getAlreadyExists()) {
-                        return;
-                    }
+                    return;
                 }
                 $this->captureService->setCheckoutMethod($quote);
                 $validation = $this->captureService->createOrder($rvvupOrderId, $quote, $origin);
