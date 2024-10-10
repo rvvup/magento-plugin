@@ -5,9 +5,6 @@
         <observer name="rvvup_payments_checkout_cart_restrictions_warning"
                   instance="Rvvup\Payments\Observer\CartRestrictionsWarning" />
     </event>
-    <event name="controller_action_predispatch">
-        <observer name="rvvup_payments_reload_cart_data" instance="Rvvup\Payments\Observer\Restore" />
-    </event>
     <!-- Remove express payment data when a quote is restored (payment cancelled/rejected etc) -->
     <event name="restore_quote">
         <observer name="Rvvup_Payments::Observer\Session\RemoveExpressPaymentDataObserver"

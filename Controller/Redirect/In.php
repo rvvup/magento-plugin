@@ -152,6 +152,10 @@ class In implements HttpGetActionInterface
                     true
                 );
             }
+            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath(
+                In::FAILURE,
+                ['_secure' => true, '_fragment' => 'payment']
+            );
         }
 
         $payment = $quote->getPayment();
