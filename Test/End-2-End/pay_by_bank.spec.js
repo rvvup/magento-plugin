@@ -9,10 +9,10 @@ test("Can place an order using pay by bank", async ({ page }) => {
   await new OrderConfirmation(page).expectOnOrderConfirmation(true);
 });
 
-test("The customer can decline the payment", async ({ page }) => {
+test("The customer can cancel the payment", async ({ page }) => {
   await new VisitCheckoutPayment(page).visit();
 
-  await new PayByBankCheckout(page).decline();
+  await new PayByBankCheckout(page).cancel();
 });
 
 test.skip("Payment declined if the customer has insufficient funds", async ({

@@ -19,7 +19,7 @@ export default class PayByBankCheckout {
     await frame.getByRole("button", { name: "Continue on desktop" }).click();
   }
 
-  async decline() {
+  async cancel() {
     await this.checkoutPage.selectPayByBank();
     await this.checkoutPage.pressPlaceOrder();
 
@@ -28,7 +28,7 @@ export default class PayByBankCheckout {
       await frame.getByRole("button", {name: "Continue on desktop"}).click();
 
     await this.page.getByRole("button", { name: "Cancel" }).click();
-    await expect(this.page.getByText("Payment Declined")).toBeVisible();
+    await expect(this.page.getByText("Payment Failed")).toBeVisible();
   }
 
   async declineInsufficientFunds() {
