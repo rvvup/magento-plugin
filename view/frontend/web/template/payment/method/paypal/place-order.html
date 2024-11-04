@@ -1,0 +1,68 @@
+<!-- PayPal PayLater Messaging -->
+<div class="rvvup-pp-message"
+     data-pp-message
+     data-pp-placement="payment"
+     data-bind="style: {
+                 display: shouldDisplayPayPalButton() && getPayLaterConfigValue('enabled') ? '' : 'none'
+             },
+             attr: {
+                 'data-pp-amount': getPayLaterTotal(),
+                 'data-pp-style-layout': getPayLaterConfigValue('layout'),
+                 'data-pp-style-logo-type': getPayLaterConfigValue('logoType'),
+                 'data-pp-style-logo-position': getPayLaterConfigValue('logoPosition'),
+                 'data-pp-style-text-color': getPayLaterConfigValue('textColor'),
+                 'data-pp-style-text-size': getPayLaterConfigValue('textSize'),
+                 'data-pp-style-text-align': getPayLaterConfigValue('textAlignment'),
+                 'data-pp-style-color': getPayLaterConfigValue('color'),
+                 'data-pp-style-ratio': getPayLaterConfigValue('ratio')
+         }"></div>
+
+<!-- PayPal SDK button, show if PayPal option is selected -->
+<!-- ko if: (getUsePlaceOrderStyling() == true) -->
+<div class="actions-toolbar rvvup-actions-toolbar"
+     data-bind="style: {display: shouldDisplayPayPalButton() ? 'block' : 'none'}">
+    <div class="primary">
+        <div data-bind="attr: {class: getPaypalBlockStyling()}, style: {display: 'block'
+                ,border :getPaypalBlockBorderStyling(), background :getPaypalBlockABackgroundStyling()}">
+            <div afterRender="afterRenderPaypalComponentProcessor"
+                 data-bind="attr: {'id': getPayPalId()}, css: {disabled: !isPlaceOrderActionAllowed()}">
+            </div>
+        </div>
+    </div>
+</div>
+<!--/ko-->
+
+<!-- ko if: (getUsePlaceOrderStyling() == false) -->
+<div data-bind="attr: {class: getPaypalBlockStyling()}, style: {display: shouldDisplayPayPalButton() ? 'block' : 'none'
+        ,border :getPaypalBlockBorderStyling(), background :getPaypalBlockABackgroundStyling()}">
+    <div afterRender="afterRenderPaypalComponentProcessor"
+         data-bind="attr: {'id': getPayPalId()}, css: {disabled: !isPlaceOrderActionAllowed()}"></div>
+</div>
+<!--/ko-->
+
+<!-- End Paypal SDK Button -->
+
+<!-- Place Order Button on express checkout flow -->
+<div class="actions-toolbar rvvup-actions-toolbar"
+     data-bind="style: {display: !shouldDisplayPayPalButton() ? 'block' : 'none'}">
+    <div class="primary rvvup-primary">
+        <button class="action primary checkout"
+                type="submit"
+                data-bind="
+                        click: placeOrder,
+                        attr: {title: $t('Place Order')},
+                        css: {disabled: !isPlaceOrderActionAllowed()},
+                        enable: (getCode() == isChecked())
+                        "
+                disabled>
+            <span data-bind="i18n: 'Place Order'"></span>
+        </button>
+    </div>
+</div>
+
+<!-- Cancel Express Payment link, currently show only if PayPal & Express payment process -->
+<div class="action-toolbar rvvup-action-toolbar"
+     data-bind="style: {display: shouldDisplayCancelExpressPaymentLink() ? '' : 'none'}">
+    <p data-bind="html: getCancelExpressPaymentLink()"></p>
+    <p data-bind="html: getCancelButtonOnClick()"></p>
+</div>
