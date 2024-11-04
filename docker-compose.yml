@@ -35,11 +35,9 @@ services:
       - MAGENTO_REPO_PRIVATE_KEY=$MAGENTO_REPO_PRIVATE_KEY
       - MAGENTO_SMTP_HOST=mailpit
       - MAGENTO_SMTP_PORT=1025
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        MAGENTO_VERSION: $MAGENTO_VERSION
+    volumes:
+      - "./:/bitnami/magento/app/code/Rvvup/Payments/"
+    image: magento-rvvup-store:latest
     depends_on:
       - mariadb
       - elasticsearch

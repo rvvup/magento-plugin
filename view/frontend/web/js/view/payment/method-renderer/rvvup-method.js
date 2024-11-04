@@ -398,13 +398,7 @@ define([
                      * @returns {Promise<unknown>}
                      */
                     onApprove: function () {
-                        return new Promise((resolve, reject) => {
-                            resolve(orderPaymentAction.getCaptureUrl());
-                        }).then((url) => {
-                            self.resetDefaultData();
-                            loader.stopLoader();
-                            self.showModal(url);
-                        });
+                        window.location.href = "/rvvup/redirect/in";
                     },
                     /**
                      * On PayPal cancelled, show modal with cancel URL.
