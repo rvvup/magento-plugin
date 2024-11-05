@@ -93,4 +93,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <!-- Create Payment Session -->
+    <route url="/V1/rvvup/payments/:cartId/create-payment-session/:checkoutId" method="POST">
+        <service class="Rvvup\Payments\Api\CreatePaymentSessionInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

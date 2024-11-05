@@ -692,7 +692,8 @@ define([
                     return values.settings.paypal.checkout.payLaterMessaging[key]
                 }
                 return values.settings.paypal.checkout.payLaterMessaging[key].value
-            }
+            },
+            canRender: true,
         });
     }
 );

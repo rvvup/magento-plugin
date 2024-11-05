@@ -35,8 +35,9 @@ class PaymentSessionService
 
     /**
      * @throws LocalizedException
+     * @throws \Exception
      */
-    public function create(Quote $quote, string $checkoutId)
+    public function create(Quote $quote, string $checkoutId): ?array
     {
         $quote = $this->quotePreparationService->prepare($quote);
         $discountTotal = $quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount();
@@ -51,7 +52,7 @@ class PaymentSessionService
         }
         $storeId = (string)$quote->getStoreId();
         $paymentSessionInput = [
-            "sessionKey" => $quote->getReservedOrderId(),
+            "sessionKey" => uniqid("rvvup"),
             "externalReference" => $quote->getReservedOrderId(),
             "total" => $this->buildAmount($quote->getGrandTotal(), $currency),
             "items" => $this->buildItems($quote),
@@ -99,16 +100,20 @@ class PaymentSessionService
         /** @var \Magento\Quote\Api\Data\CartItemInterface $item */
         foreach ($items as $item) {
             $quantity = number_format($item->getQty(), 0, '.', '');
+            $tax = $item->getPriceInclTax() - $item->getPrice();
+
             $itemData = [
                 "sku" => $item->getSku(),
                 "name" => $item->getName(),
                 "price" => $this->buildAmount($item->getPrice(), $currency),
                 "priceWithTax" => $this->buildAmount($item->getPriceInclTax(), $currency),
-                "tax" => $this->buildAmount($item->getPriceInclTax() - $item->getPrice(), $currency),
                 "quantity" => $quantity,
                 "total" => $this->buildAmount($item->getRowTotal(), $currency),
             ];
 
+            if ($tax > 0) {
+                $itemData["tax"] = $this->buildAmount($tax, $currency);
+            }
             $product = $item->getProduct();
 
             if ($product !== null) {
@@ -144,16 +149,20 @@ class PaymentSessionService
 
     private function buildAddress(AddressInterface $address): array
     {
-        return [
+        $line2 = $address->getStreetLine(2);
+        $address = [
             "name" => $address->getName(),
             "phoneNumber" => $address->getTelephone(),
             "company" => $address->getCompany(),
             "line1" => $address->getStreetLine(1),
-            "line2" => $address->getStreetLine(2),
             "city" => $address->getCity(),
             "state" => $address->getRegionCode(),
             "postcode" => $address->getPostcode(),
             "countryCode" => $address->getCountryId(),
         ];
+        if (!empty($line2)) {
+            $address["line2"] = $line2;
+        }
+        return $address;
     }
 }
