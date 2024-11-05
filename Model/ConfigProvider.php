@@ -116,8 +116,17 @@ class ConfigProvider implements ConfigProviderInterface
         $items = [];
 
         foreach ($methods as $method) {
+            switch ($method['name']) {
+                case 'APPLE_PAY':
+                    $component = 'Rvvup_Payments/js/view/payment/method-renderer/apple-pay';
+                    break;
+                default:
+                    $component = 'Rvvup_Payments/js/view/payment/method-renderer/rvvup-method';
+                    break;
+            }
+
             $items[Method::PAYMENT_TITLE_PREFIX . $method['name']] = [
-                'component' => 'Rvvup_Payments/js/view/payment/method-renderer/rvvup-method',
+                'component' => $component,
                 'isBillingAddressRequired' => true,
                 'description' => $method['description'],
                 'logo' => $method['logoUrl'],
