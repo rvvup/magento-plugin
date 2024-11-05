@@ -14,6 +14,7 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
 use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ConfigInterface;
 use Rvvup\Payments\Service\RvvupRestApi;
 
@@ -72,13 +73,19 @@ class Assets implements ArgumentInterface
     private $rvvupApi;
 
     /**
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     * @param \Rvvup\Payments\Model\ConfigInterface $config
-     * @param \Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
-     * @param \Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Psr\Log\LoggerInterface|RvvupLog $logger
-     * @return void
+     * @var RvvupConfigurationInterface
+     */
+    private $rvvupConfiguration;
+
+    /**
+     * @param SerializerInterface $serializer
+     * @param ConfigInterface $config
+     * @param PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
+     * @param PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet
+     * @param StoreManagerInterface $storeManager
+     * @param LoggerInterface|RvvupLog $logger
+     * @param RvvupRestApi $rvvupApi
+     * @param RvvupConfigurationInterface $rvvupConfiguration
      */
     public function __construct(
         SerializerInterface $serializer,
@@ -87,7 +94,8 @@ class Assets implements ArgumentInterface
         PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
-        RvvupRestApi    $rvvupApi
+        RvvupRestApi                $rvvupApi,
+        RvvupConfigurationInterface $rvvupConfiguration
     ) {
         $this->serializer = $serializer;
         $this->config = $config;
@@ -96,6 +104,7 @@ class Assets implements ArgumentInterface
         $this->storeManager = $storeManager;
         $this->logger = $logger;
         $this->rvvupApi = $rvvupApi;
+        $this->rvvupConfiguration = $rvvupConfiguration;
     }
 
     /**
@@ -126,6 +135,17 @@ class Assets implements ArgumentInterface
         }
 
         return $scripts;
+    }
+
+    public function getPublishableKey(): string
+    {
+        return $this->rvvupConfiguration->getMerchantId((string)$this->getStore()->getId());
+    }
+
+    public function getCoreSdkUrl(): string
+    {
+        // TODO: this needs to be dynamic
+        return "https://checkout.dev.rvvuptech.com/sdk/v1-unstable.js";
     }
 
     /**
