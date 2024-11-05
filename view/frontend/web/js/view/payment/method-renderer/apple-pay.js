@@ -28,6 +28,7 @@ define([
             checkoutSessionKey: rvvup_parameters.checkout.token
         });
 
+    let $redirectUrl = null;
 
         return Component.extend({
             defaults: {
@@ -72,15 +73,16 @@ define([
                         cartId: quote.getQuoteId(),
                         checkoutId: rvvup_parameters.checkout.id
                     });
-                    const paymentSessionId = await $.when(storage.post(
+                    const response = await $.when(storage.post(
                         serviceUrl,
                         true,
                         'application/json',
                         {}
                     ));
                     loader.stopLoader();
+                    $redirectUrl = response.redirect_url;
                     return {
-                        paymentSessionId: paymentSessionId,
+                        paymentSessionId: response.payment_session_id,
                         paymentCaptureType: "AUTOMATIC_PLUGIN", //TODO: get from above request
                     };
                 } catch (e) {
@@ -93,6 +95,7 @@ define([
 
             paymentAuthorized: async function (data) {
                 console.log("paymentAuthorized", data);
+                window.location.href = $redirectUrl;
             }
         });
 

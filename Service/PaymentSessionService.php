@@ -52,7 +52,7 @@ class PaymentSessionService
         }
         $storeId = (string)$quote->getStoreId();
         $paymentSessionInput = [
-            "sessionKey" => uniqid("rvvup"),
+            "sessionKey" => "$checkoutId." . $quote->getReservedOrderId(),
             "externalReference" => $quote->getReservedOrderId(),
             "total" => $this->buildAmount($quote->getGrandTotal(), $currency),
             "items" => $this->buildItems($quote),
