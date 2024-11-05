@@ -148,6 +148,12 @@ class Assets implements ArgumentInterface
         return "https://checkout.dev.rvvuptech.com/sdk/v1-unstable.js";
     }
 
+    public function shouldLoadCoreSdk(): bool
+    {
+        //TODO: For now, only load on apple pay inline.
+        return isset($this->getPaymentMethodsSettings()["rvvup_apple_pay"]);
+    }
+
     /**
      * Get the serialized Rvvup Parameters object.
      *
@@ -165,8 +171,7 @@ class Assets implements ArgumentInterface
             $rvvupParameters['settings'][str_replace(Method::PAYMENT_TITLE_PREFIX, '', $key)] = $methodSettings;
         }
 
-        //TODO: For now, only load on apple pay inline.
-        if (isset($rvvupParameters['settings']['apple_pay'])) {
+        if ($this->shouldLoadCoreSdk()) {
             try {
 
                 $storeId = (string)$this->getStore()->getId();

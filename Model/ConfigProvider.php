@@ -116,6 +116,7 @@ class ConfigProvider implements ConfigProviderInterface
         $items = [];
 
         foreach ($methods as $method) {
+            //TODO use standard renderer for non-inline apple pay
             switch ($method['name']) {
                 case 'APPLE_PAY':
                     $component = 'Rvvup_Payments/js/view/payment/method-renderer/apple-pay';

@@ -18,7 +18,20 @@ if ($assetsViewModel === null) {
     return;
 }
 ?>
-<script id="rvvup-core-sdk" src="<?php echo $assetsViewModel->getCoreSdkUrl();?>"></script>
+<?php if ($assetsViewModel->shouldLoadCoreSdk()) { ?>
+    <script id="rvvup-core-sdk" src="<?php echo $assetsViewModel->getCoreSdkUrl(); ?>"></script>
+
+    <?= /* @noEscape */
+    $secureRenderer->renderTag(
+        'script',
+        ['type' => 'text/javascript'],
+        "if(window.Rvvup){
+        window.rvvup_sdk = window.Rvvup({publicKey: '" . $assetsViewModel->getPublishableKey() . "'});
+    }",
+        false
+    );
+    ?>
+<?php } ?>
 <?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets() as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
         <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable?>
@@ -52,10 +65,7 @@ if ($assetsViewModel === null) {
 <?= /* @noEscape */ $secureRenderer->renderTag(
     'script',
     ['type' => 'text/javascript'],
-    "const rvvup_parameters = JSON.parse('" . $assetsViewModel->getRvvupParametersJsObject() . "');
-    if(window.Rvvup){
-        window.rvvup_sdk = window.Rvvup({publicKey: '" . $assetsViewModel->getPublishableKey() . "'});
-    }",
+    "const rvvup_parameters = JSON.parse('" . $assetsViewModel->getRvvupParametersJsObject() . "');",
     false
 );
 ?>
