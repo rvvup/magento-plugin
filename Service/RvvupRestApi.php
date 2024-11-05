@@ -2,6 +2,7 @@
 
 namespace Rvvup\Payments\Service;
 
+use Exception;
 use Magento\Framework\Serialize\SerializerInterface;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Sdk\Curl;
@@ -29,15 +30,29 @@ class RvvupRestApi
         $this->config = $config;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function createCheckout(string $storeId, array $checkoutInput): ?array
+    {
+        return $this->doRequest($storeId, "POST", "checkouts", $checkoutInput);
+    }
 
-    public function createPaymentSession(string $storeId, string $checkoutId, array $paymentSessionInput)
+    /**
+     * @throws Exception
+     */
+    public function createPaymentSession(string $storeId, string $checkoutId, array $paymentSessionInput): ?array
     {
         return $this->doRequest($storeId, "POST", "checkouts/$checkoutId/payment-sessions", $paymentSessionInput);
     }
 
+    /**
+     * @throws Exception
+     */
     private function doRequest(string $storeId, string $method, string $path, array $data)
     {
-        $request = $this->curl->request($method, $this->getApiUrl($storeId) . "/$path", [
+        $url = $this->getApiUrl($storeId) . "/$path";
+        $request = $this->curl->request($method, $url, [
             'headers' => [
                 'Content-Type: application/json',
                 'Accept: application/json',
@@ -45,6 +60,9 @@ class RvvupRestApi
             ],
             'json' => $data
         ]);
+        if ($request->response_code < 200 || $request->response_code > 299) {
+            throw new Exception("API request to failed: $method $url with $request->response_code");
+        }
         return $this->json->unserialize($request->body);
     }
 

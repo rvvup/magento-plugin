@@ -6,6 +6,7 @@ namespace Rvvup\Payments\ViewModel;
 
 use Exception;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -14,6 +15,7 @@ use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
 use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\ConfigInterface;
+use Rvvup\Payments\Service\RvvupRestApi;
 
 class Assets implements ArgumentInterface
 {
@@ -65,6 +67,11 @@ class Assets implements ArgumentInterface
     private $settings;
 
     /**
+     * @var RvvupRestApi
+     */
+    private $rvvupApi;
+
+    /**
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Rvvup\Payments\Model\ConfigInterface $config
      * @param \Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
@@ -79,7 +86,8 @@ class Assets implements ArgumentInterface
         PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet,
         PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet,
         StoreManagerInterface $storeManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        RvvupRestApi    $rvvupApi
     ) {
         $this->serializer = $serializer;
         $this->config = $config;
@@ -87,6 +95,7 @@ class Assets implements ArgumentInterface
         $this->paymentMethodsSettingsGet = $paymentMethodsSettingsGet;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
+        $this->rvvupApi = $rvvupApi;
     }
 
     /**
@@ -136,6 +145,28 @@ class Assets implements ArgumentInterface
             $rvvupParameters['settings'][str_replace(Method::PAYMENT_TITLE_PREFIX, '', $key)] = $methodSettings;
         }
 
+        //TODO: For now, only load on apple pay inline.
+        if (isset($rvvupParameters['settings']['apple_pay'])) {
+            try {
+
+                $storeId = (string)$this->getStore()->getId();
+                $checkoutInput = ["amount" => ["currency" => $this->getStoreCurrency() ?? "GBP", "amount" => 1]];
+                try {
+                    $checkoutInput["metadata"] = [
+                        "domain" => $this->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB, true)
+                    ];
+                } catch (Exception $e) {
+                    $this->logger->error('Ignoring error getting base url: ' . $e->getMessage());
+                }
+
+                $checkoutResult = $this->parsedCheckout($this->rvvupApi->createCheckout($storeId, $checkoutInput));
+                if ($checkoutResult) {
+                    $rvvupParameters['checkout'] = $checkoutResult;
+                }
+            } catch (Exception $e) {
+                $this->logger->error('Ignoring error creating checkout: ' . $e->getMessage());
+            }
+        }
         return $this->serializer->serialize($rvvupParameters);
     }
 
@@ -254,5 +285,19 @@ class Assets implements ArgumentInterface
         }
 
         return $this->store;
+    }
+
+    private function parsedCheckout(array $checkoutResult): ?array
+    {
+        if (!isset($checkoutResult) || !isset($checkoutResult["url"]) || !isset($checkoutResult["id"])) {
+            return null;
+        }
+        //TODO: Get from token field instead of URL
+        $parsedUrl = parse_url($checkoutResult["url"]);
+        parse_str($parsedUrl['query'], $queryParams);
+        if (!$queryParams['token']) {
+            return null;
+        }
+        return ["token" => $queryParams["token"], "id" => $checkoutResult["id"]];
     }
 }
