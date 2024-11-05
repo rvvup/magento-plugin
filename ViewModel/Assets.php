@@ -13,7 +13,10 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
 use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ConfigInterface;
+use Rvvup\Payments\Sdk\Curl;
+use Laminas\Http\Request;
 
 class Assets implements ArgumentInterface
 {
@@ -63,6 +66,11 @@ class Assets implements ArgumentInterface
      * @var array|null
      */
     private $settings;
+    /** @var RvvupConfigurationInterface */
+    private $rvvupConfiguration;
+
+    /** @var Curl */
+    private $curl;
 
     /**
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
@@ -79,7 +87,9 @@ class Assets implements ArgumentInterface
         PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet,
         PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet,
         StoreManagerInterface $storeManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        RvvupConfigurationInterface $rvvupConfiguration,
+        Curl                        $curl,
     ) {
         $this->serializer = $serializer;
         $this->config = $config;
@@ -87,6 +97,8 @@ class Assets implements ArgumentInterface
         $this->paymentMethodsSettingsGet = $paymentMethodsSettingsGet;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
+        $this->rvvupConfiguration = $rvvupConfiguration;
+        $this->curl = $curl;
     }
 
     /**
@@ -136,9 +148,45 @@ class Assets implements ArgumentInterface
             $rvvupParameters['settings'][str_replace(Method::PAYMENT_TITLE_PREFIX, '', $key)] = $methodSettings;
         }
 
+        $checkout = $this->getCheckoutToken();
+        $parsedUrl = parse_url($checkout["url"]);
+        parse_str($parsedUrl['query'], $queryParams);
+        $rvvupParameters['rvvup_checkout_token'] =  $queryParams['token'] ?? null;
+        $rvvupParameters['checkout_id'] =  $checkout['id'] ?? null;
         return $this->serializer->serialize($rvvupParameters);
     }
 
+    private function getCheckoutToken()
+    {
+        $postData = [
+            'amount' => ['amount' => "10", 'currency' => "GBP"],
+            'reference' => uniqid("test-"),
+            'source' => 'API',
+            'successUrl' => "https://example.com/"
+        ];
+
+        $token = $this->rvvupConfiguration->getBearerToken("1");
+        $headers = [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: Bearer ' . $token
+        ];
+
+        $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl("1"), [
+            'headers' => $headers,
+            'json' => $postData
+        ]);
+        return $this->serializer->unserialize($request->body);
+
+    }
+
+
+    private function getApiUrl(string $storeId): string
+    {
+        $merchantId = $this->rvvupConfiguration->getMerchantId($storeId);
+        $baseUrl = $this->rvvupConfiguration->getRestApiUrl($storeId);
+        return "$baseUrl/$merchantId/checkouts";
+    }
     /**
      * Get the generated ID for a script element by its method and index key.
      *
