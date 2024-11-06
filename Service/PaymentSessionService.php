@@ -51,6 +51,7 @@ class PaymentSessionService
     {
         $this->quotePreparationService->validate($quote);
         $quote = $this->quotePreparationService->prepare($quote);
+
         $storeId = (string)$quote->getStoreId();
 
         $discountTotal = $quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount();
@@ -179,16 +180,19 @@ class PaymentSessionService
     private function buildAddress(AddressInterface $address): array
     {
         $line2 = $address->getStreetLine(2);
+        $company = $address->getCompany();
         $address = [
             "name" => $address->getName(),
             "phoneNumber" => $address->getTelephone(),
-            "company" => $address->getCompany(),
             "line1" => $address->getStreetLine(1),
             "city" => $address->getCity(),
             "state" => $address->getRegionCode(),
             "postcode" => $address->getPostcode(),
             "countryCode" => $address->getCountryId(),
         ];
+        if (!empty($company)) {
+            $address["company"] = $company;
+        }
         if (!empty($line2)) {
             $address["line2"] = $line2;
         }

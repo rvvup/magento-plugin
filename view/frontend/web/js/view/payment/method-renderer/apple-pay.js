@@ -8,6 +8,8 @@ define([
     'Magento_Checkout/js/model/url-builder',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/error-processor',
+    'Rvvup_Payments/js/action/checkout/payment/create-payment-session',
+    'underscore',
 
     'domReady!'
     ], function (
@@ -20,6 +22,8 @@ define([
         urlBuilder,
         quote,
         errorProcessor,
+        createPaymentSession,
+        _,
     ) {
         'use strict';
 
@@ -66,20 +70,13 @@ define([
             },
 
             beforePayment: async function (component, data) {
-                loader.startLoader();
                 try {
-                    await setPaymentInformation(component.messageContainer, component.getData(), false);
-                    const serviceUrl = urlBuilder.createUrl('/rvvup/payments/:cartId/create-payment-session/:checkoutId', {
-                        cartId: quote.getQuoteId(),
-                        checkoutId: rvvup_parameters.checkout.id
-                    });
-                    const response = await $.when(storage.post(
-                        serviceUrl,
-                        true,
-                        'application/json',
-                        {}
-                    ));
-                    loader.stopLoader();
+                    const response = await createPaymentSession(
+                        component.messageContainer,
+                        rvvup_parameters.checkout.id,
+                        component.getData()
+                    );
+
                     $redirectUrl = response.redirect_url;
                     return {
                         paymentSessionId: response.payment_session_id,
