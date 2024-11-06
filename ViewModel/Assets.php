@@ -153,8 +153,7 @@ class Assets implements ArgumentInterface
      */
     public function getCoreSdkUrl(): string
     {
-        // TODO: this needs to be dynamic
-        return "https://checkout.dev.rvvuptech.com/sdk/v1-unstable.js";
+        return $this->rvvupConfiguration->getJsSdkUrl((string)$this->getStore()->getId());
     }
 
     /**

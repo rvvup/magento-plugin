@@ -34,6 +34,13 @@ interface RvvupConfigurationInterface
     public function getGraphQlUrl(string $storeId): ?string;
 
     /**
+     * Get JS SDK url by store ID.
+     * @param string $storeId to get the config for
+     * @return string|null The JS SDK url or NULL if not found
+     */
+    public function getJsSdkUrl(string $storeId): ?string;
+
+    /**
      * Get raw api token by store ID.
      * @param string $storeId to get the config for
      * @return string|null The raw api token or NULL if not found

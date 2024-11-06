@@ -37,7 +37,19 @@ class RvvupConfigurationTest extends TestCase
             ->willReturn(null);
         $this->assertEquals(null, $this->rvvupConfiguration->getMerchantId("1"));
     }
+    public function testGetJsSdkUrl()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
+            ->willReturn(self::TEST_JWT);
 
+        $this->assertEquals('https://checkout.rvvup.com/sdk/v1-unstable.js', $this->rvvupConfiguration->getJsSdkUrl("1"));
+    }
+    public function testGetJsSdkUrlReturnsNull()
+    {
+        $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
+            ->willReturn(null);
+        $this->assertEquals(null, $this->rvvupConfiguration->getJsSdkUrl("1"));
+    }
     public function testGetRestApiUrl()
     {
         $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
