@@ -8,6 +8,14 @@ use Magento\Framework\Validator\Exception;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
+use Rvvup\Api\Model\AddressInput;
+use Rvvup\Api\Model\CustomerInput;
+use Rvvup\Api\Model\ItemInput;
+use Rvvup\Api\Model\ItemRestriction;
+use Rvvup\Api\Model\MoneyInput;
+use Rvvup\Api\Model\PaymentSession;
+use Rvvup\Api\Model\PaymentSessionCreateInput;
+use Rvvup\ApiException;
 use Rvvup\Payments\Gateway\Method;
 
 class PaymentSessionService
@@ -21,74 +29,46 @@ class PaymentSessionService
      * @var Payment
      */
     private $paymentResource;
-    /** @var RvvupRestApi */
-    private $rvvupApi;
+    /** @var ApiProvider */
+    private $apiProvider;
 
     /**
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
-     * @param RvvupRestApi $rvvupApi
+     * @param ApiProvider $apiProvider
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
-        RvvupRestApi $rvvupApi
+        ApiProvider $apiProvider
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
-        $this->rvvupApi = $rvvupApi;
+        $this->apiProvider = $apiProvider;
     }
 
     /**
      * @param Quote $quote
      * @param string $checkoutId
-     * @return array|null
+     * @return PaymentSession
      * @throws LocalizedException
      * @throws AlreadyExistsException
      * @throws Exception
+     * @throws ApiException
+     * @throws \Exception
      */
-    public function create(Quote $quote, string $checkoutId): ?array
+    public function create(Quote $quote, string $checkoutId): PaymentSession
     {
         $this->quotePreparationService->validate($quote);
         $quote = $this->quotePreparationService->prepare($quote);
 
         $storeId = (string)$quote->getStoreId();
 
-        $discountTotal = $quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount();
-        $taxTotal = $quote->getTotals()['tax']->getValue();
-        $taxTotal = is_float($taxTotal) ? $taxTotal : 0.0;
-        $currency = $quote->getQuoteCurrencyCode();
+        $paymentSessionInput = $this->buildPaymentSession($checkoutId, $quote);
+
+        $result = $this->apiProvider->getSdk($storeId)->paymentSessions()->create($checkoutId, $paymentSessionInput);
+
         $payment = $quote->getPayment();
-        $method = str_replace(Method::PAYMENT_TITLE_PREFIX, '', $payment->getMethod());
-        $captureType = $payment->getMethodInstance()->getCaptureType();
-
-        if ($captureType != 'MANUAL') {
-            $captureType = 'AUTOMATIC_PLUGIN';
-        }
-        $paymentSessionInput = [
-            "sessionKey" => "$checkoutId." . $quote->getReservedOrderId(),
-            "externalReference" => $quote->getReservedOrderId(),
-            "total" => $this->buildAmount($quote->getGrandTotal(), $currency),
-            "items" => $this->buildItems($quote),
-            "customer" => $this->buildCustomer($quote),
-            "billingAddress" => $this->buildAddress($quote->getBillingAddress()),
-            "requiresShipping" => !$quote->getIsVirtual(),
-            "paymentMethod" => $method,
-            "captureType" => $captureType,
-        ];
-
-        if ($discountTotal > 0) {
-            $paymentSessionInput["discountTotal"] = $this->buildAmount($discountTotal, $currency);
-        }
-        if ($taxTotal > 0) {
-            $paymentSessionInput["taxTotal"] = $this->buildAmount($taxTotal, $currency);
-        }
-        if ($paymentSessionInput["requiresShipping"]) {
-            $paymentSessionInput["shippingAddress"] = $this->buildAddress($quote->getShippingAddress());
-        }
-
-        $result = $this->rvvupApi->createPaymentSession($storeId, $checkoutId, $paymentSessionInput);
-
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $result['payments'][0]['id']);
         $this->paymentResource->save($payment);
 
@@ -98,15 +78,13 @@ class PaymentSessionService
     /**
      * @param float $amount
      * @param string $currency
-     * @return array
+     * @return MoneyInput
      */
-    private function buildAmount(float $amount, string $currency): array
+    private function buildAmount(float $amount, string $currency): MoneyInput
     {
-        $formattedAmount = number_format($amount, 2, '.', '');
-        return [
-            "amount" => $formattedAmount,
-            "currency" => $currency
-        ];
+        return (new MoneyInput())
+            ->setAmount(number_format($amount, 2, '.', ''))
+            ->setCurrency($currency);
     }
 
     /**
@@ -124,22 +102,22 @@ class PaymentSessionService
             $quantity = number_format($item->getQty(), 0, '.', '');
             $tax = $item->getPriceInclTax() - $item->getPrice();
 
-            $itemData = [
-                "sku" => $item->getSku(),
-                "name" => $item->getName(),
-                "price" => $this->buildAmount($item->getPrice(), $currency),
-                "priceWithTax" => $this->buildAmount($item->getPriceInclTax(), $currency),
-                "quantity" => $quantity,
-                "total" => $this->buildAmount($item->getRowTotal(), $currency),
-            ];
+            $itemData = new ItemInput();
+            $itemData
+                ->setSku($item->getSku())
+                ->setName($item->getName())
+                ->setPrice($this->buildAmount($item->getPrice(), $currency))
+                ->setPriceWithTax($this->buildAmount($item->getPriceInclTax(), $currency))
+                ->setQuantity($quantity)
+                ->setTotal($this->buildAmount($item->getRowTotal(), $currency));
 
             if ($tax > 0) {
-                $itemData["tax"] = $this->buildAmount($tax, $currency);
+                $itemData->setTax($this->buildAmount($tax, $currency));
             }
             $product = $item->getProduct();
 
             if ($product !== null) {
-                $itemData['restriction'] = $product->getData('rvvup_restricted') ? 'RESTRICTED' : 'ALLOWED';
+                $itemData->setRestriction($product->getData('rvvup_restricted') ? ItemRestriction::RESTRICTED : ItemRestriction::ALLOWED);
             }
 
             $returnItems[] = $itemData;
@@ -152,50 +130,94 @@ class PaymentSessionService
      * @param Quote $quote
      * @return array|null
      */
-    private function buildCustomer(Quote $quote): ?array
+    private function buildCustomer(Quote $quote): ?CustomerInput
     {
         $billingAddress = $quote->getBillingAddress();
 
         if ($billingAddress->getFirstname() !== null || $billingAddress->getLastname() !== null) {
             $email = $billingAddress->getEmail() ?: $quote->getCustomerEmail();
-            return [
-                'givenName' => $billingAddress->getFirstname(),
-                'surname' => $billingAddress->getLastname(),
-                'phoneNumber' => $billingAddress->getTelephone(),
-                'email' => $email,
-            ];
+            return (new CustomerInput())
+                ->setGivenName($billingAddress->getFirstname())
+                ->setSurname($billingAddress->getLastname())
+                ->setPhoneNumber($billingAddress->getTelephone())
+                ->setEmail($email);
         }
-
-        return [
-            'givenName' => $quote->getCustomerFirstName(),
-            'surname' => $quote->getCustomerLastName(),
-            'email' => $quote->getCustomerEmail(),
-        ];
+        return (new CustomerInput())
+            ->setGivenName($quote->getCustomerFirstName())
+            ->setSurname($quote->getCustomerLastName())
+            ->setEmail($quote->getCustomerEmail());
     }
 
     /**
      * @param AddressInterface $address
-     * @return array
+     * @return AddressInput
      */
-    private function buildAddress(AddressInterface $address): array
+    private function buildAddress(AddressInterface $address): AddressInput
     {
         $line2 = $address->getStreetLine(2);
+        $state = $address->getRegionCode();
         $company = $address->getCompany();
-        $address = [
-            "name" => $address->getName(),
-            "phoneNumber" => $address->getTelephone(),
-            "line1" => $address->getStreetLine(1),
-            "city" => $address->getCity(),
-            "state" => $address->getRegionCode(),
-            "postcode" => $address->getPostcode(),
-            "countryCode" => $address->getCountryId(),
-        ];
+
+        $addressInput = new AddressInput();
+        $addressInput
+            ->setName($address->getName())
+            ->setPhoneNumber($address->getTelephone())
+            ->setLine1($address->getStreetLine(1))
+            ->setCity($address->getCity())
+            ->setPostcode($address->getPostcode())
+            ->setCountryCode($address->getCountryId());
+
         if (!empty($company)) {
-            $address["company"] = $company;
+            $addressInput->setCompany($company);
         }
         if (!empty($line2)) {
-            $address["line2"] = $line2;
+            $addressInput->setCompany($line2);
         }
-        return $address;
+        if (!empty($state)) {
+            $addressInput->setState($state);
+        }
+        return $addressInput;
+    }
+
+    /**
+     * @param string $checkoutId
+     * @param Quote $quote
+     * @return PaymentSessionCreateInput
+     */
+    private function buildPaymentSession(string $checkoutId, Quote $quote): PaymentSessionCreateInput
+    {
+        $discountTotal = $quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount();
+        $taxTotal = $quote->getTotals()['tax']->getValue();
+        $taxTotal = is_float($taxTotal) ? $taxTotal : 0.0;
+        $currency = $quote->getQuoteCurrencyCode();
+        $payment = $quote->getPayment();
+        $method = str_replace(Method::PAYMENT_TITLE_PREFIX, '', $quote->getPayment()->getMethod());
+        $captureType = $payment->getMethodInstance()->getCaptureType();
+
+        if ($captureType != 'MANUAL') {
+            $captureType = 'AUTOMATIC_PLUGIN';
+        }
+        $paymentSessionInput = new PaymentSessionCreateInput();
+        $paymentSessionInput
+            ->setSessionKey("$checkoutId." . $quote->getReservedOrderId())
+            ->setExternalReference($quote->getReservedOrderId())
+            ->setTotal($this->buildAmount($quote->getGrandTotal(), $currency))
+            ->setItems($this->buildItems($quote))
+            ->setCustomer($this->buildCustomer($quote))
+            ->setBillingAddress($this->buildAddress($quote->getBillingAddress()))
+            ->setRequiresShipping(!$quote->getIsVirtual())
+            ->setPaymentMethod($method)
+            ->setPaymentCaptureType($captureType);
+
+        if ($discountTotal > 0) {
+            $paymentSessionInput->setDiscountTotal($this->buildAmount($discountTotal, $currency));
+        }
+        if ($taxTotal > 0) {
+            $paymentSessionInput->setTaxTotal($this->buildAmount($taxTotal, $currency));
+        }
+        if ($paymentSessionInput->getRequiresShipping() === true) {
+            $paymentSessionInput->setShippingAddress($this->buildAddress($quote->getShippingAddress()));
+        }
+        return $paymentSessionInput;
     }
 }
