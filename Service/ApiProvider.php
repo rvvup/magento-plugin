@@ -4,8 +4,8 @@ namespace Rvvup\Payments\Service;
 
 use Exception;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
-use Rvvup\Payments\Model\Environment\GetEnvironmentVersionsInterface;
 use Rvvup\Payments\Model\UserAgentBuilder;
+use Rvvup\Sdk\Rest\Options\RvvupClientOptions;
 use Rvvup\Sdk\Rest\RvvupClient;
 
 class ApiProvider
@@ -14,8 +14,6 @@ class ApiProvider
     private $config;
     /** @var UserAgentBuilder */
     private $userAgent;
-    /** @var GetEnvironmentVersionsInterface */
-    private $getEnvironmentVersions;
 
     /** @var array */
     private $clients;
@@ -23,16 +21,13 @@ class ApiProvider
     /**
      * @param RvvupConfigurationInterface $config
      * @param UserAgentBuilder $userAgent
-     * @param GetEnvironmentVersionsInterface $getEnvironmentVersions
      */
     public function __construct(
         RvvupConfigurationInterface     $config,
-        UserAgentBuilder                $userAgent,
-        GetEnvironmentVersionsInterface $getEnvironmentVersions
+        UserAgentBuilder $userAgent
     ) {
         $this->config = $config;
         $this->userAgent = $userAgent;
-        $this->getEnvironmentVersions = $getEnvironmentVersions;
         $this->clients = [];
     }
 
@@ -52,7 +47,10 @@ class ApiProvider
     public function getSdk(string $storeId): RvvupClient
     {
         if (!isset($this->clients[$storeId])) {
-            $this->clients[$storeId] = new RvvupClient($this->config->getBearerToken($storeId), null);
+            $this->clients[$storeId] = new RvvupClient(
+                $this->config->getBearerToken($storeId),
+                new RvvupClientOptions(null, null, $this->userAgent->get())
+            );
         }
         return $this->clients[$storeId];
     }

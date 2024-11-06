@@ -25,12 +25,16 @@ class QuotePreparationService
      */
     private $quoteValidator;
 
+    /**
+     * @param CartRepositoryInterface $quoteRepository
+     * @param Hash $hashService
+     * @param QuoteValidator $quoteValidator
+     */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         Hash                    $hashService,
         QuoteValidator          $quoteValidator
-    )
-    {
+    ) {
         $this->quoteRepository = $quoteRepository;
         $this->hashService = $hashService;
         $this->quoteValidator = $quoteValidator;
@@ -43,7 +47,7 @@ class QuotePreparationService
      * @return Quote
      * @throws LocalizedException
      */
-    public function prepare(Quote $quote, $skipValidation = false): Quote
+    public function prepare(Quote $quote, bool $skipValidation = false): Quote
     {
         if (!$skipValidation) {
             $this->quoteValidator->validateBeforeSubmit($quote);
