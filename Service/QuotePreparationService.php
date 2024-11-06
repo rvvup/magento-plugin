@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Service;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Validator\Exception;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteValidator;
@@ -41,33 +42,41 @@ class QuotePreparationService
     }
 
     /**
-     * Prepares a quote with necessary data and ensure the data is valid
+     * Validates a quote
      * @param Quote $quote
-     * @param bool $skipValidation
+     * @return void
+     * @throws LocalizedException
+     * @throws Exception
+     */
+    public function validate(Quote $quote): void
+    {
+        $this->quoteValidator->validateBeforeSubmit($quote);
+
+        $billingAddress = $quote->getBillingAddress();
+        $shippingAddress = $quote->getShippingAddress();
+
+        if ($billingAddress === null) {
+            throw new LocalizedException(__("Billing address is required. Please check and try again."));
+        }
+        if (!$quote->getIsVirtual() && $quote->getShippingAddress() === null) {
+            throw new LocalizedException(__("Shipping address is required. Please check and try again."));
+        }
+        if ($billingAddress->getPostcode() === null) {
+            throw new LocalizedException(__("Billing postcode is required. Please check and try again."));
+        }
+        if ($shippingAddress->getPostcode() === null) {
+            throw new LocalizedException(__("Shipping postcode is required. Please check and try again."));
+        }
+    }
+
+    /**
+     * Prepares the quote with the right information
+     * @param Quote $quote
      * @return Quote
      * @throws LocalizedException
      */
-    public function prepare(Quote $quote, bool $skipValidation = false): Quote
+    public function prepare(Quote $quote): Quote
     {
-        if (!$skipValidation) {
-            $this->quoteValidator->validateBeforeSubmit($quote);
-
-            $billingAddress = $quote->getBillingAddress();
-            $shippingAddress = $quote->getShippingAddress();
-            if ($billingAddress === null) {
-                throw new LocalizedException(__("Billing address is required. Please check and try again."));
-            }
-            if (!$quote->getIsVirtual() && $quote->getShippingAddress() === null) {
-                throw new LocalizedException(__("Shipping address is required. Please check and try again."));
-            }
-            if ($billingAddress->getPostcode() === null) {
-                throw new LocalizedException(__("Billing postcode is required. Please check and try again."));
-            }
-            if ($shippingAddress->getPostcode() === null) {
-                throw new LocalizedException(__("Shipping postcode is required. Please check and try again."));
-            }
-        }
-
         $customerEmail = $this->getCustomerEmail($quote);
         $quote->setCustomerEmail($customerEmail);
         $quote->reserveOrderId();
