@@ -11,12 +11,15 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Api\Model\Checkout;
+use Rvvup\Api\Model\CheckoutCreateInput;
+use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
 use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ConfigInterface;
-use Rvvup\Payments\Service\RvvupRestApi;
+use Rvvup\Payments\Service\ApiProvider;
 
 class Assets implements ArgumentInterface
 {
@@ -68,9 +71,9 @@ class Assets implements ArgumentInterface
     private $settings;
 
     /**
-     * @var RvvupRestApi
+     * @var ApiProvider
      */
-    private $rvvupApi;
+    private $apiProvider;
 
     /**
      * @var RvvupConfigurationInterface
@@ -84,7 +87,7 @@ class Assets implements ArgumentInterface
      * @param PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet
      * @param StoreManagerInterface $storeManager
      * @param LoggerInterface|RvvupLog $logger
-     * @param RvvupRestApi $rvvupApi
+     * @param ApiProvider $apiProvider
      * @param RvvupConfigurationInterface $rvvupConfiguration
      */
     public function __construct(
@@ -94,7 +97,7 @@ class Assets implements ArgumentInterface
         PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
-        RvvupRestApi                $rvvupApi,
+        ApiProvider $apiProvider,
         RvvupConfigurationInterface $rvvupConfiguration
     ) {
         $this->serializer = $serializer;
@@ -103,7 +106,7 @@ class Assets implements ArgumentInterface
         $this->paymentMethodsSettingsGet = $paymentMethodsSettingsGet;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
-        $this->rvvupApi = $rvvupApi;
+        $this->apiProvider = $apiProvider;
         $this->rvvupConfiguration = $rvvupConfiguration;
     }
 
@@ -137,17 +140,26 @@ class Assets implements ArgumentInterface
         return $scripts;
     }
 
+    /**
+     * @return string
+     */
     public function getPublishableKey(): string
     {
         return $this->rvvupConfiguration->getMerchantId((string)$this->getStore()->getId());
     }
 
+    /**
+     * @return string
+     */
     public function getCoreSdkUrl(): string
     {
         // TODO: this needs to be dynamic
         return "https://checkout.dev.rvvuptech.com/sdk/v1-unstable.js";
     }
 
+    /**
+     * @return bool
+     */
     public function shouldLoadCoreSdk(): bool
     {
         //TODO: For now, only load on apple pay inline.
@@ -175,16 +187,19 @@ class Assets implements ArgumentInterface
             try {
 
                 $storeId = (string)$this->getStore()->getId();
-                $checkoutInput = ["amount" => ["currency" => $this->getStoreCurrency() ?? "GBP", "amount" => 1]];
+                $checkoutInput = (new CheckoutCreateInput())
+                    ->setAmount((new MoneyInput())->setAmount(1)
+                        ->setCurrency($this->getStoreCurrency() ?? "GBP"));
                 try {
-                    $checkoutInput["metadata"] = [
+                    $checkoutInput->setMetadata([
                         "domain" => $this->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB, true)
-                    ];
+                    ]);
                 } catch (Exception $e) {
                     $this->logger->error('Ignoring error getting base url: ' . $e->getMessage());
                 }
 
-                $checkoutResult = $this->parsedCheckout($this->rvvupApi->createCheckout($storeId, $checkoutInput));
+                $result = $this->apiProvider->getSdk($storeId)->checkouts()->create($checkoutInput, null);
+                $checkoutResult = $this->parsedCheckout($result);
                 if ($checkoutResult) {
                     $rvvupParameters['checkout'] = $checkoutResult;
                 }
@@ -312,17 +327,21 @@ class Assets implements ArgumentInterface
         return $this->store;
     }
 
-    private function parsedCheckout(array $checkoutResult): ?array
+    /**
+     * @param Checkout $checkoutResult
+     * @return array|null
+     */
+    private function parsedCheckout(Checkout $checkoutResult): ?array
     {
-        if (!isset($checkoutResult) || !isset($checkoutResult["url"]) || !isset($checkoutResult["id"])) {
+        if (!$checkoutResult->getId() || !$checkoutResult->getUrl()) {
             return null;
         }
         //TODO: Get from token field instead of URL
-        $parsedUrl = parse_url($checkoutResult["url"]);
+        $parsedUrl = parse_url($checkoutResult->getUrl());
         parse_str($parsedUrl['query'], $queryParams);
         if (!$queryParams['token']) {
             return null;
         }
-        return ["token" => $queryParams["token"], "id" => $checkoutResult["id"]];
+        return ["token" => $queryParams["token"], "id" => $checkoutResult->getId()];
     }
 }
