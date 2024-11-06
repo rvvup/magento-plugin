@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Model;
 
-use Magento\Checkout\Model\GuestPaymentInformationManagement;
+use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
+use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Validator\Exception;
@@ -13,6 +15,7 @@ use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\QuoteRepository;
+use Rvvup\ApiException;
 use Rvvup\Payments\Api\CreatePaymentSessionInterface;
 use Rvvup\Payments\Api\Data\CreatePaymentSessionResponseInterface;
 use Rvvup\Payments\Api\Data\CreatePaymentSessionResponseInterfaceFactory;
@@ -29,22 +32,25 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
     private $paymentSessionService;
     /**  @var CreatePaymentSessionResponseInterfaceFactory */
     private $responseFactory;
-    /*** @var GuestPaymentInformationManagement */
+    /*** @var GuestPaymentInformationManagementInterface */
     private $guestPaymentInformationManagement;
+    /*** @var PaymentInformationManagementInterface */
+    private $paymentInformationManagement;
     /**
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param QuoteRepository $quoteRepository
      * @param PaymentSessionService $paymentSessionService
      * @param CreatePaymentSessionResponseInterfaceFactory $responseFactory
-     * @param GuestPaymentInformationManagement $guestPaymentInformationManagement
+     * @param GuestPaymentInformationManagementInterface $guestPaymentInformationManagement
+     * @param PaymentInformationManagementInterface $paymentInformationManagement
      */
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         QuoteRepository                 $quoteRepository,
         PaymentSessionService                        $paymentSessionService,
         CreatePaymentSessionResponseInterfaceFactory $responseFactory,
-        GuestPaymentInformationManagement $guestPaymentInformationManagement
-
+        GuestPaymentInformationManagementInterface $guestPaymentInformationManagement,
+        PaymentInformationManagementInterface      $paymentInformationManagement
     )
     {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
@@ -52,10 +58,10 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         $this->paymentSessionService = $paymentSessionService;
         $this->responseFactory = $responseFactory;
         $this->guestPaymentInformationManagement = $guestPaymentInformationManagement;
+        $this->paymentInformationManagement = $paymentInformationManagement;
     }
 
     /**
-     * @inheritdoc
      * @param string $cartId
      * @param string $checkoutId
      * @param string $email
@@ -65,9 +71,9 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
      * @throws NoSuchEntityException
      * @throws AlreadyExistsException
      * @throws LocalizedException
-     * @throws Exception
+     * @throws Exception|ApiException
      */
-    public function execute(
+    public function guestRoute(
         string           $cartId,
         string           $checkoutId,
         string           $email,
@@ -81,9 +87,55 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
             $billingAddress
         );
 
-        $quote = $this->quoteRepository->get((string)$this->maskedQuoteIdToQuoteId->execute($cartId));
-        $paymentSession =
-            $this->paymentSessionService->create($quote, $checkoutId);
+        return $this->createPaymentSession((string) $this->maskedQuoteIdToQuoteId->execute($cartId), $checkoutId);
+    }
+
+    /**
+     * @param string $customerId
+     * @param string $cartId
+     * @param string $checkoutId
+     * @param PaymentInterface $paymentMethod
+     * @param AddressInterface $billingAddress
+     * @return CreatePaymentSessionResponseInterface
+     * @throws AlreadyExistsException
+     * @throws ApiException
+     * @throws Exception
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws CouldNotSaveException
+     */
+    public function customerRoute(
+        string           $customerId,
+        string           $cartId,
+        string           $checkoutId,
+        PaymentInterface $paymentMethod,
+        AddressInterface $billingAddress
+    ): CreatePaymentSessionResponseInterface
+    {
+        $this->paymentInformationManagement->savePaymentInformation(
+            $cartId,
+            $paymentMethod,
+            $billingAddress,
+        );
+
+        return $this->createPaymentSession($cartId, $checkoutId);
+    }
+
+    /**
+     * @param string $cartId
+     * @param string $checkoutId
+     * @return CreatePaymentSessionResponseInterface
+     * @throws AlreadyExistsException
+     * @throws ApiException
+     * @throws Exception
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    private function createPaymentSession(string $cartId, string $checkoutId): CreatePaymentSessionResponseInterface
+    {
+        $quote = $this->quoteRepository->get($cartId);
+
+        $paymentSession = $this->paymentSessionService->create($quote, $checkoutId);
 
         /** @var CreatePaymentSessionResponseInterface $response */
         $response = $this->responseFactory->create();

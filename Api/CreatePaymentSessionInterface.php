@@ -11,7 +11,7 @@ use Rvvup\Payments\Api\Data\CreatePaymentSessionResponseInterface;
 interface CreatePaymentSessionInterface
 {
     /**
-     * Create payment session with checkout for a cart
+     * Create payment session with checkout for a guest cart
      *
      * @param string $cartId
      * @param string $checkoutId
@@ -20,11 +20,30 @@ interface CreatePaymentSessionInterface
      * @param AddressInterface $billingAddress
      * @return CreatePaymentSessionResponseInterface
      */
-    public function execute(
+    public function guestRoute(
         string                                   $cartId,
         string                                   $checkoutId,
         string                                   $email,
         PaymentInterface                         $paymentMethod,
         AddressInterface $billingAddress
     ): CreatePaymentSessionResponseInterface;
+
+    /**
+     * Create payment session with checkout for a customer cart
+     *
+     * @param string $customerId
+     * @param string $cartId
+     * @param string $checkoutId
+     * @param PaymentInterface $paymentMethod
+     * @param AddressInterface $billingAddress
+     * @return CreatePaymentSessionResponseInterface
+     */
+    public function customerRoute(
+        string           $customerId,
+        string           $cartId,
+        string           $checkoutId,
+        PaymentInterface $paymentMethod,
+        AddressInterface $billingAddress
+    ): CreatePaymentSessionResponseInterface;
+
 }

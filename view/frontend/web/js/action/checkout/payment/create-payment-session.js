@@ -33,14 +33,13 @@ define([
 
         return function (messageContainer, checkoutId, paymentData) {
             fullScreenLoader.startLoader();
-            var serviceUrl;
             paymentData = filterTemplateData(paymentData);
             var payload = {
                 cartId: quote.getQuoteId(),
                 paymentMethod: paymentData,
                 billingAddress: quote.billingAddress(),
             };
-
+            var serviceUrl;
             if (!customer.isLoggedIn()) {
                 serviceUrl = urlBuilder.createUrl('/rvvup/payments/:cartId/create-payment-session/:checkoutId', {
                     cartId: quote.getQuoteId(),
@@ -48,7 +47,7 @@ define([
                 });
                 payload.email = quote.guestEmail;
             } else {
-                serviceUrl = urlBuilder.createUrl('/rvvup/payments/:cartId/create-payment-session/:checkoutId', {
+                serviceUrl = urlBuilder.createUrl('/rvvup/payments/mine/:cartId/create-payment-session/:checkoutId', {
                     cartId: quote.getQuoteId(),
                     checkoutId: checkoutId
                 });
