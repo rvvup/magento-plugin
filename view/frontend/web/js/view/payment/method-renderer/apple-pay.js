@@ -27,10 +27,30 @@ define([
     ) {
         'use strict';
 
-    const applePayPromise = window.rvvup_sdk.createPaymentMethod("APPLE_PAY",
-        {
-            checkoutSessionKey: rvvup_parameters.checkout.token
-        });
+
+    let applePayPromise = window.rvvup_sdk.createPaymentMethod("APPLE_PAY", {
+        checkoutSessionKey: rvvup_parameters.checkout.token,
+        amount: getQuoteTotal(),
+    }).catch(e => {
+        console.error("Error creating Apple Pay payment method", e);
+    });
+
+    function getQuoteTotal()
+    {
+        let quoteTotals = quote.totals();
+        let total = {amount: "0", currency: "GBP"};
+        if (!quoteTotals) {
+            return total;
+        }
+        if (quoteTotals.grand_total) {
+            total.amount = quoteTotals.grand_total.toString();
+        }
+        if (quoteTotals.quote_currency_code) {
+            total.currency = quoteTotals.quote_currency_code;
+        }
+        return total;
+
+    }
 
     let $redirectUrl = null;
 
@@ -46,30 +66,29 @@ define([
                 this._super();
                 let self = this;
                 applePayPromise.then(async function (applePay) {
-                    const canMakePayment = await applePay.canMakePayment();
-                    if (!canMakePayment) {
-                        return;
-                    }
-                    self.canRender(true);
+                    self.canRender(applePay.canMakePayment());
                 });
             },
 
             mountApplePayButton: function () {
                 let self = this;
                 applePayPromise.then(async function (applePay) {
-                    applePay.mount({
-                        selector: "#rvvup-apple-pay-button",
+                    applePay.on("click", () => {
+                        applePay.update({amount: getQuoteTotal()})
                     });
-                    applePay.on("beforePayment", async (data) => {
-                        return await self.beforePayment(self, data)
+                    applePay.on("beforePaymentAuth", (data) => {
+                        return self.beforePayment(self, data)
                     });
                     applePay.on("paymentAuthorized", (data) => {
                         self.paymentAuthorized(data);
                     });
+                    await applePay.mount({
+                        selector: "#rvvup-apple-pay-button",
+                    });
                 });
             },
 
-            beforePayment: async function (component, data) {
+            beforePayment: async function (component) {
                 try {
                     const response = await createPaymentSession(
                         component.messageContainer,
