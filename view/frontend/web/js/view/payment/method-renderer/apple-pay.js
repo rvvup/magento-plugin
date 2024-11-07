@@ -76,11 +76,14 @@ define([
                     applePay.on("click", () => {
                         applePay.update({amount: getQuoteTotal()})
                     });
-                    applePay.on("beforePaymentAuth", (data) => {
-                        return self.beforePayment(self, data)
+                    applePay.on("beforePaymentAuth", async () => {
+                        return await self.beforePayment(self)
                     });
                     applePay.on("paymentAuthorized", (data) => {
                         self.paymentAuthorized(data);
+                    });
+                    applePay.on("paymentFailed", (data) => {
+                        errorProcessor.process('Payment ' + data.reason, self.messageContainer)
                     });
                     await applePay.mount({
                         selector: "#rvvup-apple-pay-button",
@@ -97,15 +100,12 @@ define([
                     );
 
                     $redirectUrl = response.redirect_url;
-                    return {
-                        paymentSessionId: response.payment_session_id,
-                        paymentCaptureType: "AUTOMATIC_PLUGIN", //TODO: get from above request
-                    };
+                    return {paymentSessionId: response.payment_session_id};
                 } catch (e) {
-                    errorProcessor.process('Error creating payment, '.e, component.messageContainer)
+                    errorProcessor.process('Error creating payment, ' + e, component.messageContainer)
                     console.error("Error creating payment", e);
                     loader.stopLoader();
-                    throw e;
+                    return false;
                 }
             },
 

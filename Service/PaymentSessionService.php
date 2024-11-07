@@ -69,7 +69,10 @@ class PaymentSessionService
         $result = $this->apiProvider->getSdk($storeId)->paymentSessions()->create($checkoutId, $paymentSessionInput);
 
         $payment = $quote->getPayment();
+        $payment->setAdditionalInformation(Method::ORDER_ID, $result['id']);
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $result['payments'][0]['id']);
+        $payment->setAdditionalInformation(Method::TRANSACTION_ID, $result['id']);
+
         $this->paymentResource->save($payment);
 
         return $result;

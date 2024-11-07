@@ -10,6 +10,8 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\UrlFactory;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\Validator\Exception;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -19,6 +21,7 @@ use Rvvup\ApiException;
 use Rvvup\Payments\Api\CreatePaymentSessionInterface;
 use Rvvup\Payments\Api\Data\CreatePaymentSessionResponseInterface;
 use Rvvup\Payments\Api\Data\CreatePaymentSessionResponseInterfaceFactory;
+use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Service\PaymentSessionService;
 
 class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
@@ -36,6 +39,9 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
     private $guestPaymentInformationManagement;
     /*** @var PaymentInformationManagementInterface */
     private $paymentInformationManagement;
+    /** @var UrlFactory */
+    protected $urlFactory;
+
     /**
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param QuoteRepository $quoteRepository
@@ -43,6 +49,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
      * @param CreatePaymentSessionResponseInterfaceFactory $responseFactory
      * @param GuestPaymentInformationManagementInterface $guestPaymentInformationManagement
      * @param PaymentInformationManagementInterface $paymentInformationManagement
+     * @param UrlFactory $urlFactory
      */
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
@@ -50,7 +57,8 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         PaymentSessionService                        $paymentSessionService,
         CreatePaymentSessionResponseInterfaceFactory $responseFactory,
         GuestPaymentInformationManagementInterface $guestPaymentInformationManagement,
-        PaymentInformationManagementInterface      $paymentInformationManagement
+        PaymentInformationManagementInterface      $paymentInformationManagement,
+        UrlFactory $urlFactory
     )
     {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
@@ -59,6 +67,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         $this->responseFactory = $responseFactory;
         $this->guestPaymentInformationManagement = $guestPaymentInformationManagement;
         $this->paymentInformationManagement = $paymentInformationManagement;
+        $this->urlFactory = $urlFactory;
     }
 
     /**
@@ -140,7 +149,9 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         /** @var CreatePaymentSessionResponseInterface $response */
         $response = $this->responseFactory->create();
         $response->setPaymentSessionId($paymentSession["id"]);
-        $response->setRedirectUrl("");
+        $url = $this->urlFactory->create();
+        $url->setQueryParam(In::PARAM_RVVUP_ORDER_ID, $paymentSession["id"]);
+        $response->setRedirectUrl($url->getUrl('rvvup/redirect/in'));
         return $response;
     }
 }
