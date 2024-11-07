@@ -160,6 +160,9 @@ define([
 
                 return recaptchaDeferred;
             }
+
+            // No triggers for checkout
+            return getOrderPaymentActions(serviceUrl, {}, messageContainer);
         };
     }
 );
