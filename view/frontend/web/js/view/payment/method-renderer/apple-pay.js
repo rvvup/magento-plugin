@@ -9,6 +9,7 @@ define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/error-processor',
     'Rvvup_Payments/js/action/checkout/payment/create-payment-session',
+    'Magento_Checkout/js/model/payment/additional-validators',
     'underscore',
 
     'domReady!'
@@ -23,6 +24,7 @@ define([
         quote,
         errorProcessor,
         createPaymentSession,
+        additionalValidators,
         _,
     ) {
         'use strict';
@@ -30,7 +32,7 @@ define([
 
     let applePayPromise = window.rvvup_sdk.createPaymentMethod("APPLE_PAY", {
         checkoutSessionKey: rvvup_parameters.checkout.token,
-        amount: getQuoteTotal(),
+        total: getQuoteTotal(),
     }).catch(e => {
         console.error("Error creating Apple Pay payment method", e);
     });
@@ -74,7 +76,16 @@ define([
                 let self = this;
                 applePayPromise.then(async function (applePay) {
                     applePay.on("click", () => {
-                        applePay.update({amount: getQuoteTotal()})
+                        applePay.update({total: getQuoteTotal()})
+                    });
+                    applePay.on("validate", () => {
+                        if (!self.validate()) {
+                            return false;
+                        }
+                        if (!additionalValidators.validate(false)) {
+                            return false
+                        }
+                        return self.isPlaceOrderActionAllowed() !== false
                     });
                     applePay.on("beforePaymentAuth", async () => {
                         return await self.beforePayment(self)
