@@ -120,7 +120,9 @@ class PaymentSessionService
             $product = $item->getProduct();
 
             if ($product !== null) {
-                $itemData->setRestriction($product->getData('rvvup_restricted') ? ItemRestriction::RESTRICTED : ItemRestriction::ALLOWED);
+                $itemData->setRestriction(
+                    $product->getData('rvvup_restricted') ? ItemRestriction::RESTRICTED : ItemRestriction::ALLOWED
+                );
             }
 
             $returnItems[] = $itemData;

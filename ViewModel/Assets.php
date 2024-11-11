@@ -344,7 +344,9 @@ class Assets implements ArgumentInterface
             return null;
         }
         //TODO: Get from token field instead of URL
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
         $parsedUrl = parse_url($checkoutResult->getUrl());
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
         parse_str($parsedUrl['query'], $queryParams);
         if (!$queryParams['token']) {
             return null;

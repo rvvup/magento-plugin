@@ -59,8 +59,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         GuestPaymentInformationManagementInterface $guestPaymentInformationManagement,
         PaymentInformationManagementInterface      $paymentInformationManagement,
         UrlFactory $urlFactory
-    )
-    {
+    ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->quoteRepository = $quoteRepository;
         $this->paymentSessionService = $paymentSessionService;
@@ -119,8 +118,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         string           $checkoutId,
         PaymentInterface $paymentMethod,
         AddressInterface $billingAddress
-    ): CreatePaymentSessionResponseInterface
-    {
+    ): CreatePaymentSessionResponseInterface {
         $this->paymentInformationManagement->savePaymentInformation(
             $cartId,
             $paymentMethod,

@@ -45,5 +45,4 @@ interface CreatePaymentSessionInterface
         PaymentInterface $paymentMethod,
         AddressInterface $billingAddress
     ): CreatePaymentSessionResponseInterface;
-
 }

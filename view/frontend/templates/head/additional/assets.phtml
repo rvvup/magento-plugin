@@ -19,7 +19,7 @@ if ($assetsViewModel === null) {
 }
 ?>
 <?php if ($assetsViewModel->shouldLoadCoreSdk()) { ?>
-    <script id="rvvup-core-sdk" src="<?php echo $assetsViewModel->getCoreSdkUrl(); ?>"></script>
+    <script id="rvvup-core-sdk" src="<?= $escaper->escapeUrl($assetsViewModel->getCoreSdkUrl()); ?>"></script>
 
     <?= /* @noEscape */
     $secureRenderer->renderTag(
