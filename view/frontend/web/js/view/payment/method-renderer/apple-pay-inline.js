@@ -64,13 +64,21 @@ define([
                     rvvupPlaceOrderTemplate: 'Rvvup_Payments/payment/method/apple-pay/place-order',
                 },
             },
-            canRender: ko.observable(false),
+            renderable: ko.observable(false),
+            canRender: function () {
+                return this.renderable;
+            },
+            showInfographic: function () {
+                return false;
+            },
 
             initialize: function () {
                 this._super();
                 let self = this;
                 applePayPromise.then(async function (applePay) {
-                    self.canRender(applePay.canMakePayment());
+                    applePay.on("ready", async () => {
+                        self.renderable(await applePay.canMakePayment());
+                    });
                 });
             },
 

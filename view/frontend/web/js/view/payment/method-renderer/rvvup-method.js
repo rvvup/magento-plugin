@@ -73,6 +73,7 @@ define([
                 return this.templates[name] || '';
             },
 
+
             initialize: function () {
                 this._super();
                 let self = this;
@@ -693,7 +694,14 @@ define([
                 }
                 return values.settings.paypal.checkout.payLaterMessaging[key].value
             },
-            canRender: true,
+            canRender: function () {
+                return true;
+            },
+
+            showInfographic: function () {
+                return this.getCode() !== 'rvvup_CARD' ||
+                    (this.getCode() === 'rvvup_CARD' && rvvup_parameters.settings.card.flow !== 'INLINE');
+            }
         });
     }
 );
