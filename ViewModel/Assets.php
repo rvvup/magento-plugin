@@ -81,6 +81,11 @@ class Assets implements ArgumentInterface
     private $rvvupConfiguration;
 
     /**
+     * @var bool|null
+     */
+    private $shouldLoadCoreSdk = null;
+
+    /**
      * @param SerializerInterface $serializer
      * @param ConfigInterface $config
      * @param PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
@@ -161,8 +166,11 @@ class Assets implements ArgumentInterface
      */
     public function shouldLoadCoreSdk(): bool
     {
-        //TODO: For now, only load on apple pay inline.
-        return isset($this->getPaymentMethodsSettings()["rvvup_apple_pay"]);
+        if ($this->shouldLoadCoreSdk === null) {
+            $applePayFlow = $this->getPaymentMethodsSettings()["rvvup_apple_pay"]["applePayFlow"] ?? 'HOSTED';
+            $this->shouldLoadCoreSdk = $applePayFlow == 'INLINE';
+        }
+        return $this->shouldLoadCoreSdk;
     }
 
     /**
