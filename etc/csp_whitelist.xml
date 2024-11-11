@@ -65,6 +65,7 @@
         <policy id="font-src">
             <values>
                 <value id="rvvup-gstatic-font" type="host">*.gstatic.com</value>
+                <value id="rvvup-applepay-font" type="host">applepay.cdn-apple.com</value>
             </values>
         </policy>
         <policy id="connect-src">
@@ -77,6 +78,7 @@
                 <value id="rvvup-google-connect" type="host">google.com</value>
                 <value id="rvvup-dev-connect" type="host">*.dev.rvvuptech.com</value>
                 <value id="rvvup-prod-connect" type="host">*.rvvup.com</value>
+                <value id="rvvup-apple-connect" type="host">*.apple.com</value>
             </values>
         </policy>
         <policy id="form-action">
