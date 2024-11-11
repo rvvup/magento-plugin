@@ -98,7 +98,11 @@ define([
                         self.paymentAuthorized(data);
                     });
                     applePay.on("paymentFailed", (data) => {
-                        errorProcessor.process('Payment ' + data.reason, self.messageContainer)
+                        errorProcessor.process({
+                                responseText:
+                                    JSON.stringify({message: 'Payment ' + data.reason})
+                            },
+                            self.messageContainer);
                     });
                     await applePay.mount({
                         selector: "#rvvup-apple-pay-button",
@@ -108,7 +112,7 @@ define([
 
             beforePayment: async function (component) {
                 try {
-                    if(placeOrderHelpers.shouldSaveShippingInformation()){
+                    if (placeOrderHelpers.shouldSaveShippingInformation()) {
                         await setShippingInformation();
                     }
                     const response = await createPaymentSession(
@@ -120,7 +124,11 @@ define([
                     $redirectUrl = response.redirect_url;
                     return {paymentSessionId: response.payment_session_id};
                 } catch (e) {
-                    errorProcessor.process('Error creating payment, ' + e, component.messageContainer)
+                    errorProcessor.process({
+                            responseText:
+                                JSON.stringify({message: 'Error creating payment, ' + e})
+                        },
+                        component.messageContainer);
                     console.error("Error creating payment", e);
                     loader.stopLoader();
                     return false;
