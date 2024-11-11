@@ -19,8 +19,8 @@ var config = {
             'Magento_Checkout/js/action/place-order': {
                 'Rvvup_Payments/js/action/place-order-mixin': true
             },
-            'Rvvup_Payments/js/view/payment/methods/rvvup-paypal': {
-                'Rvvup_Payments/js/view/payment/methods/rvvup-paypal-firecheckout-compatibility-hook': true
+            'Rvvup_Payments/js/view/payment/methods/place-order-helpers': {
+                'Rvvup_Payments/js/view/payment/methods/place-order-helpers-firecheckout-compatibility-hook': true
             }
         }
     },

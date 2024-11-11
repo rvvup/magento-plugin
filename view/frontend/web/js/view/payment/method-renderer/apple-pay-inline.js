@@ -3,13 +3,14 @@ define([
     'ko',
     'jquery',
     'Magento_Checkout/js/model/full-screen-loader',
-    'Magento_Checkout/js/action/set-payment-information-extended',
+    'Magento_Checkout/js/action/set-shipping-information',
     'mage/storage',
     'Magento_Checkout/js/model/url-builder',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/error-processor',
     'Rvvup_Payments/js/action/checkout/payment/create-payment-session',
     'Magento_Checkout/js/model/payment/additional-validators',
+    'Rvvup_Payments/js/view/payment/methods/place-order-helpers',
     'underscore',
 
     'domReady!'
@@ -18,13 +19,14 @@ define([
         ko,
         $,
         loader,
-        setPaymentInformation,
+        setShippingInformation,
         storage,
         urlBuilder,
         quote,
         errorProcessor,
         createPaymentSession,
         additionalValidators,
+        placeOrderHelpers,
         _,
     ) {
         'use strict';
@@ -79,13 +81,7 @@ define([
                         applePay.update({total: getQuoteTotal()})
                     });
                     applePay.on("validate", () => {
-                        if (!self.validate()) {
-                            return false;
-                        }
-                        if (!additionalValidators.validate(false)) {
-                            return false
-                        }
-                        return self.isPlaceOrderActionAllowed() !== false
+                        return placeOrderHelpers.validate(self, additionalValidators);
                     });
                     applePay.on("beforePaymentAuth", async () => {
                         return await self.beforePayment(self)
@@ -104,6 +100,9 @@ define([
 
             beforePayment: async function (component) {
                 try {
+                    if(placeOrderHelpers.shouldSaveShippingInformation()){
+                        await setShippingInformation();
+                    }
                     const response = await createPaymentSession(
                         component.messageContainer,
                         rvvup_parameters.checkout.id,
