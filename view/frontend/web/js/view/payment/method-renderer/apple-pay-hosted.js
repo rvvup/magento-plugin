@@ -8,7 +8,9 @@ define([
         'use strict';
 
         return Component.extend({
-            canRender: !!window.ApplePaySession,
+            canRender: function () {
+                return !!window.ApplePaySession;
+            },
         });
     }
 );
