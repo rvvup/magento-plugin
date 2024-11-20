@@ -11,9 +11,9 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Api\Model\ApplicationSource;
 use Rvvup\Api\Model\Checkout;
 use Rvvup\Api\Model\CheckoutCreateInput;
-use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
 use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
 use Rvvup\Payments\Gateway\Method;
@@ -194,9 +194,7 @@ class Assets implements ArgumentInterface
             try {
 
                 $storeId = (string)$this->getStore()->getId();
-                $checkoutInput = (new CheckoutCreateInput())
-                    ->setAmount((new MoneyInput())->setAmount(1)
-                        ->setCurrency($this->getStoreCurrency() ?? "GBP"));
+                $checkoutInput = (new CheckoutCreateInput())->setSource(ApplicationSource::MAGENTO_CHECKOUT);
                 try {
                     $checkoutInput->setMetadata([
                         "domain" => $this->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB, true)
