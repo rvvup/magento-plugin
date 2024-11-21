@@ -2,9 +2,10 @@
 
 namespace Rvvup\Payments\Service;
 
+use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Validator\Exception;
+use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
@@ -29,6 +30,7 @@ class PaymentSessionService
      * @var Payment
      */
     private $paymentResource;
+
     /** @var ApiProvider */
     private $apiProvider;
 
@@ -55,7 +57,6 @@ class PaymentSessionService
      * @throws AlreadyExistsException
      * @throws Exception
      * @throws ApiException
-     * @throws \Exception
      */
     public function create(Quote $quote, string $checkoutId): PaymentSession
     {
@@ -203,6 +204,10 @@ class PaymentSessionService
             $captureType = 'AUTOMATIC_PLUGIN';
         }
         $paymentSessionInput = new PaymentSessionCreateInput();
+        $secureBaseUrl = $quote->getStore()->getBaseUrl(
+            UrlInterface::URL_TYPE_WEB,
+            true
+        );
         $paymentSessionInput
             ->setSessionKey("$checkoutId." . $quote->getReservedOrderId())
             ->setExternalReference($quote->getReservedOrderId())
@@ -212,7 +217,10 @@ class PaymentSessionService
             ->setBillingAddress($this->buildAddress($quote->getBillingAddress()))
             ->setRequiresShipping(!$quote->getIsVirtual())
             ->setPaymentMethod($method)
-            ->setPaymentCaptureType($captureType);
+            ->setPaymentCaptureType($captureType)
+            ->setMetadata([
+                "domain" => $secureBaseUrl
+            ]);
 
         if ($discountTotal > 0) {
             $paymentSessionInput->setDiscountTotal($this->buildAmount($discountTotal, $currency));
