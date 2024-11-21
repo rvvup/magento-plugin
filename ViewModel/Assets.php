@@ -204,7 +204,7 @@ class Assets implements ArgumentInterface
                 }
 
                 $result = $this->apiProvider->getSdk($storeId)->checkouts()->create($checkoutInput, null);
-                $checkoutResult = $this->parsedCheckout($result);
+                $checkoutResult = $this->getCheckout($result);
                 if ($checkoutResult) {
                     $rvvupParameters['checkout'] = $checkoutResult;
                 }
@@ -336,19 +336,12 @@ class Assets implements ArgumentInterface
      * @param Checkout $checkoutResult
      * @return array|null
      */
-    private function parsedCheckout(Checkout $checkoutResult): ?array
+    private function getCheckout(Checkout $checkoutResult): ?array
     {
-        if (!$checkoutResult->getId() || !$checkoutResult->getUrl()) {
+        if (!$checkoutResult->getId() || !$checkoutResult->getToken()) {
             return null;
         }
-        //TODO: Get from token field instead of URL
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-        $parsedUrl = parse_url($checkoutResult->getUrl());
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-        parse_str($parsedUrl['query'], $queryParams);
-        if (!$queryParams['token']) {
-            return null;
-        }
-        return ["token" => $queryParams["token"], "id" => $checkoutResult->getId()];
+
+        return ["token" => $checkoutResult->getToken(), "id" => $checkoutResult->getId()];
     }
 }
