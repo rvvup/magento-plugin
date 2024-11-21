@@ -42,7 +42,7 @@ class RvvupConfigurationTest extends TestCase
         $this->scopeConfigMock->method("getValue")->with("payment/rvvup/jwt", ScopeInterface::SCOPE_STORE, "1")
             ->willReturn(self::TEST_JWT);
 
-        $this->assertEquals('https://checkout.rvvup.com/sdk/v1-unstable.js', $this->rvvupConfiguration->getJsSdkUrl("1"));
+        $this->assertEquals('https://checkout.rvvup.com/sdk/v2.js', $this->rvvupConfiguration->getJsSdkUrl("1"));
     }
     public function testGetJsSdkUrlReturnsNull()
     {

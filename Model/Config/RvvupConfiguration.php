@@ -76,7 +76,7 @@ class RvvupConfiguration implements RvvupConfigurationInterface
             return null;
         }
 
-        $url = str_replace('graphql', 'sdk/v1-unstable.js', $audience);
+        $url = str_replace('graphql', 'sdk/v2.js', $audience);
         return str_replace('api.', 'checkout.', $url);
     }
 
