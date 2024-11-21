@@ -10,3 +10,5 @@ composer.lock
 /playwright-report
 
 /.env
+
+auth.json

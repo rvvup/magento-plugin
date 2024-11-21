@@ -116,8 +116,22 @@ class ConfigProvider implements ConfigProviderInterface
         $items = [];
 
         foreach ($methods as $method) {
+            // Default handler for rvvup methods
+            $component = 'Rvvup_Payments/js/view/payment/method-renderer/rvvup-method';
+
+            // For Inline Apple Pay, use specific component
+            if ($method['name'] === 'APPLE_PAY') {
+                $flow = $method['settings']['applePayFlow'] ?? 'HOSTED';
+                $component = 'Rvvup_Payments/js/view/payment/method-renderer/apple-pay';
+                if ($flow === 'INLINE') {
+                    $component .= '-inline';
+                } else {
+                    $component .= '-hosted';
+                }
+            }
+
             $items[Method::PAYMENT_TITLE_PREFIX . $method['name']] = [
-                'component' => 'Rvvup_Payments/js/view/payment/method-renderer/rvvup-method',
+                'component' => $component,
                 'isBillingAddressRequired' => true,
                 'description' => $method['description'],
                 'logo' => $method['logoUrl'],

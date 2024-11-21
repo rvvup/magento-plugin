@@ -69,6 +69,20 @@ class RvvupConfiguration implements RvvupConfigurationInterface
     /**
      * @inheritDoc
      */
+    public function getJsSdkUrl(string $storeId): ?string
+    {
+        $audience = $this->getStringConfigFromJwt($storeId, "aud");
+        if ($audience == null) {
+            return null;
+        }
+
+        $url = str_replace('graphql', 'sdk/v2.js', $audience);
+        return str_replace('api.', 'checkout.', $url);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getBearerToken(string $storeId): ?string
     {
         $value = $this->scopeConfig->getValue(self::RVVUP_CONFIG_PATH . "jwt", ScopeInterface::SCOPE_STORE, $storeId);

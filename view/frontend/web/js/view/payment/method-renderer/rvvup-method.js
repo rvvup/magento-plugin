@@ -22,7 +22,7 @@ define([
         'Magento_Checkout/js/action/set-payment-information-extended',
         'Magento_Ui/js/model/messageList',
         'Magento_Customer/js/model/customer',
-        'Rvvup_Payments/js/view/payment/methods/rvvup-paypal',
+        'Rvvup_Payments/js/view/payment/methods/place-order-helpers',
         'Magento_Checkout/js/action/set-shipping-information',
         'domReady!'
     ], function (
@@ -49,7 +49,7 @@ define([
         setPaymentInformation,
         messageList,
         customer,
-        rvvupPaypal,
+        placeOrderHelpers,
         setShippingInformation,
     ) {
         'use strict';
@@ -72,6 +72,7 @@ define([
             getCustomTemplate: function (name) {
                 return this.templates[name] || '';
             },
+
 
             initialize: function () {
                 this._super();
@@ -367,10 +368,10 @@ define([
                     createOrder: function () {
                         loader.startLoader();
                         return new Promise((resolve, reject) => {
-                            if(!rvvupPaypal.validate(self, additionalValidators)) {
+                            if(!placeOrderHelpers.validate(self, additionalValidators)) {
                                 return reject(createError);
                             }
-                            let saveShippingPromise = rvvupPaypal.shouldSaveShippingInformation() ? setShippingInformation() : $.Deferred().resolve();
+                            let saveShippingPromise = placeOrderHelpers.shouldSaveShippingInformation() ? setShippingInformation() : $.Deferred().resolve();
 
                             saveShippingPromise
                                 .then(function () {
@@ -692,6 +693,14 @@ define([
                     return values.settings.paypal.checkout.payLaterMessaging[key]
                 }
                 return values.settings.paypal.checkout.payLaterMessaging[key].value
+            },
+            canRender: function () {
+                return true;
+            },
+
+            showInfographic: function () {
+                return this.getCode() !== 'rvvup_CARD' ||
+                    (this.getCode() === 'rvvup_CARD' && rvvup_parameters.settings.card.flow !== 'INLINE');
             }
         });
     }

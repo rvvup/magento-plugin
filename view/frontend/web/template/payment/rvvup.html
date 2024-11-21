@@ -1,4 +1,4 @@
-<div class="payment-method rvvup-payment" data-bind="css: {'_active': (getCode() == isChecked())},
+<div class="payment-method rvvup-payment" data-bind="if: canRender(), css: {'_active': (getCode() == isChecked())},
 attr: {'id': 'payment_method_' + getCode()}">
     <!-- ko template: getCustomTemplate('rvvupPaymentTitleTemplate') --><!-- /ko -->
     <div class="payment-method-content rvvup-payment-method-content">

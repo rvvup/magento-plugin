@@ -27,6 +27,8 @@ class In implements HttpGetActionInterface
     public const FAILURE = 'checkout';
     public const ERROR = 'checkout/cart';
 
+    public const PARAM_RVVUP_ORDER_ID = 'rvvup-order-id';
+
     /** @var RequestInterface */
     private $request;
 
@@ -84,7 +86,7 @@ class In implements HttpGetActionInterface
      */
     public function execute()
     {
-        $rvvupId = (string) $this->request->getParam('rvvup-order-id');
+        $rvvupId = (string) $this->request->getParam(In::PARAM_RVVUP_ORDER_ID);
         $paymentStatus = $this->request->getParam('payment-status');
         $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
         $checkoutId = $this->request->getParam('checkout_id');

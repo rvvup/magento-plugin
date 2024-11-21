@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Model\Queue;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\SdkProxy;
+use Rvvup\Payments\Service\ApiProvider;
 
 class QueueContextCleaner
 {
@@ -21,14 +22,25 @@ class QueueContextCleaner
     /** @var SdkProxy */
     private $sdkProxy;
 
+    /** @var ApiProvider */
+    private $apiProvider;
+
+    /**
+     * @param RvvupConfigurationInterface $rvvupConfiguration
+     * @param ScopeConfigInterface $scopeConfig
+     * @param SdkProxy $sdkProxy
+     * @param ApiProvider $apiProvider
+     */
     public function __construct(
         RvvupConfigurationInterface $rvvupConfiguration,
         ScopeConfigInterface        $scopeConfig,
-        SdkProxy                    $sdkProxy
+        SdkProxy    $sdkProxy,
+        ApiProvider $apiProvider
     ) {
         $this->rvvupConfiguration = $rvvupConfiguration;
         $this->scopeConfig = $scopeConfig;
         $this->sdkProxy = $sdkProxy;
+        $this->apiProvider = $apiProvider;
     }
 
     /**
@@ -43,5 +55,6 @@ class QueueContextCleaner
         $this->scopeConfig->clean();
         $this->rvvupConfiguration->clean();
         $this->sdkProxy->clean();
+        $this->apiProvider->clean();
     }
 }

@@ -6,14 +6,20 @@ namespace Rvvup\Payments\ViewModel;
 
 use Exception;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Api\Model\ApplicationSource;
+use Rvvup\Api\Model\Checkout;
+use Rvvup\Api\Model\CheckoutCreateInput;
 use Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface;
 use Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
 use Rvvup\Payments\Model\ConfigInterface;
+use Rvvup\Payments\Service\ApiProvider;
 
 class Assets implements ArgumentInterface
 {
@@ -65,13 +71,29 @@ class Assets implements ArgumentInterface
     private $settings;
 
     /**
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     * @param \Rvvup\Payments\Model\ConfigInterface $config
-     * @param \Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
-     * @param \Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Psr\Log\LoggerInterface|RvvupLog $logger
-     * @return void
+     * @var ApiProvider
+     */
+    private $apiProvider;
+
+    /**
+     * @var RvvupConfigurationInterface
+     */
+    private $rvvupConfiguration;
+
+    /**
+     * @var bool|null
+     */
+    private $shouldLoadCoreSdk = null;
+
+    /**
+     * @param SerializerInterface $serializer
+     * @param ConfigInterface $config
+     * @param PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
+     * @param PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet
+     * @param StoreManagerInterface $storeManager
+     * @param LoggerInterface|RvvupLog $logger
+     * @param ApiProvider $apiProvider
+     * @param RvvupConfigurationInterface $rvvupConfiguration
      */
     public function __construct(
         SerializerInterface $serializer,
@@ -79,7 +101,9 @@ class Assets implements ArgumentInterface
         PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet,
         PaymentMethodsSettingsGetInterface $paymentMethodsSettingsGet,
         StoreManagerInterface $storeManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ApiProvider $apiProvider,
+        RvvupConfigurationInterface $rvvupConfiguration
     ) {
         $this->serializer = $serializer;
         $this->config = $config;
@@ -87,6 +111,8 @@ class Assets implements ArgumentInterface
         $this->paymentMethodsSettingsGet = $paymentMethodsSettingsGet;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
+        $this->apiProvider = $apiProvider;
+        $this->rvvupConfiguration = $rvvupConfiguration;
     }
 
     /**
@@ -120,6 +146,34 @@ class Assets implements ArgumentInterface
     }
 
     /**
+     * @return string
+     */
+    public function getPublishableKey(): string
+    {
+        return $this->rvvupConfiguration->getMerchantId((string)$this->getStore()->getId());
+    }
+
+    /**
+     * @return string
+     */
+    public function getCoreSdkUrl(): string
+    {
+        return $this->rvvupConfiguration->getJsSdkUrl((string)$this->getStore()->getId());
+    }
+
+    /**
+     * @return bool
+     */
+    public function shouldLoadCoreSdk(): bool
+    {
+        if ($this->shouldLoadCoreSdk === null) {
+            $applePayFlow = $this->getPaymentMethodsSettings()["rvvup_apple_pay"]["applePayFlow"] ?? 'HOSTED';
+            $this->shouldLoadCoreSdk = $applePayFlow == 'INLINE';
+        }
+        return $this->shouldLoadCoreSdk;
+    }
+
+    /**
      * Get the serialized Rvvup Parameters object.
      *
      * @return string
@@ -136,6 +190,28 @@ class Assets implements ArgumentInterface
             $rvvupParameters['settings'][str_replace(Method::PAYMENT_TITLE_PREFIX, '', $key)] = $methodSettings;
         }
 
+        if ($this->shouldLoadCoreSdk()) {
+            try {
+
+                $storeId = (string)$this->getStore()->getId();
+                $checkoutInput = (new CheckoutCreateInput())->setSource(ApplicationSource::MAGENTO_CHECKOUT);
+                try {
+                    $checkoutInput->setMetadata([
+                        "domain" => $this->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB, true)
+                    ]);
+                } catch (Exception $e) {
+                    $this->logger->error('Ignoring error getting base url: ' . $e->getMessage());
+                }
+
+                $result = $this->apiProvider->getSdk($storeId)->checkouts()->create($checkoutInput, null);
+                $checkoutResult = $this->getCheckout($result);
+                if ($checkoutResult) {
+                    $rvvupParameters['checkout'] = $checkoutResult;
+                }
+            } catch (Exception $e) {
+                $this->logger->error('Ignoring error creating checkout: ' . $e->getMessage());
+            }
+        }
         return $this->serializer->serialize($rvvupParameters);
     }
 
@@ -254,5 +330,18 @@ class Assets implements ArgumentInterface
         }
 
         return $this->store;
+    }
+
+    /**
+     * @param Checkout $checkoutResult
+     * @return array|null
+     */
+    private function getCheckout(Checkout $checkoutResult): ?array
+    {
+        if (!$checkoutResult->getId() || !$checkoutResult->getToken()) {
+            return null;
+        }
+
+        return ["token" => $checkoutResult->getToken(), "id" => $checkoutResult->getId()];
     }
 }
