@@ -31,6 +31,16 @@ define([
     ) {
         'use strict';
 
+    // If we don't have a checkout token, issue with loading checkout, then don't load apple pay
+    if (!rvvup_parameters.checkout || !rvvup_parameters.checkout.token) {
+        console.error("Apple Pay not loaded as checkout token is missing.");
+        return Component.extend({
+            canRender: function () {
+                return false;
+            },
+        });
+    }
+
 
     let applePayPromise = window.rvvup_sdk.createPaymentMethod("APPLE_PAY", {
         checkoutSessionKey: rvvup_parameters.checkout.token,
@@ -136,7 +146,6 @@ define([
             },
 
             paymentAuthorized: async function (data) {
-                console.log("paymentAuthorized", data);
                 window.location.href = $redirectUrl;
             }
         });
