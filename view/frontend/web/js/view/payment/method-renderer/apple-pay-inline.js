@@ -145,7 +145,8 @@ define([
                 }
             },
 
-            paymentAuthorized: async function (data) {
+            paymentAuthorized: function () {
+                loader.startLoader();
                 window.location.href = $redirectUrl;
             }
         });
