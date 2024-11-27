@@ -104,7 +104,7 @@ define([
                             this.triggerModalCancelUrl();
 
                             break;
-                        case 'rvvup-checkout|resize':
+                        case 'rvvup-payment-modal|resize':
                             let maxHeight = window.innerHeight - 40;
                             let maxWidth = window.innerWidth - 40;
                             let height = event.data.hasOwnProperty('height') ? event.data.height : null;
