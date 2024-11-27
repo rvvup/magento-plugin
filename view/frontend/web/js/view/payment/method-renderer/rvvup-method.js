@@ -99,33 +99,29 @@ define([
                     if (this.getCode() !== this.isChecked()) {
                         return;
                     }
-                    let height = event.data.hasOwnProperty('height') ? event.data.height : null,
-                        width = event.data.hasOwnProperty('width') ? event.data.width : null;
                     switch (event.data.type) {
                         case 'rvvup-payment-modal|close':
                             this.triggerModalCancelUrl();
 
                             break;
-                        case 'rvvup-payment-modal|resize':
-                            let windowHeight = window.innerHeight,
-                                windowWidth = window.innerWidth,
-                                chosenWidth = width > windowWidth ? windowWidth : width,
-                                chosenHeight = height > windowHeight ? windowHeight : height,
-                                finalWidth = width === "max" ? windowWidth - 40 : chosenWidth,
-                                /** Remove 80pixels as margin from top */
-                                finalHeight = height === "max" ? windowHeight - 80 - 40 : chosenHeight;
-                            let items = [];
-                            items.push(document.getElementById(this.getIframeId()));
-                            items.push(document.querySelector('.modal-inner-wrap.rvvup'));
+                        case 'rvvup-checkout|resize':
+                            let maxHeight = window.innerHeight - 40;
+                            let maxWidth = window.innerWidth - 40;
+                            let height = event.data.hasOwnProperty('height') ? event.data.height : null;
+                            let width = event.data.hasOwnProperty('width') ? event.data.width : null;
+                            let chosenWidth = width > maxWidth ? maxWidth : width;
+                            let chosenHeight = height > maxHeight ? maxHeight : height;
+                            let finalWidth = width === "max" ? maxWidth : chosenWidth;
+                            let finalHeight = height === "max" ? maxHeight : chosenHeight;
+                            
+                            let items = [
+                                document.getElementById(this.getIframeId()), // iframe
+                                document.querySelector('.modal-inner-wrap.rvvup'), // modal
+                            ];
                             items.forEach(function (item) {
                                 if (item) {
-                                    item.animate([{
-                                        width: finalWidth + 'px',
-                                        height: finalHeight + 'px'
-                                    }], {
-                                        duration: 400,
-                                        fill: 'forwards'
-                                    });
+                                    item.style.width = finalWidth + 'px';
+                                    item.style.height = finalHeight + 'px';
                                 }
                             })
                             break;
@@ -596,7 +592,7 @@ define([
                     return false;
                 }
 
-                iframe.src = url;
+                iframe.src = `${url}&auto_resize=1`;
 
                 return true;
             },
