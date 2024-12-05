@@ -654,6 +654,10 @@ define([
                             window.location.replace(orderPaymentAction.getRedirectUrl());
                             return;
                         }
+                        if (code === 'rvvup_KLARNA' && orderPaymentAction.getRedirectUrl() !== null) {
+                            window.location.replace(orderPaymentAction.getRedirectUrl());
+                            return;
+                        }
 
                         if (orderPaymentAction.getRedirectUrl() !== null) {
                             self.showRvvupModal(orderPaymentAction.getRedirectUrl());
