@@ -99,6 +99,8 @@ define([
                     if (this.getCode() !== this.isChecked()) {
                         return;
                     }
+                    let width = event.data.hasOwnProperty('width') ? event.data.width : null;
+                    let height = event.data.hasOwnProperty('height') ? event.data.height : null;
                     switch (event.data.type) {
                         case 'rvvup-payment-modal|close':
                             this.triggerModalCancelUrl();
@@ -107,8 +109,6 @@ define([
                         case 'rvvup-payment-modal|resize':
                             let maxHeight = window.innerHeight - 40;
                             let maxWidth = window.innerWidth - 40;
-                            let height = event.data.hasOwnProperty('height') ? event.data.height : null;
-                            let width = event.data.hasOwnProperty('width') ? event.data.width : null;
                             let chosenWidth = width > maxWidth ? maxWidth : width;
                             let chosenHeight = height > maxHeight ? maxHeight : height;
                             let finalWidth = width === "max" ? maxWidth : chosenWidth;
