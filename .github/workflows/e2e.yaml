@@ -1,6 +1,7 @@
 name: E2E Tests Workflow
 on:
   pull_request:
+  merge_group:
   schedule:
     - cron:  '0 8 * * *'
   workflow_dispatch:
