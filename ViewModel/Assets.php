@@ -168,7 +168,11 @@ class Assets implements ArgumentInterface
     {
         if ($this->shouldLoadCoreSdk === null) {
             $applePayFlow = $this->getPaymentMethodsSettings()["rvvup_apple_pay"]["applePayFlow"] ?? 'HOSTED';
-            $this->shouldLoadCoreSdk = $applePayFlow == 'INLINE';
+
+            $applePayExpressCheckoutEnabled =
+                $this->getPaymentMethodsSettings()["rvvup_apple_pay"]["checkout"]["express"]["enabled"] ?? false;
+
+            $this->shouldLoadCoreSdk = ($applePayFlow == 'INLINE') || $applePayExpressCheckoutEnabled;
         }
         return $this->shouldLoadCoreSdk;
     }
