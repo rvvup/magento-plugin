@@ -232,9 +232,7 @@ class PaymentSessionService
             $paymentSessionInput->setShippingAddress($this->buildAddress($quote->getShippingAddress()));
             $shippingAmount = $quote->getShippingAddress()->getShippingAmount();
             if ($shippingAmount > 0) {
-                $paymentSessionInput->setShippingTotal(
-                    $this->buildAmount($shippingAmount, $currency)
-                );
+                $paymentSessionInput->setShippingTotal($this->buildAmount($shippingAmount, $currency));
             }
         }
         return $paymentSessionInput;
