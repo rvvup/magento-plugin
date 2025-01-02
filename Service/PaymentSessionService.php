@@ -230,12 +230,10 @@ class PaymentSessionService
         }
         if ($paymentSessionInput->getRequiresShipping() === true) {
             $paymentSessionInput->setShippingAddress($this->buildAddress($quote->getShippingAddress()));
-            $paymentSessionInput->setShippingTotal(
-                $this->buildAmount(
-                    $quote->getShippingAddress()->getShippingAmount(),
-                    $currency
-                )
-            );
+            $shippingAmount = $quote->getShippingAddress()->getShippingAmount();
+            if ($shippingAmount > 0) {
+                $paymentSessionInput->setShippingTotal($this->buildAmount($shippingAmount, $currency));
+            }
         }
         return $paymentSessionInput;
     }
