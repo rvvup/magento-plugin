@@ -22,7 +22,6 @@ class ExpressPaymentManager
     /** @var ShipmentEstimationInterface */
     private $shipmentEstimation;
 
-
     /** @var CartRepositoryInterface */
     private $quoteRepository;
 
@@ -53,6 +52,7 @@ class ExpressPaymentManager
      * @param Quote $quote
      * @param array $address
      * @return array $result
+     * @throws InputException
      */
     public function updateShippingAddress(Quote $quote, array $address): array
     {
@@ -101,6 +101,7 @@ class ExpressPaymentManager
      * @param string|null $methodId
      * @param Address $shippingAddress
      * @return Quote
+     * @throws InputException
      */
     public function setShippingMethodInQuote(
         Quote $quote,
@@ -190,7 +191,10 @@ class ExpressPaymentManager
      */
     public function getAvailableShippingMethods(Quote $quote): array
     {
-        $shippingMethods = $this->shipmentEstimation->estimateByExtendedAddress($quote->getId(), $quote->getShippingAddress());
+        $shippingMethods = $this->shipmentEstimation->estimateByExtendedAddress(
+            $quote->getId(),
+            $quote->getShippingAddress()
+        );
         if (empty($shippingMethods)) {
             return [];
         }
@@ -206,12 +210,12 @@ class ExpressPaymentManager
     }
 
     /**
-     * @param Quote\Address $quoteAddress
-     * @param $contact
-     * @param $address
+     * @param Address $quoteAddress
+     * @param array $contact
+     * @param array $address
      * @return void
      */
-    public function setUpdatedAddressDetails(Quote\Address $quoteAddress, $contact, $address): void
+    public function setUpdatedAddressDetails(Quote\Address $quoteAddress, array $contact, array $address): void
     {
         $quoteAddress
             ->setFirstname($contact['givenName'] ?? null)
