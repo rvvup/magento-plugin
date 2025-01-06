@@ -16,11 +16,9 @@ use Rvvup\Api\Model\CustomerInput;
 use Rvvup\Api\Model\ItemInput;
 use Rvvup\Api\Model\ItemRestriction;
 use Rvvup\Api\Model\MoneyInput;
-use Rvvup\Api\Model\PaymentSession;
 use Rvvup\Api\Model\PaymentSessionCreateInput;
 use Rvvup\ApiException;
-use Rvvup\Payments\Api\Data\PaymentSessionInterface;
-use Rvvup\Payments\Api\Data\PaymentSessionInterfaceFactory;
+use Rvvup\Payments\Model\Data\PaymentSession;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
 
@@ -39,9 +37,6 @@ class PaymentSessionService
     /** @var ApiProvider */
     private $apiProvider;
 
-    /**  @var PaymentSessionInterfaceFactory */
-    private $paymentSessionInterfaceFactory;
-
     /** @var UrlFactory */
     protected $urlFactory;
 
@@ -49,32 +44,29 @@ class PaymentSessionService
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
      * @param ApiProvider $apiProvider
-     * @param PaymentSessionInterfaceFactory $paymentSessionInterfaceFactory
      * @param UrlFactory $urlFactory
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
         ApiProvider $apiProvider,
-        PaymentSessionInterfaceFactory $paymentSessionInterfaceFactory,
         UrlFactory $urlFactory
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
         $this->apiProvider = $apiProvider;
-        $this->paymentSessionInterfaceFactory = $paymentSessionInterfaceFactory;
         $this->urlFactory = $urlFactory;
     }
 
     /**
      * @param Quote $quote
      * @param string $checkoutId
-     * @return PaymentSessionInterface
+     * @return PaymentSession
      * @throws AlreadyExistsException
      * @throws LocalizedException
      * @throws Exception
      */
-    public function create(Quote $quote, string $checkoutId): PaymentSessionInterface
+    public function create(Quote $quote, string $checkoutId): PaymentSession
     {
         $this->quotePreparationService->validate($quote);
         $quote = $this->quotePreparationService->prepare($quote);
@@ -92,13 +84,12 @@ class PaymentSessionService
 
         $this->paymentResource->save($payment);
 
-        /** @var PaymentSessionInterface $response */
-        $response = $this->paymentSessionInterfaceFactory->create();
-        $response->setPaymentSessionId($result["id"]);
+        $paymentSession = new PaymentSession();
+        $paymentSession->setPaymentSessionId($result["id"]);
         $url = $this->urlFactory->create();
         $url->setQueryParam(In::PARAM_RVVUP_ORDER_ID, $result["id"]);
-        $response->setRedirectUrl($url->getUrl('rvvup/redirect/in'));
-        return $response;
+        $paymentSession->setRedirectUrl($url->getUrl('rvvup/redirect/in'));
+        return $paymentSession;
     }
 
     /**

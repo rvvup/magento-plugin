@@ -24,8 +24,6 @@
 
     <preference for="Rvvup\Payments\Api\CreatePaymentSessionInterface"
                 type="Rvvup\Payments\Model\CreatePaymentSessionEndpoint" />
-    <preference for="Rvvup\Payments\Api\Data\PaymentSessionInterface"
-                type="Rvvup\Payments\Model\Data\PaymentSession"/>
     <!-- Plugins -->
     <type name ="Magento\Checkout\Api\ShippingInformationManagementInterface">
         <plugin name="Rvvup_Payments::checkout.express_payment_validate_customer_address.plugin"

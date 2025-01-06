@@ -17,7 +17,7 @@ use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\QuoteRepository;
 use Rvvup\ApiException;
 use Rvvup\Payments\Api\CreatePaymentSessionInterface;
-use Rvvup\Payments\Api\Data\PaymentSessionInterface;
+use Rvvup\Payments\Model\Data\PaymentSession;
 use Rvvup\Payments\Service\PaymentSessionService;
 
 class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
@@ -61,7 +61,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
      * @param string $email
      * @param PaymentInterface $paymentMethod
      * @param AddressInterface $billingAddress
-     * @return PaymentSessionInterface
+     * @return PaymentSession
      * @throws NoSuchEntityException
      * @throws AlreadyExistsException
      * @throws LocalizedException
@@ -73,7 +73,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         string           $email,
         PaymentInterface $paymentMethod,
         AddressInterface $billingAddress
-    ): PaymentSessionInterface {
+    ): PaymentSession {
         $this->guestPaymentInformationManagement->savePaymentInformation(
             $cartId,
             $email,
@@ -91,7 +91,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
      * @param string $checkoutId
      * @param PaymentInterface $paymentMethod
      * @param AddressInterface $billingAddress
-     * @return PaymentSessionInterface
+     * @return PaymentSession
      * @throws AlreadyExistsException
      * @throws ApiException
      * @throws Exception
@@ -105,7 +105,7 @@ class CreatePaymentSessionEndpoint implements CreatePaymentSessionInterface
         string           $checkoutId,
         PaymentInterface $paymentMethod,
         AddressInterface $billingAddress
-    ): PaymentSessionInterface {
+    ): PaymentSession {
         $this->paymentInformationManagement->savePaymentInformation(
             $cartId,
             $paymentMethod,
