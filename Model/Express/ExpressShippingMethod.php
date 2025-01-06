@@ -72,5 +72,4 @@ class ExpressShippingMethod
         $label .= $shippingMethod->getMethodTitle() ?? '';
         return $label;
     }
-
 }

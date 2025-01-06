@@ -41,8 +41,7 @@ class ExpressPaymentManager
         ShippingInformationInterfaceFactory $shippingInformationFactory,
         ShippingInformationManagementInterface $shippingInformationManagement,
         Session $customerSession
-    )
-    {
+    ) {
         $this->shipmentEstimation = $shipmentEstimation;
         $this->quoteRepository = $quoteRepository;
         $this->shippingInformationFactory = $shippingInformationFactory;
@@ -85,8 +84,7 @@ class ExpressPaymentManager
     public function updateShippingMethod(
         Quote $quote,
         ?string $methodId
-    ): Quote
-    {
+    ): Quote {
         $shippingAddress = $quote->getShippingAddress();
         $quote = $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
 
@@ -108,12 +106,11 @@ class ExpressPaymentManager
         Quote $quote,
         ?string $methodId,
         Quote\Address $shippingAddress
-    ): Quote
-    {
+    ): Quote {
         $availableMethods = $this->getAvailableShippingMethods($quote);
         $isMethodAvailable = count(array_filter($availableMethods, function ($method) use ($methodId) {
                 return $method->getId() === $methodId;
-            })) > 0;
+        })) > 0;
 
         $carrierCodeToMethodCode = empty($methodId) ? [] : explode('_', $methodId);
 
@@ -228,5 +225,4 @@ class ExpressPaymentManager
             ->setPostcode($address['postcode'] ?? null)
             ->setCity($address['city'] ?? null);
     }
-
 }
