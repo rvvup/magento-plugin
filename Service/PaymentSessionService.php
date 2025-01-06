@@ -2,11 +2,13 @@
 
 namespace Rvvup\Payments\Service;
 
-use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\UrlFactory;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\Validator\Exception;
 use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Rvvup\Api\Model\AddressInput;
@@ -17,6 +19,9 @@ use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Api\Model\PaymentSession;
 use Rvvup\Api\Model\PaymentSessionCreateInput;
 use Rvvup\ApiException;
+use Rvvup\Payments\Api\Data\PaymentSessionInterface;
+use Rvvup\Payments\Api\Data\PaymentSessionInterfaceFactory;
+use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
 
 class PaymentSessionService
@@ -34,31 +39,42 @@ class PaymentSessionService
     /** @var ApiProvider */
     private $apiProvider;
 
+    /**  @var PaymentSessionInterfaceFactory */
+    private $responseFactory;
+
+    /** @var UrlFactory */
+    protected $urlFactory;
+
     /**
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
      * @param ApiProvider $apiProvider
+     * @param PaymentSessionInterfaceFactory $responseFactory
+     * @param UrlFactory $urlFactory
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
-        ApiProvider $apiProvider
+        ApiProvider $apiProvider,
+        PaymentSessionInterfaceFactory $responseFactory,
+        UrlFactory $urlFactory
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
         $this->apiProvider = $apiProvider;
+        $this->responseFactory = $responseFactory;
+        $this->urlFactory = $urlFactory;
     }
 
     /**
      * @param Quote $quote
      * @param string $checkoutId
-     * @return PaymentSession
-     * @throws LocalizedException
+     * @return PaymentSessionInterface
      * @throws AlreadyExistsException
+     * @throws LocalizedException
      * @throws Exception
-     * @throws ApiException
      */
-    public function create(Quote $quote, string $checkoutId): PaymentSession
+    public function create(Quote $quote, string $checkoutId): PaymentSessionInterface
     {
         $this->quotePreparationService->validate($quote);
         $quote = $this->quotePreparationService->prepare($quote);
@@ -76,7 +92,13 @@ class PaymentSessionService
 
         $this->paymentResource->save($payment);
 
-        return $result;
+        /** @var PaymentSessionInterface $response */
+        $response = $this->responseFactory->create();
+        $response->setPaymentSessionId($result["id"]);
+        $url = $this->urlFactory->create();
+        $url->setQueryParam(In::PARAM_RVVUP_ORDER_ID, $result["id"]);
+        $response->setRedirectUrl($url->getUrl('rvvup/redirect/in'));
+        return $response;
     }
 
     /**
@@ -101,7 +123,7 @@ class PaymentSessionService
         $currency = $quote->getQuoteCurrencyCode();
         $returnItems = [];
 
-        /** @var \Magento\Quote\Api\Data\CartItemInterface $item */
+        /** @var CartItemInterface $item */
         foreach ($items as $item) {
             $quantity = number_format($item->getQty(), 0, '.', '');
             $tax = $item->getPriceInclTax() - $item->getPrice();

@@ -6,7 +6,7 @@ namespace Rvvup\Payments\Api;
 
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
-use Rvvup\Payments\Api\Data\CreatePaymentSessionResponseInterface;
+use Rvvup\Payments\Api\Data\PaymentSessionInterface;
 
 interface CreatePaymentSessionInterface
 {
@@ -18,7 +18,7 @@ interface CreatePaymentSessionInterface
      * @param string $email
      * @param PaymentInterface $paymentMethod
      * @param AddressInterface $billingAddress
-     * @return CreatePaymentSessionResponseInterface
+     * @return PaymentSessionInterface
      */
     public function guestRoute(
         string                                   $cartId,
@@ -26,7 +26,7 @@ interface CreatePaymentSessionInterface
         string                                   $email,
         PaymentInterface                         $paymentMethod,
         AddressInterface $billingAddress
-    ): CreatePaymentSessionResponseInterface;
+    ): PaymentSessionInterface;
 
     /**
      * Create payment session with checkout for a customer cart
@@ -36,7 +36,7 @@ interface CreatePaymentSessionInterface
      * @param string $checkoutId
      * @param PaymentInterface $paymentMethod
      * @param AddressInterface $billingAddress
-     * @return CreatePaymentSessionResponseInterface
+     * @return PaymentSessionInterface
      */
     public function customerRoute(
         string           $customerId,
@@ -44,5 +44,5 @@ interface CreatePaymentSessionInterface
         string           $checkoutId,
         PaymentInterface $paymentMethod,
         AddressInterface $billingAddress
-    ): CreatePaymentSessionResponseInterface;
+    ): PaymentSessionInterface;
 }

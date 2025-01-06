@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Api\Data;
 
-interface CreatePaymentSessionResponseInterface
+interface PaymentSessionInterface
 {
     /**
      * @return string
