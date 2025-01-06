@@ -2,11 +2,13 @@
 
 namespace Rvvup\Payments\Service;
 
-use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\UrlFactory;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\Validator\Exception;
 use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Rvvup\Api\Model\AddressInput;
@@ -14,9 +16,10 @@ use Rvvup\Api\Model\CustomerInput;
 use Rvvup\Api\Model\ItemInput;
 use Rvvup\Api\Model\ItemRestriction;
 use Rvvup\Api\Model\MoneyInput;
-use Rvvup\Api\Model\PaymentSession;
 use Rvvup\Api\Model\PaymentSessionCreateInput;
 use Rvvup\ApiException;
+use Rvvup\Payments\Model\Data\PaymentSession;
+use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
 
 class PaymentSessionService
@@ -34,29 +37,34 @@ class PaymentSessionService
     /** @var ApiProvider */
     private $apiProvider;
 
+    /** @var UrlFactory */
+    protected $urlFactory;
+
     /**
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
      * @param ApiProvider $apiProvider
+     * @param UrlFactory $urlFactory
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
-        ApiProvider $apiProvider
+        ApiProvider $apiProvider,
+        UrlFactory $urlFactory
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
         $this->apiProvider = $apiProvider;
+        $this->urlFactory = $urlFactory;
     }
 
     /**
      * @param Quote $quote
      * @param string $checkoutId
      * @return PaymentSession
-     * @throws LocalizedException
      * @throws AlreadyExistsException
+     * @throws LocalizedException
      * @throws Exception
-     * @throws ApiException
      */
     public function create(Quote $quote, string $checkoutId): PaymentSession
     {
@@ -76,7 +84,12 @@ class PaymentSessionService
 
         $this->paymentResource->save($payment);
 
-        return $result;
+        $paymentSession = new PaymentSession();
+        $paymentSession->setPaymentSessionId($result["id"]);
+        $url = $this->urlFactory->create();
+        $url->setQueryParam(In::PARAM_RVVUP_ORDER_ID, $result["id"]);
+        $paymentSession->setRedirectUrl($url->getUrl('rvvup/redirect/in'));
+        return $paymentSession;
     }
 
     /**
@@ -101,7 +114,7 @@ class PaymentSessionService
         $currency = $quote->getQuoteCurrencyCode();
         $returnItems = [];
 
-        /** @var \Magento\Quote\Api\Data\CartItemInterface $item */
+        /** @var CartItemInterface $item */
         foreach ($items as $item) {
             $quantity = number_format($item->getQty(), 0, '.', '');
             $tax = $item->getPriceInclTax() - $item->getPrice();

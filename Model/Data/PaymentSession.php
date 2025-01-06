@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Rvvup\Payments\Model\Data;
 
 use Magento\Framework\DataObject;
-use Rvvup\Payments\Api\Data\CreatePaymentSessionResponseInterface;
-use Rvvup\Payments\Api\Data\SessionMessageInterface;
 
-class CreatePaymentSessionResponse extends DataObject implements CreatePaymentSessionResponseInterface
+class PaymentSession extends DataObject
 {
 
     public const PAYMENT_SESSION_ID = 'payment_session_id';

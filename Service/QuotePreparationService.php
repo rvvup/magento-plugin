@@ -58,13 +58,13 @@ class QuotePreparationService
         if ($billingAddress === null) {
             throw new LocalizedException(__("Billing address is required. Please check and try again."));
         }
-        if (!$quote->getIsVirtual() && $quote->getShippingAddress() === null) {
-            throw new LocalizedException(__("Shipping address is required. Please check and try again."));
-        }
         if ($billingAddress->getPostcode() === null) {
             throw new LocalizedException(__("Billing postcode is required. Please check and try again."));
         }
-        if ($shippingAddress->getPostcode() === null) {
+        if (!$quote->getIsVirtual() && $quote->getShippingAddress() === null) {
+            throw new LocalizedException(__("Shipping address is required. Please check and try again."));
+        }
+        if (!$quote->getIsVirtual() && $shippingAddress->getPostcode() === null) {
             throw new LocalizedException(__("Shipping postcode is required. Please check and try again."));
         }
     }
