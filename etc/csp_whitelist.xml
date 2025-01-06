@@ -80,6 +80,8 @@
                 <value id="rvvup-prod-connect" type="host">*.rvvup.com</value>
                 <value id="rvvup-apple-www-connect" type="host">www.apple.com</value>
                 <value id="rvvup-apple-connect" type="host">apple.com</value>
+                <value id="rvvup-datadog-connect" type="host">*.browser-intake-datadoghq.com</value>
+                <value id="rvvup-datadog-eu-connect" type="host">*.browser-intake-datadoghq.eu</value>
             </values>
         </policy>
         <policy id="form-action">
