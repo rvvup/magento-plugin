@@ -40,7 +40,7 @@ class PaymentSessionService
     private $apiProvider;
 
     /**  @var PaymentSessionInterfaceFactory */
-    private $responseFactory;
+    private $paymentSessionInterfaceFactory;
 
     /** @var UrlFactory */
     protected $urlFactory;
@@ -49,20 +49,20 @@ class PaymentSessionService
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
      * @param ApiProvider $apiProvider
-     * @param PaymentSessionInterfaceFactory $responseFactory
+     * @param PaymentSessionInterfaceFactory $paymentSessionInterfaceFactory
      * @param UrlFactory $urlFactory
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
         ApiProvider $apiProvider,
-        PaymentSessionInterfaceFactory $responseFactory,
+        PaymentSessionInterfaceFactory $paymentSessionInterfaceFactory,
         UrlFactory $urlFactory
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
         $this->apiProvider = $apiProvider;
-        $this->responseFactory = $responseFactory;
+        $this->paymentSessionInterfaceFactory = $paymentSessionInterfaceFactory;
         $this->urlFactory = $urlFactory;
     }
 
@@ -93,7 +93,7 @@ class PaymentSessionService
         $this->paymentResource->save($payment);
 
         /** @var PaymentSessionInterface $response */
-        $response = $this->responseFactory->create();
+        $response = $this->paymentSessionInterfaceFactory->create();
         $response->setPaymentSessionId($result["id"]);
         $url = $this->urlFactory->create();
         $url->setQueryParam(In::PARAM_RVVUP_ORDER_ID, $result["id"]);
