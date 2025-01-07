@@ -11,7 +11,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\ShipmentEstimationInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
-use Rvvup\Payments\Model\Express\ExpressShippingMethod;
+use Rvvup\Payments\Model\Shipping\ShippingMethod;
 
 class ShippingMethodService
 {
@@ -97,7 +97,7 @@ class ShippingMethodService
 
     /**
      * @param Quote $quote
-     * @return ExpressShippingMethod[] $shippingMethods
+     * @return ShippingMethod[] $shippingMethods
      */
     public function getAvailableShippingMethods(Quote $quote): array
     {
@@ -114,7 +114,7 @@ class ShippingMethodService
                 continue;
             }
 
-            $returnedShippingMethods[] = new ExpressShippingMethod($shippingMethod, $quote->getQuoteCurrencyCode());
+            $returnedShippingMethods[] = new ShippingMethod($shippingMethod, $quote->getQuoteCurrencyCode());
         }
         return $returnedShippingMethods;
     }
