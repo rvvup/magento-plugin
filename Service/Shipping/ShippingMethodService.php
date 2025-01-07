@@ -28,6 +28,12 @@ class ShippingMethodService
     /** @var ShippingInformationManagementInterface */
     private $shippingInformationManagement;
 
+    /**
+     * @param ShipmentEstimationInterface $shipmentEstimation
+     * @param CartRepositoryInterface $quoteRepository
+     * @param ShippingInformationInterfaceFactory $shippingInformationFactory
+     * @param ShippingInformationManagementInterface $shippingInformationManagement
+     */
     public function __construct(
         ShipmentEstimationInterface            $shipmentEstimation,
         CartRepositoryInterface                $quoteRepository,
@@ -72,26 +78,32 @@ class ShippingMethodService
         ?string       $methodId,
         Quote\Address $shippingAddress
     ): Quote {
+        if (empty($methodId)) {
+            $shippingAddress->setShippingMethod('');
+            return $quote;
+        }
         $availableMethods = $this->getAvailableShippingMethods($quote);
         $isMethodAvailable = count(array_filter($availableMethods, function ($method) use ($methodId) {
                 return $method->getId() === $methodId;
         })) > 0;
 
-        $carrierCodeToMethodCode = empty($methodId) ? [] : explode('_', $methodId);
+        $carrierCodeToMethodCode = explode('_', $methodId);
 
         if (!$isMethodAvailable || count($carrierCodeToMethodCode) !== 2) {
             $shippingAddress->setShippingMethod('');
-        } else {
-            $shippingAddress->setShippingMethod($methodId)->setCollectShippingRates(true)->collectShippingRates();
-
-            $this->shippingInformationManagement->saveAddressInformation(
-                $quote->getId(),
-                $this->shippingInformationFactory->create()
-                    ->setShippingAddress($shippingAddress)
-                    ->setShippingCarrierCode($carrierCodeToMethodCode[0])
-                    ->setShippingMethodCode($carrierCodeToMethodCode[1])
-            );
+            return $quote;
         }
+
+        $shippingAddress->setShippingMethod($methodId)->setCollectShippingRates(true)->collectShippingRates();
+
+        $this->shippingInformationManagement->saveAddressInformation(
+            $quote->getId(),
+            $this->shippingInformationFactory->create()
+                ->setShippingAddress($shippingAddress)
+                ->setShippingCarrierCode($carrierCodeToMethodCode[0])
+                ->setShippingMethodCode($carrierCodeToMethodCode[1])
+        );
+
         return $quote;
     }
 
