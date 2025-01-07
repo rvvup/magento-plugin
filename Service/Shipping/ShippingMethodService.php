@@ -57,7 +57,7 @@ class ShippingMethodService
         ?string $methodId
     ): Quote {
         $shippingAddress = $quote->getShippingAddress();
-        $quote = $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
+        $quote = $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress)["quote"];
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
@@ -69,29 +69,44 @@ class ShippingMethodService
 
     /**
      * @param Quote $quote
+     * @param Address $shippingAddress
+     * @return array returns a quote and availableShippingMethods
+     */
+    public function setFirstShippingMethodInQuote(
+        Quote         $quote,
+        Quote\Address $shippingAddress
+    ): array {
+        return $this->setShippingMethodInQuote($quote, null, $shippingAddress);
+    }
+
+    /**
+     * @param Quote $quote
      * @param string|null $methodId
      * @param Address $shippingAddress
-     * @return Quote
+     * @return array returns a quote and availableShippingMethods
      */
     public function setShippingMethodInQuote(
         Quote         $quote,
         ?string       $methodId,
         Quote\Address $shippingAddress
-    ): Quote {
-        if (empty($methodId)) {
-            $shippingAddress->setShippingMethod('');
-            return $quote;
-        }
+    ): array {
         $availableMethods = $this->getAvailableShippingMethods($quote);
+        if (empty($availableMethods)) {
+            $shippingAddress->setShippingMethod('');
+            return ["quote" => $quote, "availableShippingMethods" => $availableMethods];
+        }
+        if (empty($methodId)) {
+            $methodId = $availableMethods[0]->getId();
+        }
+
         $isMethodAvailable = count(array_filter($availableMethods, function ($method) use ($methodId) {
                 return $method->getId() === $methodId;
         })) > 0;
-
         $carrierCodeToMethodCode = explode('_', $methodId);
 
         if (!$isMethodAvailable || count($carrierCodeToMethodCode) !== 2) {
             $shippingAddress->setShippingMethod('');
-            return $quote;
+            return ["quote" => $quote, "availableShippingMethods" => $availableMethods];
         }
 
         $shippingAddress->setShippingMethod($methodId)->setCollectShippingRates(true)->collectShippingRates();
@@ -104,7 +119,7 @@ class ShippingMethodService
                 ->setShippingMethodCode($carrierCodeToMethodCode[1])
         );
 
-        return $quote;
+        return ["quote" => $quote, "availableShippingMethods" => $availableMethods];
     }
 
     /**

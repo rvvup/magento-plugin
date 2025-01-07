@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Service\Express;
 
+use Magento\Checkout\Api\Data\ShippingInformationInterfaceFactory;
+use Magento\Checkout\Api\ShippingInformationManagementInterface;
 use Magento\Checkout\Model\Type\Onepage;
 use Magento\Customer\Api\Data\GroupInterface;
+use Magento\Customer\Model\Session;
 use Magento\Framework\Exception\InputException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\ShipmentEstimationInterface;
-use Magento\Checkout\Api\Data\ShippingInformationInterfaceFactory;
-use Magento\Checkout\Api\ShippingInformationManagementInterface;
 use Magento\Quote\Model\Quote;
-use Magento\Customer\Model\Session;
 use Magento\Quote\Model\Quote\Address;
 use Rvvup\Payments\Service\Shipping\ShippingMethodService;
 
@@ -78,9 +78,8 @@ class ExpressPaymentManager
             ->setPostcode($address['postcode'] ?? null)
             ->setCollectShippingRates(true);
 
-        $shippingMethods = $this->shippingMethodService->getAvailableShippingMethods($quote);
-        $methodId = empty($shippingMethods) ? null : $shippingMethods[0]->getId();
-        $this->shippingMethodService->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
+        $shippingMethods = $this->shippingMethodService->setFirstShippingMethodInQuote($quote, $shippingAddress)
+        ["availableShippingMethods"];
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
@@ -135,9 +134,7 @@ class ExpressPaymentManager
         $selectedMethod = $shippingAddress->getShippingMethod();
         // If the shipping method is not set then the first method was displayed in the sheet and was not changed
         if (empty($selectedMethod)) {
-            $shippingMethods = $this->shippingMethodService->getAvailableShippingMethods($quote);
-            $methodId = empty($shippingMethods) ? null : $shippingMethods[0]->getId();
-            $this->shippingMethodService->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
+            $this->shippingMethodService->setFirstShippingMethodInQuote($quote, $shippingAddress);
         }
 
         $quote->setTotalsCollectedFlag(false);
