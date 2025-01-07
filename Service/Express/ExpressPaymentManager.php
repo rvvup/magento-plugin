@@ -6,46 +6,38 @@ namespace Rvvup\Payments\Service\Express;
 
 use Magento\Checkout\Model\Type\Onepage;
 use Magento\Customer\Api\Data\GroupInterface;
+use Magento\Customer\Model\Session;
 use Magento\Framework\Exception\InputException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\ShipmentEstimationInterface;
-use Magento\Checkout\Api\Data\ShippingInformationInterfaceFactory;
-use Magento\Checkout\Api\ShippingInformationManagementInterface;
 use Magento\Quote\Model\Quote;
-use Magento\Customer\Model\Session;
 use Magento\Quote\Model\Quote\Address;
-use Rvvup\Payments\Model\Express\ExpressShippingMethod;
+use Rvvup\Payments\Service\Shipping\ShippingMethodService;
 
 class ExpressPaymentManager
 {
 
-    /** @var ShipmentEstimationInterface */
-    private $shipmentEstimation;
-
     /** @var CartRepositoryInterface */
     private $quoteRepository;
-
-    /** @var ShippingInformationInterfaceFactory */
-    private $shippingInformationFactory;
-
-    /** @var ShippingInformationManagementInterface */
-    private $shippingInformationManagement;
 
     /** @var Session */
     private $customerSession;
 
+    /** @var ShippingMethodService */
+    private $shippingMethodService;
+
+    /**
+     * @param CartRepositoryInterface $quoteRepository
+     * @param Session $customerSession
+     * @param ShippingMethodService $shippingMethodService
+     */
     public function __construct(
-        ShipmentEstimationInterface $shipmentEstimation,
-        CartRepositoryInterface     $quoteRepository,
-        ShippingInformationInterfaceFactory $shippingInformationFactory,
-        ShippingInformationManagementInterface $shippingInformationManagement,
-        Session $customerSession
+        CartRepositoryInterface $quoteRepository,
+        Session $customerSession,
+        ShippingMethodService $shippingMethodService
     ) {
-        $this->shipmentEstimation = $shipmentEstimation;
         $this->quoteRepository = $quoteRepository;
-        $this->shippingInformationFactory = $shippingInformationFactory;
-        $this->shippingInformationManagement = $shippingInformationManagement;
         $this->customerSession = $customerSession;
+        $this->shippingMethodService = $shippingMethodService;
     }
 
     /**
@@ -65,9 +57,8 @@ class ExpressPaymentManager
             ->setPostcode($address['postcode'] ?? null)
             ->setCollectShippingRates(true);
 
-        $shippingMethods = $this->getAvailableShippingMethods($quote);
-        $methodId = empty($shippingMethods) ? null : $shippingMethods[0]->getId();
-        $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
+        $shippingMethods = $this->shippingMethodService->setFirstShippingMethodInQuote($quote, $shippingAddress)
+        ["availableShippingMethods"];
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
@@ -78,59 +69,9 @@ class ExpressPaymentManager
 
     /**
      * @param Quote $quote
-     * @param string|null $methodId
+     * @param array $data
      * @return Quote
      */
-    public function updateShippingMethod(
-        Quote $quote,
-        ?string $methodId
-    ): Quote {
-        $shippingAddress = $quote->getShippingAddress();
-        $quote = $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
-
-        $quote->setTotalsCollectedFlag(false);
-        $quote->collectTotals();
-
-        $this->quoteRepository->save($quote);
-
-        return $quote;
-    }
-
-    /**
-     * @param Quote $quote
-     * @param string|null $methodId
-     * @param Address $shippingAddress
-     * @return Quote
-     * @throws InputException
-     */
-    public function setShippingMethodInQuote(
-        Quote $quote,
-        ?string $methodId,
-        Quote\Address $shippingAddress
-    ): Quote {
-        $availableMethods = $this->getAvailableShippingMethods($quote);
-        $isMethodAvailable = count(array_filter($availableMethods, function ($method) use ($methodId) {
-                return $method->getId() === $methodId;
-        })) > 0;
-
-        $carrierCodeToMethodCode = empty($methodId) ? [] : explode('_', $methodId);
-
-        if (!$isMethodAvailable || count($carrierCodeToMethodCode) !== 2) {
-            $shippingAddress->setShippingMethod('');
-        } else {
-            $shippingAddress->setShippingMethod($methodId)->setCollectShippingRates(true)->collectShippingRates();
-
-            $this->shippingInformationManagement->saveAddressInformation(
-                $quote->getId(),
-                $this->shippingInformationFactory->create()
-                    ->setShippingAddress($shippingAddress)
-                    ->setShippingCarrierCode($carrierCodeToMethodCode[0])
-                    ->setShippingMethodCode($carrierCodeToMethodCode[1])
-            );
-        }
-        return $quote;
-    }
-
     public function updateQuoteBeforePaymentAuth(Quote $quote, array $data): Quote
     {
         if (!$quote->isVirtual() &&
@@ -172,9 +113,7 @@ class ExpressPaymentManager
         $selectedMethod = $shippingAddress->getShippingMethod();
         // If the shipping method is not set then the first method was displayed in the sheet and was not changed
         if (empty($selectedMethod)) {
-            $shippingMethods = $this->getAvailableShippingMethods($quote);
-            $methodId = empty($shippingMethods) ? null : $shippingMethods[0]->getId();
-            $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
+            $this->shippingMethodService->setFirstShippingMethodInQuote($quote, $shippingAddress);
         }
 
         $quote->setTotalsCollectedFlag(false);
@@ -182,31 +121,6 @@ class ExpressPaymentManager
 
         $this->quoteRepository->save($quote);
         return $quote;
-    }
-
-    /**
-     * @param Quote $quote
-     * @return ExpressShippingMethod[] $shippingMethods
-     * @throws InputException
-     */
-    public function getAvailableShippingMethods(Quote $quote): array
-    {
-        $shippingMethods = $this->shipmentEstimation->estimateByExtendedAddress(
-            $quote->getId(),
-            $quote->getShippingAddress()
-        );
-        if (empty($shippingMethods)) {
-            return [];
-        }
-        $returnedShippingMethods = [];
-        foreach ($shippingMethods as $shippingMethod) {
-            if ($shippingMethod->getErrorMessage()) {
-                continue;
-            }
-
-            $returnedShippingMethods[] = new ExpressShippingMethod($shippingMethod, $quote->getQuoteCurrencyCode());
-        }
-        return $returnedShippingMethods;
     }
 
     /**

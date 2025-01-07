@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Rvvup\Payments\Model\Express;
+namespace Rvvup\Payments\Model\Shipping;
 
 use Magento\Quote\Api\Data\ShippingMethodInterface;
 
-class ExpressShippingMethod
+class ShippingMethod
 {
 
     /** @var string */
@@ -42,6 +42,9 @@ class ExpressShippingMethod
         return $this->id;
     }
 
+    /**
+     * @return string
+     */
     public function getLabel(): string
     {
         return $this->label;
@@ -55,11 +58,18 @@ class ExpressShippingMethod
         return $this->amount;
     }
 
+    /**
+     * @return string
+     */
     public function getCurrency(): string
     {
         return $this->currency;
     }
 
+    /**
+     * @param ShippingMethodInterface $shippingMethod
+     * @return string
+     */
     private function generateLabel(ShippingMethodInterface $shippingMethod): string
     {
         if ($shippingMethod->getCarrierTitle() === null && $shippingMethod->getMethodTitle() === null) {
