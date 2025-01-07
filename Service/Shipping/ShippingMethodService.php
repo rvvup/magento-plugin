@@ -38,7 +38,7 @@ class ShippingMethodService
         ShipmentEstimationInterface            $shipmentEstimation,
         CartRepositoryInterface                $quoteRepository,
         ShippingInformationInterfaceFactory    $shippingInformationFactory,
-        ShippingInformationManagementInterface $shippingInformationManagement,
+        ShippingInformationManagementInterface $shippingInformationManagement
     ) {
         $this->shipmentEstimation = $shipmentEstimation;
         $this->quoteRepository = $quoteRepository;
