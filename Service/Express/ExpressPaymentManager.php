@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Service\Express;
 
-use Magento\Checkout\Api\Data\ShippingInformationInterfaceFactory;
-use Magento\Checkout\Api\ShippingInformationManagementInterface;
 use Magento\Checkout\Model\Type\Onepage;
 use Magento\Customer\Api\Data\GroupInterface;
 use Magento\Customer\Model\Session;
 use Magento\Framework\Exception\InputException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\ShipmentEstimationInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use Rvvup\Payments\Service\Shipping\ShippingMethodService;
@@ -19,17 +16,8 @@ use Rvvup\Payments\Service\Shipping\ShippingMethodService;
 class ExpressPaymentManager
 {
 
-    /** @var ShipmentEstimationInterface */
-    private $shipmentEstimation;
-
     /** @var CartRepositoryInterface */
     private $quoteRepository;
-
-    /** @var ShippingInformationInterfaceFactory */
-    private $shippingInformationFactory;
-
-    /** @var ShippingInformationManagementInterface */
-    private $shippingInformationManagement;
 
     /** @var Session */
     private $customerSession;
@@ -38,25 +26,16 @@ class ExpressPaymentManager
     private $shippingMethodService;
 
     /**
-     * @param ShipmentEstimationInterface $shipmentEstimation
      * @param CartRepositoryInterface $quoteRepository
-     * @param ShippingInformationInterfaceFactory $shippingInformationFactory
-     * @param ShippingInformationManagementInterface $shippingInformationManagement
      * @param Session $customerSession
      * @param ShippingMethodService $shippingMethodService
      */
     public function __construct(
-        ShipmentEstimationInterface $shipmentEstimation,
-        CartRepositoryInterface     $quoteRepository,
-        ShippingInformationInterfaceFactory $shippingInformationFactory,
-        ShippingInformationManagementInterface $shippingInformationManagement,
+        CartRepositoryInterface $quoteRepository,
         Session $customerSession,
         ShippingMethodService $shippingMethodService
     ) {
-        $this->shipmentEstimation = $shipmentEstimation;
         $this->quoteRepository = $quoteRepository;
-        $this->shippingInformationFactory = $shippingInformationFactory;
-        $this->shippingInformationManagement = $shippingInformationManagement;
         $this->customerSession = $customerSession;
         $this->shippingMethodService = $shippingMethodService;
     }

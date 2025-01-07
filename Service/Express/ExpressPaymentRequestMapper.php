@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Service\Express;
 
-use Magento\Checkout\Api\Data\ShippingInformationInterfaceFactory;
-use Magento\Checkout\Api\ShippingInformationManagementInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\ShipmentEstimationInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use Rvvup\Payments\Model\Shipping\ShippingMethod;
@@ -16,39 +12,14 @@ use Rvvup\Payments\Service\Shipping\ShippingMethodService;
 class ExpressPaymentRequestMapper
 {
 
-    /** @var ShipmentEstimationInterface */
-    private $shipmentEstimation;
-
-    /** @var CartRepositoryInterface */
-    private $quoteRepository;
-
-    /** @var ShippingInformationInterfaceFactory */
-    private $shippingInformationFactory;
-
-    /** @var ShippingInformationManagementInterface */
-    private $shippingInformationManagement;
-
     /** @var ShippingMethodService */
     private $shippingMethodService;
 
     /**
-     * @param ShipmentEstimationInterface $shipmentEstimation
-     * @param CartRepositoryInterface $quoteRepository
-     * @param ShippingInformationInterfaceFactory $shippingInformationFactory
-     * @param ShippingInformationManagementInterface $shippingInformationManagement
      * @param ShippingMethodService $shippingMethodService
      */
-    public function __construct(
-        ShipmentEstimationInterface            $shipmentEstimation,
-        CartRepositoryInterface                $quoteRepository,
-        ShippingInformationInterfaceFactory    $shippingInformationFactory,
-        ShippingInformationManagementInterface $shippingInformationManagement,
-        ShippingMethodService                  $shippingMethodService
-    ) {
-        $this->shipmentEstimation = $shipmentEstimation;
-        $this->quoteRepository = $quoteRepository;
-        $this->shippingInformationFactory = $shippingInformationFactory;
-        $this->shippingInformationManagement = $shippingInformationManagement;
+    public function __construct(ShippingMethodService $shippingMethodService)
+    {
         $this->shippingMethodService = $shippingMethodService;
     }
 
