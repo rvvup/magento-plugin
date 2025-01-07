@@ -68,37 +68,50 @@ class ExpressPaymentRequestMapper
                 'currency' => $quote->getQuoteCurrencyCode()
             ],
             'billing' => $this->mapAddress($quote->getBillingAddress()),
-            'shipping' => $this->mapShippingAddress($quote)
+            'shipping' => $this->mapShippingAddress($quote),
         ];
+        $result['shippingMethods'] = $this->getShippingMethods($quote, $result['shipping'] !== null);
 
-        if (!$quote->isVirtual()) {
+        // If methods are empty, need to choose a new address in the express sheet
+        if (empty($result['shippingMethods'])) {
+            $result['shipping'] = null;
+        }
+        return $result;
+    }
 
-            // If address is null then shipping methods will appear after the address update
-            if ($result['shipping'] !== null) {
-                $availableMethods = $this->shippingMethodService->getAvailableShippingMethods($quote);
-                $shippingMethods = $this->mapShippingMethods($availableMethods);
-                // If methods are empty, need to choose a new address in the express sheet
-                if (empty($shippingMethods)) {
-                    $result['shipping'] = null;
-                } else {
-                    $result['shippingMethods'] = $shippingMethods;
-                    $selectedMethod = $quote->getShippingAddress()->getShippingMethod();
-                    if (empty($selectedMethod)) {
-                        $result['shippingMethods'][0]['selected'] = true;
-                    } else {
-                        $numShippingMethods = count($result['shippingMethods']);
-                        for ($i = 0; $i < $numShippingMethods; $i++) {
-                            if ($result['shippingMethods'][$i]['id'] === $selectedMethod) {
-                                $result['shippingMethods'][$i]['selected'] = true;
-                                break;
-                            }
-                        }
-                    }
+    /**
+     * @param Quote $quote
+     * @param bool $hasShippingAddress
+     * @return array|null
+     */
+    private function getShippingMethods(Quote $quote, bool $hasShippingAddress): ?array
+    {
+        if ($quote->isVirtual()) {
+            return null;
+        }
+        // If address is not present then shipping methods will appear after the address update
+        if (!$hasShippingAddress) {
+            return null;
+        }
+        $availableMethods = $this->shippingMethodService->getAvailableShippingMethods($quote);
+        $shippingMethods = $this->mapShippingMethods($availableMethods);
+        if (empty($shippingMethods)) {
+            return null;
+        }
+
+        $selectedMethod = $quote->getShippingAddress()->getShippingMethod();
+        if (empty($selectedMethod)) {
+            $shippingMethods[0]['selected'] = true;
+        } else {
+            $numShippingMethods = count($shippingMethods);
+            for ($i = 0; $i < $numShippingMethods; $i++) {
+                if ($shippingMethods[$i]['id'] === $selectedMethod) {
+                    $shippingMethods[$i]['selected'] = true;
+                    break;
                 }
             }
         }
-
-        return $result;
+        return $shippingMethods;
     }
 
     /**
@@ -138,7 +151,6 @@ class ExpressPaymentRequestMapper
 
         return $options;
     }
-
 
     /**
      * @param Address $quoteAddress
