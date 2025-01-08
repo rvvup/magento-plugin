@@ -17,10 +17,11 @@ use Rvvup\Api\Model\ItemInput;
 use Rvvup\Api\Model\ItemRestriction;
 use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Api\Model\PaymentSessionCreateInput;
+use Rvvup\Api\Model\PaymentType;
 use Rvvup\ApiException;
-use Rvvup\Payments\Model\Data\PaymentSession;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Data\PaymentSession;
 
 class PaymentSessionService
 {
@@ -61,19 +62,24 @@ class PaymentSessionService
     /**
      * @param Quote $quote
      * @param string $checkoutId
+     * @param string $paymentType
      * @return PaymentSession
      * @throws AlreadyExistsException
-     * @throws LocalizedException
      * @throws Exception
+     * @throws LocalizedException
+     * @throws ApiException
      */
-    public function create(Quote $quote, string $checkoutId): PaymentSession
-    {
+    public function create(
+        Quote $quote,
+        string $checkoutId,
+        string $paymentType = PaymentType::STANDARD
+    ): PaymentSession {
         $this->quotePreparationService->validate($quote);
         $quote = $this->quotePreparationService->prepare($quote);
 
         $storeId = (string)$quote->getStoreId();
 
-        $paymentSessionInput = $this->buildPaymentSession($checkoutId, $quote);
+        $paymentSessionInput = $this->buildPaymentSession($checkoutId, $quote, $paymentType);
 
         $result = $this->apiProvider->getSdk($storeId)->paymentSessions()->create($checkoutId, $paymentSessionInput);
 
@@ -201,10 +207,14 @@ class PaymentSessionService
     /**
      * @param string $checkoutId
      * @param Quote $quote
+     * @param string $paymentType
      * @return PaymentSessionCreateInput
      */
-    private function buildPaymentSession(string $checkoutId, Quote $quote): PaymentSessionCreateInput
-    {
+    private function buildPaymentSession(
+        string $checkoutId,
+        Quote $quote,
+        string $paymentType
+    ): PaymentSessionCreateInput {
         $discountTotal = $quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount();
         $taxTotal = $quote->getTotals()['tax']->getValue();
         $taxTotal = is_float($taxTotal) ? $taxTotal : 0.0;
@@ -231,6 +241,7 @@ class PaymentSessionService
             ->setRequiresShipping(!$quote->getIsVirtual())
             ->setPaymentMethod($method)
             ->setPaymentCaptureType($captureType)
+            ->setPaymentType($paymentType)
             ->setMetadata([
                 "domain" => $secureBaseUrl
             ]);
