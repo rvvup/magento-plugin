@@ -57,7 +57,7 @@ class ShippingMethodService
         ?string $methodId
     ): Quote {
         $shippingAddress = $quote->getShippingAddress();
-        $quote = $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress)["quote"];
+        $quote = $this->setShippingMethodInQuote($quote, $methodId, $shippingAddress);
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
@@ -70,43 +70,50 @@ class ShippingMethodService
     /**
      * @param Quote $quote
      * @param Address $shippingAddress
-     * @return array returns a quote and availableShippingMethods
+     * @param ShippingMethod[]|null $availableShippingMethods
+     * @return Quote
      */
     public function setFirstShippingMethodInQuote(
         Quote         $quote,
-        Quote\Address $shippingAddress
-    ): array {
-        return $this->setShippingMethodInQuote($quote, null, $shippingAddress);
+        Quote\Address $shippingAddress,
+        ?array        $availableShippingMethods = null
+    ): Quote {
+        return $this->setShippingMethodInQuote($quote, null, $shippingAddress, $availableShippingMethods);
     }
 
     /**
      * @param Quote $quote
      * @param string|null $methodId
      * @param Address $shippingAddress
-     * @return array returns a quote and availableShippingMethods
+     * @param ShippingMethod[]|null $availableShippingMethods
+     * @return Quote
      */
     public function setShippingMethodInQuote(
         Quote         $quote,
         ?string       $methodId,
-        Quote\Address $shippingAddress
-    ): array {
-        $availableMethods = $this->getAvailableShippingMethods($quote);
-        if (empty($availableMethods)) {
-            $shippingAddress->setShippingMethod('');
-            return ["quote" => $quote, "availableShippingMethods" => $availableMethods];
+        Quote\Address $shippingAddress,
+        ?array        $availableShippingMethods = null
+    ): Quote {
+
+        if (empty($methodId)) {
+            if ($availableShippingMethods == null) {
+                $availableShippingMethods = $this->getAvailableShippingMethods($quote);
+            }
+            if (empty($availableShippingMethods)) {
+                $shippingAddress->setShippingMethod('');
+                return $quote;
+            }
+            $methodId = $availableShippingMethods[0]->getId();
         }
         if (empty($methodId)) {
-            $methodId = $availableMethods[0]->getId();
+            $shippingAddress->setShippingMethod('');
+            return $quote;
         }
 
-        $isMethodAvailable = count(array_filter($availableMethods, function ($method) use ($methodId) {
-                return $method->getId() === $methodId;
-        })) > 0;
-        $carrierCodeToMethodCode = explode('_', $methodId);
-
-        if (!$isMethodAvailable || count($carrierCodeToMethodCode) !== 2) {
+        $rate = $shippingAddress->getShippingRateByCode($methodId);
+        if ($rate == null) {
             $shippingAddress->setShippingMethod('');
-            return ["quote" => $quote, "availableShippingMethods" => $availableMethods];
+            return $quote;
         }
 
         $shippingAddress->setShippingMethod($methodId)->setCollectShippingRates(true)->collectShippingRates();
@@ -115,11 +122,11 @@ class ShippingMethodService
             $quote->getId(),
             $this->shippingInformationFactory->create()
                 ->setShippingAddress($shippingAddress)
-                ->setShippingCarrierCode($carrierCodeToMethodCode[0])
-                ->setShippingMethodCode($carrierCodeToMethodCode[1])
+                ->setShippingCarrierCode($rate->getCarrier())
+                ->setShippingMethodCode($rate->getMethod())
         );
 
-        return ["quote" => $quote, "availableShippingMethods" => $availableMethods];
+        return $quote;
     }
 
     /**

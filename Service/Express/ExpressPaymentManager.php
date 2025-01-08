@@ -57,8 +57,8 @@ class ExpressPaymentManager
             ->setPostcode($address['postcode'] ?? null)
             ->setCollectShippingRates(true);
 
-        $shippingMethods = $this->shippingMethodService->setFirstShippingMethodInQuote($quote, $shippingAddress)
-        ["availableShippingMethods"];
+        $shippingMethods = $this->shippingMethodService->getAvailableShippingMethods($quote);
+        $this->shippingMethodService->setFirstShippingMethodInQuote($quote, $shippingAddress, $shippingMethods);
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
