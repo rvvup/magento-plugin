@@ -90,11 +90,12 @@ class Processing implements ProcessorInterface
                     strtotime($payment["authorizationExpiresAt"])
                 );
 
-                $eventMessage = "Payment authorization expires at " .
-                    $formattedExpirationDate .
-                    ". Please navigate to the Rvvup dashboard to manually capture the payment. " .
+                $eventMessage = "Payment authorization expires at <strong>" . $formattedExpirationDate . "</strong>. " .
+                    "<br />" .
                     "When the authorization expires, the order will be cancelled " .
-                    "and the funds will be returned to the customer.";
+                    "and the funds will be returned to the customer. <br />" .
+                    "Please capture the funds manually using the Rvvup Dashboard/by invoicing the order in magento." .
+                    "<br />";
             }
 
             $this->eventManager->dispatch('rvvup_payments_process_order_processing_after', [
