@@ -110,13 +110,12 @@ class ShippingMethodService
             return $quote;
         }
 
+        $shippingAddress->setShippingMethod($methodId)->setCollectShippingRates(true)->collectShippingRates();
         $rate = $shippingAddress->getShippingRateByCode($methodId);
-        if ($rate == null) {
+        if ($rate === false) {
             $shippingAddress->setShippingMethod('');
             return $quote;
         }
-
-        $shippingAddress->setShippingMethod($methodId)->setCollectShippingRates(true)->collectShippingRates();
 
         $this->shippingInformationManagement->saveAddressInformation(
             $quote->getId(),
