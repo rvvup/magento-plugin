@@ -147,7 +147,7 @@ class Result
             $payment = $order->getPayment();
             $dashboardUrl = $rvvupData['dashboardUrl'] ?? '';
             $payment->setAdditionalInformation(Method::DASHBOARD_URL, $dashboardUrl);
-            $this->cardMetaService->process($rvvupData, $order);
+            $this->cardMetaService->process($rvvupData['payments'][0], $order);
             $this->paymentResource->save($payment);
 
             if (get_class($processor) == Cancel::class) {

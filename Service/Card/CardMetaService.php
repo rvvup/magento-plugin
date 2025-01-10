@@ -46,7 +46,7 @@ class CardMetaService
      */
     public function process(array $rvvupPaymentResponse, OrderInterface $order)
     {
-        if ($order->getPayment()->getMethod() == 'rvvup_CARD') {
+        if ($order->getPayment()->getMethod() != 'rvvup_CARD') {
             return;
         }
         $data = [];
@@ -60,11 +60,14 @@ class CardMetaService
                 'acquirerResponseMessage'
             ];
 
-            $payment = $order->getPayment();
+        $payment = $order->getPayment();
         foreach ($keys as $key) {
-            $this->populateCardData($data, $rvvupPaymentResponse, $key, $payment);
+            if (isset($rvvupPaymentResponse[$key])) {
+                $value = $this->mapCardValue($rvvupPaymentResponse[$key]);
+                $payment->setAdditionalInformation(Method::PAYMENT_TITLE_PREFIX . $key, $rvvupPaymentResponse[$key]);
+                $data[$key] = $key . ': ' . $value;
+            }
         }
-
         if (!empty($data)) {
             try {
                 $historyComment = $this->orderStatusHistoryFactory->create();
@@ -78,26 +81,6 @@ class CardMetaService
             } catch (\Exception $e) {
                 $this->logger->error('Rvvup cards metadata comment failed with exception: ' . $e->getMessage());
             }
-        }
-    }
-
-    /**
-     * @param array $data
-     * @param array $paymentData
-     * @param string $key
-     * @param OrderPaymentInterface $payment
-     * @return void
-     */
-    private function populateCardData(
-        array &$data,
-        array $paymentData,
-        string $key,
-        OrderPaymentInterface $payment
-    ): void {
-        if (isset($paymentData[$key])) {
-            $value = $this->mapCardValue($paymentData[$key]);
-            $payment->setAdditionalInformation(Method::PAYMENT_TITLE_PREFIX . $key, $paymentData[$key]);
-            $data[$key] = $key . ': ' . $value;
         }
     }
 
