@@ -2,23 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Rvvup\Payments\Observer\Model\ProcessOrder;
+namespace Rvvup\Payments\Service\Card;
 
-use Magento\Framework\Event\Observer;
-use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\ResourceModel\Order\Payment as PaymentResource;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
 
-class CardsMetadata implements ObserverInterface
+class CardMetaService
 {
-    /** @var OrderRepositoryInterface $orderRepository */
-    private $orderRepository;
 
     /** @var LoggerInterface $logger */
     private $logger;
@@ -29,46 +24,33 @@ class CardsMetadata implements ObserverInterface
     /** @var OrderManagementInterface $orderManagement */
     private $orderManagement;
 
-    /** @var PaymentResource */
-    private $paymentResource;
-
     /**
-     * @param OrderRepositoryInterface $orderRepository
      * @param OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
      * @param OrderManagementInterface $orderManagement
-     * @param PaymentResource $paymentResource
      * @param LoggerInterface $logger
      */
     public function __construct(
-        OrderRepositoryInterface                         $orderRepository,
         OrderStatusHistoryInterfaceFactory               $orderStatusHistoryFactory,
         OrderManagementInterface                         $orderManagement,
-        PaymentResource                                  $paymentResource,
         LoggerInterface                                  $logger
     ) {
-        $this->orderRepository = $orderRepository;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->orderManagement = $orderManagement;
-        $this->paymentResource = $paymentResource;
         $this->logger = $logger;
     }
 
     /**
-     * Send order confirmation & invoice emails.
-     *
-     * @param  Observer $observer
-     * @return void
+     * @param array $rvvupPaymentResponse
+     * @param OrderInterface $order
      * @throws AlreadyExistsException
      */
-    public function execute(Observer $observer)
+    public function process(array $rvvupPaymentResponse, OrderInterface $order)
     {
-        $orderId = $observer->getData('order_id');
-        $rvvupData = $observer->getData('rvvup_data');
-        $paymentData = $rvvupData['payments'][0];
-        $order = $this->orderRepository->get($orderId);
         if ($order->getPayment()->getMethod() == 'rvvup_CARD') {
-            $data = [];
-            $keys = [
+            return;
+        }
+        $data = [];
+        $keys = [
                 'cvvResponseCode',
                 'avsAddressResponseCode',
                 'avsPostCodeResponseCode',
@@ -79,25 +61,22 @@ class CardsMetadata implements ObserverInterface
             ];
 
             $payment = $order->getPayment();
-            foreach ($keys as $key) {
-                $this->populateCardData($data, $paymentData, $key, $payment);
-            }
-            $this->paymentResource->save($payment);
+        foreach ($keys as $key) {
+            $this->populateCardData($data, $rvvupPaymentResponse, $key, $payment);
+        }
 
-            if (!empty($data)) {
-                try {
-                    $historyComment = $this->orderStatusHistoryFactory->create();
-                    $historyComment->setParentId($order->getEntityId());
-                    $historyComment->setIsCustomerNotified(0);
-                    $historyComment->setIsVisibleOnFront(0);
-                    $historyComment->setStatus($order->getStatus());
-                    $status = nl2br("Rvvup payment status " . $payment['status'] . "\n card data: \n");
-                    $message = __($status . nl2br(implode("\n", $data)));
-                    $historyComment->setComment($message);
-                    $this->orderManagement->addComment($order->getEntityId(), $historyComment);
-                } catch (\Exception $e) {
-                    $this->logger->error('Rvvup cards metadata comment fails with exception: ' . $e->getMessage());
-                }
+        if (!empty($data)) {
+            try {
+                $historyComment = $this->orderStatusHistoryFactory->create();
+                $historyComment->setParentId($order->getEntityId());
+                $historyComment->setIsCustomerNotified(0);
+                $historyComment->setIsVisibleOnFront(0);
+                $historyComment->setStatus($order->getStatus());
+                $message = __("<strong>Rvvup Card Data:</strong> <br />" . implode("<br />", $data));
+                $historyComment->setComment($message);
+                $this->orderManagement->addComment($order->getEntityId(), $historyComment);
+            } catch (\Exception $e) {
+                $this->logger->error('Rvvup cards metadata comment failed with exception: ' . $e->getMessage());
             }
         }
     }
@@ -130,9 +109,6 @@ class CardsMetadata implements ObserverInterface
     {
         switch ($value) {
             case "0":
-                if ($value !== '0') {
-                    return $value;
-                }
                 return '0 - Not Given';
 
             case "1":

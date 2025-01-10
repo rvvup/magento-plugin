@@ -7,6 +7,7 @@ use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Magento\Store\Model\App\Emulation;
@@ -18,6 +19,7 @@ use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\Cancel;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
+use Rvvup\Payments\Service\Card\CardMetaService;
 
 class Result
 {
@@ -53,6 +55,9 @@ class Result
     /** @var Payment */
     private $paymentResource;
 
+    /** @var CardMetaService */
+    private $cardMetaService;
+
     /**
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -63,6 +68,7 @@ class Result
      * @param Emulation $emulation
      * @param LoggerInterface $logger
      * @param Payment $paymentResource
+     * @param CardMetaService $cardMetaService
      */
     public function __construct(
         ResultFactory $resultFactory,
@@ -73,7 +79,8 @@ class Result
         OrderInterface $order,
         Emulation $emulation,
         LoggerInterface $logger,
-        Payment $paymentResource
+        Payment $paymentResource,
+        CardMetaService $cardMetaService
     ) {
         $this->resultFactory = $resultFactory;
         $this->checkoutSession = $checkoutSession;
@@ -84,6 +91,7 @@ class Result
         $this->emulation = $emulation;
         $this->logger = $logger;
         $this->paymentResource = $paymentResource;
+        $this->cardMetaService = $cardMetaService;
     }
 
     /**
@@ -139,6 +147,7 @@ class Result
             $payment = $order->getPayment();
             $dashboardUrl = $rvvupData['dashboardUrl'] ?? '';
             $payment->setAdditionalInformation(Method::DASHBOARD_URL, $dashboardUrl);
+            $this->cardMetaService->process($rvvupData, $order);
             $this->paymentResource->save($payment);
 
             if (get_class($processor) == Cancel::class) {

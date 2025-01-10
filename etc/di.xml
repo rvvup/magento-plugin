@@ -536,7 +536,7 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Observer\Model\ProcessOrder\CardsMetadata">
+    <type name="Rvvup\Payments\Service\Card\CardMetaService">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
