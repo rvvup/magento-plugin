@@ -12,7 +12,6 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
-use Rvvup\Payments\Api\Data\ValidationInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Result;
@@ -193,22 +192,18 @@ class In implements HttpGetActionInterface
             $this->checkoutSession->restoreQuote();
             return $this->redirectToCart();
         }
-
-        if (!$this->captureService->paymentCapture(
-            $payment,
-            $lastTransactionId,
-            $rvvupPaymentId,
-            $rvvupId,
-            $origin,
-            $storeId
-        )) {
-            $this->messageManager->addErrorMessage(
-                __(
-                    'An error occurred while capturing your order (ID %1). Please contact us.',
-                    $rvvupId
-                )
-            );
-            return $this->redirectToCart();
+        $shouldCaptureNow = $payment->getMethodInstance()->getCaptureType() !== 'MANUAL';
+        if ($shouldCaptureNow) {
+            $captureSucceeded = $this->captureService->paymentCapture($rvvupId, $rvvupPaymentId, $origin, $storeId);
+            if (!$captureSucceeded) {
+                $this->messageManager->addErrorMessage(
+                    __(
+                        'An error occurred while capturing your order (ID %1). Please contact us.',
+                        $rvvupId
+                    )
+                );
+                return $this->redirectToCart();
+            }
         }
 
         return $this->resultService->processOrderResult(
