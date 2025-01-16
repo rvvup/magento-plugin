@@ -14,6 +14,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
 use Magento\Quote\Model\QuoteManagement;
 use Magento\Quote\Model\ResourceModel\Quote\Payment\Collection;
+use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderPaymentSearchResultInterface;
@@ -26,7 +27,6 @@ use Rvvup\Payments\Api\Data\ValidationInterfaceFactory;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\SdkProxy;
-use Magento\Quote\Model\ResourceModel\Quote\Payment\CollectionFactory;
 
 class Capture
 {
@@ -284,31 +284,25 @@ class Capture
     }
 
     /**
-     * @param Payment $payment
-     * @param string $lastTransactionId
+     * @param string $rvvupOrderId
      * @param string $rvvupPaymentId
-     * @param string $rvvupId
      * @param string $origin
      * @param string $storeId
      * @return bool
      */
     public function paymentCapture(
-        Quote\Payment $payment,
-        string $lastTransactionId,
+        string $rvvupOrderId,
         string $rvvupPaymentId,
-        string $rvvupId,
         string $origin,
         string $storeId
     ): bool {
         try {
-            if ($payment->getMethodInstance()->getCaptureType() !== 'MANUAL') {
-                $this->sdkProxy->paymentCapture($lastTransactionId, $rvvupPaymentId, $storeId);
-            }
+           $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId, $storeId);
         } catch (\Exception $e) {
             $this->logger->addRvvupError(
                 'Rvvup order capture failed during payment capture',
                 $e->getMessage(),
-                $rvvupId,
+                $rvvupOrderId,
                 $rvvupPaymentId,
                 null,
                 $origin
