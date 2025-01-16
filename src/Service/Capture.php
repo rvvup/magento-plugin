@@ -297,7 +297,7 @@ class Capture
         string $storeId
     ): bool {
         try {
-           $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId, $storeId);
+            $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId, $storeId);
         } catch (\Exception $e) {
             $this->logger->addRvvupError(
                 'Rvvup order capture failed during payment capture',

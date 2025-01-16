@@ -15,6 +15,7 @@ use Rvvup\Payments\Model\SdkProxy;
 class Capture implements CommandInterface
 {
 
+    /** @var SdkProxy */
     private $sdkProxy;
     /** @var \Rvvup\Payments\Service\Capture */
     private $captureService;
@@ -30,8 +31,7 @@ class Capture implements CommandInterface
         SdkProxy $sdkProxy,
         \Rvvup\Payments\Service\Capture $captureService,
         Logger   $logger
-    )
-    {
+    ) {
         $this->sdkProxy = $sdkProxy;
         $this->captureService = $captureService;
         $this->logger = $logger;
@@ -50,7 +50,13 @@ class Capture implements CommandInterface
         $storeId = (string) $order->getStoreId();
         $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
         if (!$rvvupOrderId) {
-            $this->logger->addRvvupError('Cannot capture online without rvvup order id', null, null, null, $order->getId());
+            $this->logger->addRvvupError(
+                'Cannot capture online without rvvup order id',
+                null,
+                null,
+                null,
+                $order->getId()
+            );
             throw new CommandException(__("Payment cannot be captured because it hasn't been authorised yet."));
         }
         $rvvupOrder = $this->sdkProxy->getOrder($rvvupOrderId, $storeId);
@@ -63,10 +69,15 @@ class Capture implements CommandInterface
                 break;
             case 'SUCCEEDED':
             case 'AUTHORIZED':
-            $captureSucceeded = $this->captureService->paymentCapture($rvvupOrderId, $rvvupPaymentId, 'invoice', $storeId);
-            if (!$captureSucceeded) {
-                throw new CommandException(__("Error when trying to capture the payment, please try again."));
-            }
+                $captureSucceeded = $this->captureService->paymentCapture(
+                    $rvvupOrderId,
+                    $rvvupPaymentId,
+                    'invoice',
+                    $storeId
+                );
+                if (!$captureSucceeded) {
+                    throw new CommandException(__("Error when trying to capture the payment, please try again."));
+                }
                 break;
             case 'CANCELLED':
             case 'DECLINED':
