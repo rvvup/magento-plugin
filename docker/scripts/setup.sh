@@ -6,8 +6,6 @@ if [ -n "$FIRECHECKOUT_KEY" ]; then
     /rvvup/scripts/setup-firecheckout.sh;
 fi
 
-/rvvup/scripts/setup-upgrade.sh;
-/rvvup/scripts/configure-plugins.sh;
 if [ "$RVVUP_PLUGIN_VERSION" == "local" ]; then
   cd /bitnami/magento
   # Only run in first attempt, then reset
@@ -16,5 +14,7 @@ if [ "$RVVUP_PLUGIN_VERSION" == "local" ]; then
   sed -i '1s/^/RVVUP_PLUGIN_VERSION=local \n/' /rvvup/scripts/fix-perms.sh
   echo "/rvvup/scripts/run-on-local-volume.sh" > /rvvup/scripts/setup-rvvup.sh
 fi
+/rvvup/scripts/rebuild-magento.sh;
+/rvvup/scripts/configure-plugins.sh;
 /rvvup/scripts/fix-perms.sh;
 /opt/bitnami/scripts/magento/run.sh;

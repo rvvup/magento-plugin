@@ -36,7 +36,7 @@ services:
       - MAGENTO_SMTP_HOST=mailpit
       - MAGENTO_SMTP_PORT=1025
     volumes:
-      - "./:/bitnami/magento/app/code/Rvvup/Payments/"
+      - "./src:/bitnami/magento/app/code/Rvvup/Payments/src"
       - "./composer.json:/bitnami/magento/app/code/Rvvup/Payments/composer.json"
     image: magento-store:latest
     depends_on:
