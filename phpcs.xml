@@ -12,6 +12,9 @@
     <rule ref="Magento2.Annotation.MethodArguments.NoCommentBlock">
         <exclude-pattern>*\.php</exclude-pattern>
     </rule>
+    <rule ref="Magento2.Annotation.MethodAnnotationStructure.NoCommentBlock">
+        <exclude-pattern>*\.php</exclude-pattern>
+    </rule>
     <rule ref="Magento2.Less.CommentLevels.SpaceMissed">
         <exclude-pattern>*\.less</exclude-pattern>
     </rule>
@@ -23,8 +26,5 @@
     </rule>
     <arg name="encoding" value="UTF-8"/>
     <arg value="sp"/>
-    <file>./</file>
-    <exclude-pattern>CI</exclude-pattern>
-    <exclude-pattern>Test</exclude-pattern>
-    <exclude-pattern>vendor</exclude-pattern>
+    <file>./src/</file>
 </ruleset>
