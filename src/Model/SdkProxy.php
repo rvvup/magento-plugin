@@ -219,6 +219,11 @@ class SdkProxy
         return $this->getSdkForStore()->cancelPayment($paymentId, $orderId);
     }
 
+    public function authorizePayment(string $paymentId, string $paymentSessionId): array
+    {
+        return $this->getSdkForStore()->authorizePayment($paymentId, $paymentSessionId);
+    }
+
     /**
      * {@inheritdoc}
      */
