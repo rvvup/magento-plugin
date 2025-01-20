@@ -63,9 +63,6 @@ class Data extends Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
 
-                if (!isset($item['payment_method']) || strpos($item['payment_method'], 'rvvup_CARD') !== 0) {
-                    continue;
-                }
                 $field = $this->getData('name');
                 $id = $item["entity_id"] . '_' . $field;
 
@@ -78,7 +75,11 @@ class Data extends Column
 
                 $order  = $this->orderRepository->get($item["entity_id"]);
                 $payment = $order->getPayment();
-                $value = $payment->getAdditionalInformation($field) ?? '';
+                /** @var string $value */
+                $value = $payment->getAdditionalInformation($field);
+                if ($value == null) {
+                    continue;
+                }
                 if ($field == 'rvvup_eci_number') {
                     $value = $payment->getAdditionalInformation('rvvup_eci') ?? '';
                     $item[$field] = $value;

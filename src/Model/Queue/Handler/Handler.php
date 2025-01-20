@@ -184,7 +184,6 @@ class Handler
 
                 $payment = $quote->getPayment();
                 $rvvupPaymentId = $payment->getAdditionalInformation(Method::PAYMENT_ID);
-                $lastTransactionId = (string)$payment->getAdditionalInformation(Method::TRANSACTION_ID);
                 $validate = $this->captureService->validate($quote, $rvvupOrderId, null, $origin);
                 if (!$validate->getIsValid()) {
                     return;
@@ -201,15 +200,10 @@ class Handler
                 if (!$orderId) {
                     return;
                 }
-
-                $this->captureService->paymentCapture(
-                    $payment,
-                    $lastTransactionId,
-                    $rvvupPaymentId,
-                    $rvvupOrderId,
-                    $origin,
-                    $storeId
-                );
+                $shouldCaptureNow = $payment->getMethodInstance()->getCaptureType() !== 'MANUAL';
+                if ($shouldCaptureNow) {
+                    $this->captureService->paymentCapture($rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
+                }
                 return;
             }
 

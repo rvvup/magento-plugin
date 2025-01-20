@@ -6,7 +6,6 @@ namespace Rvvup\Payments\Service\Card;
 
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Psr\Log\LoggerInterface;
@@ -46,9 +45,6 @@ class CardMetaService
      */
     public function process(array $rvvupPaymentResponse, OrderInterface $order)
     {
-        if ($order->getPayment()->getMethod() != 'rvvup_CARD') {
-            return;
-        }
         $data = [];
         $keys = [
                 'cvvResponseCode',
@@ -61,22 +57,23 @@ class CardMetaService
             ];
 
         $payment = $order->getPayment();
+        $message = "<strong>Rvvup Card Data:</strong> <br />";
+        $addHistoryComment = false;
         foreach ($keys as $key) {
             if (isset($rvvupPaymentResponse[$key])) {
-                $value = $this->mapCardValue($rvvupPaymentResponse[$key]);
                 $payment->setAdditionalInformation(Method::PAYMENT_TITLE_PREFIX . $key, $rvvupPaymentResponse[$key]);
-                $data[$key] = $key . ': ' . $value;
+                $message .= $key . ': ' . $this->mapCardValue($rvvupPaymentResponse[$key]) . ' <br />';
+                $addHistoryComment = true;
             }
         }
-        if (!empty($data)) {
+        if ($addHistoryComment) {
             try {
                 $historyComment = $this->orderStatusHistoryFactory->create();
                 $historyComment->setParentId($order->getEntityId());
                 $historyComment->setIsCustomerNotified(0);
                 $historyComment->setIsVisibleOnFront(0);
                 $historyComment->setStatus($order->getStatus());
-                $message = __("<strong>Rvvup Card Data:</strong> <br />" . implode("<br />", $data));
-                $historyComment->setComment($message);
+                $historyComment->setComment(__($message));
                 $this->orderManagement->addComment($order->getEntityId(), $historyComment);
             } catch (\Exception $e) {
                 $this->logger->error('Rvvup cards metadata comment failed with exception: ' . $e->getMessage());

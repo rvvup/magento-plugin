@@ -267,7 +267,8 @@ class VirtualCheckout
             'amount' => ['amount' => $amount, 'currency' => $currencyCode],
             'reference' => $orderId,
             'source' => 'MAGENTO_MOTO',
-            'successUrl' => $url
+            'successUrl' => $url,
+            'pendingUrl' => $url
         ];
 
         $headers = $this->getHeaders($storeId, $orderId);
