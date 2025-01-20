@@ -211,9 +211,4 @@ class Method extends Adapter
     {
         return $this;
     }
-
-    public function getFormBlockType()
-    {
-        return Form::class;
-    }
 }
