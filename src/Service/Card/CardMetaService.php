@@ -6,7 +6,6 @@ namespace Rvvup\Payments\Service\Card;
 
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Psr\Log\LoggerInterface;
@@ -46,9 +45,6 @@ class CardMetaService
      */
     public function process(array $rvvupPaymentResponse, OrderInterface $order)
     {
-        if ($order->getPayment()->getMethod() != 'rvvup_CARD') {
-            return;
-        }
         $data = [];
         $keys = [
                 'cvvResponseCode',
