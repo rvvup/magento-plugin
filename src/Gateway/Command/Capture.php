@@ -7,6 +7,7 @@ namespace Rvvup\Payments\Gateway\Command;
 use Exception;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\CommandInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Logger;
