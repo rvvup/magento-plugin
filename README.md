@@ -7,7 +7,7 @@ If you would like to have a quick local installation of the plugin on a magento 
 - Copy .env.sample to .env and update the values as needed.
 - Run the following command to start the docker containers:
 ```
-docker-compose up -d --build
+scripts/local-run.sh
 ```
 
 - The magento store, once it has completed start up, will be available at https://local.dev.rvvuptech.com/
@@ -27,7 +27,7 @@ npx playwright install
 This will spin up a docker container with magento installation + rvvup plugin installed and run the test against this
 container.
 ```bash
-./run-e2e-tests.sh
+./scripts/run-e2e-tests.sh
 ```
 
 ### If you have an existing store, to run the tests, use the following command:

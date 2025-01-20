@@ -25,10 +25,10 @@
     },
     "autoload": {
         "files": [
-            "registration.php"
+            "src/registration.php"
         ],
         "psr-4": {
-            "Rvvup\\Payments\\": ""
+            "Rvvup\\Payments\\": "src/"
         }
     },
     "config": {
@@ -41,5 +41,11 @@
             "phpstan/extension-installer": true
         }
     },
-    "license": "MIT"
+    "license": "MIT",
+    "repositories": {
+        "magento": {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    }
 }

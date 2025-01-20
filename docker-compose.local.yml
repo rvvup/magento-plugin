@@ -1,0 +1,58 @@
+services:
+  mariadb:
+    image: docker.io/bitnami/mariadb:10.4
+    platform: linux/amd64
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=bn_magento
+      - MARIADB_DATABASE=bitnami_magento
+    volumes:
+      - 'rvvup_magento_data_mariadb:/bitnami/mariadb'
+  magento:
+    ports:
+      - '80:8080'
+      - '443:8443'
+    environment:
+      - BITNAMI_DEBUG=true
+      - MAGENTO_DATABASE_HOST=mariadb
+      - MAGENTO_DATABASE_PORT_NUMBER=3306
+      - MAGENTO_DATABASE_USER=bn_magento
+      - MAGENTO_DATABASE_NAME=bitnami_magento
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT_NUMBER=9200
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MAGENTO_USERNAME=admin
+      - MAGENTO_PASSWORD=password1
+      - MAGENTO_EMAIL=admin@test.com
+      - MAGENTO_HOST=local.dev.rvvuptech.com
+      - RVVUP_API_KEY=$RVVUP_API_KEY
+      - RVVUP_PLUGIN_VERSION=local
+      - FIRECHECKOUT_KEY=$FIRECHECKOUT_KEY
+      - FIRECHECKOUT_VERSION=$FIRECHECKOUT_VERSION
+      - MAGENTO_REPO_PUBLIC_KEY=$MAGENTO_REPO_PUBLIC_KEY
+      - MAGENTO_REPO_PRIVATE_KEY=$MAGENTO_REPO_PRIVATE_KEY
+      - MAGENTO_SMTP_HOST=mailpit
+      - MAGENTO_SMTP_PORT=1025
+    volumes:
+      - "./src:/bitnami/magento/app/code/Rvvup/Payments/src"
+      - "./composer.json:/bitnami/magento/app/code/Rvvup/Payments/composer.json"
+    image: magento-store:latest
+    depends_on:
+      - mariadb
+      - elasticsearch
+      - mailpit
+  elasticsearch:
+    image: docker.io/bitnami/elasticsearch:7
+    volumes:
+      - 'rvvup_magento_elasticsearch_data:/bitnami/elasticsearch/data'
+  mailpit:
+    image: docker.io/axllent/mailpit:v1.21
+    ports:
+      - '8925:8025'
+volumes:
+  rvvup_magento_data_mariadb:
+    driver: local
+  rvvup_magento_elasticsearch_data:
+    driver: local
