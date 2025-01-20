@@ -4,7 +4,6 @@ namespace Rvvup\Payments\Plugin;
 
 use Magento\Checkout\Model\Session\Proxy;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Helper\Data;
 use Magento\Payment\Model\Method\Factory;
 use Magento\Payment\Model\MethodInterface;
@@ -56,33 +55,36 @@ class LoadMethodInstances
      */
     public function aroundGetMethodInstance(Data $subject, callable $proceed, $code)
     {
-        if (0 === strpos($code, Method::PAYMENT_TITLE_PREFIX)) {
-            if (isset($this->instances[$code])) {
-                return $this->instances[$code];
-            }
-
-            if ($this->config->isActive() && !$this->processed) {
-                $this->processMethods($this->sdkProxy->getMethods('0', 'GBP'));
-            }
-
-            if (isset($this->processed[$code])) {
-                $method = $this->processed[$code];
-                /** @var Method $instance */
-                $instance = $this->methodFactory->create(
-                    'RvvupFacade',
-                    [
-                        'code' => $code,
-                        'title' => $method['title'] ?? 'Rvvup',
-                        'summary_url' => $method['summaryUrl'] ?? '',
-                        'logo_url' => $method['logoUrl'] ?? '',
-                        'limits' => $method['limits'] ?? null,
-                        'captureType' => $method['captureType'] ?? '',
-                    ]
-                );
-                return $instance;
-            }
+        if (0 !== strpos($code, Method::PAYMENT_TITLE_PREFIX)
+            || $code === 'rvvup_payment-link'
+            || $code === 'rvvup_virtual-terminal') {
+            return $proceed($code);
         }
 
+        if (isset($this->instances[$code])) {
+            return $this->instances[$code];
+        }
+
+        if ($this->config->isActive() && !$this->processed) {
+            $this->processMethods($this->sdkProxy->getMethods('0', 'GBP'));
+        }
+
+        if (isset($this->processed[$code])) {
+            $method = $this->processed[$code];
+            /** @var Method $instance */
+            $instance = $this->methodFactory->create(
+                'RvvupFacade',
+                [
+                    'code' => $code,
+                    'title' => $method['title'] ?? 'Rvvup',
+                    'summary_url' => $method['summaryUrl'] ?? '',
+                    'logo_url' => $method['logoUrl'] ?? '',
+                    'limits' => $method['limits'] ?? [],
+                    'captureType' => $method['captureType'] ?? '',
+                ]
+            );
+            return $instance;
+        }
         return $proceed($code);
     }
 }
