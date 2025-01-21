@@ -200,6 +200,10 @@ define(
                      * 1 - Update cart's billing address, combining shipping & billing data from PayPal.
                      * 2 - Redirect to the checkout page.
                      *
+                     * The authorization call isn't made here as the "Place Order" updates the PayPal order and
+                     * updates can't be made after the PayPal payment is authorized. See the afterPlaceOrder handler
+                     * in rvvup-method.js
+                     *
                      * @returns {Promise<unknown>}
                      */
                     onApprove: function (data, actions) {

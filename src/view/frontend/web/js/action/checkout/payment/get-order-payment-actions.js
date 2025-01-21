@@ -54,6 +54,15 @@ define([
                     : null
             );
 
+            const confirmAuthorizationAction = _.find(data, function (action) {
+                return action.type === 'confirm_authorization' && action.method === 'url';
+            });
+            orderPaymentAction.setConfirmAuthorizationUrl(
+                typeof confirmAuthorizationAction !== 'undefined'
+                    ? confirmAuthorizationAction.value
+                    : null
+            )
+
             /*
              * If we have a token authorization type method, then we should have a capture action.
              * Return either the payment token or the capture URL for Express Payment Session

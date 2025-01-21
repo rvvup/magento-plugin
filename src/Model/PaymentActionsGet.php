@@ -185,19 +185,34 @@ class PaymentActionsGet implements PaymentActionsGetInterface
         $rvvupOrder = $this->sdkProxy->getOrder($id);
 
         if (!empty($rvvupOrder)) {
-            return
+            $result = [
                 [
-                    [
-                        "type" => 'authorization',
-                        "method" => 'redirect_url',
-                        "value" => $rvvupOrder["redirectToCheckoutUrl"],
-                    ],
-                    [
-                        "type" => 'cancel',
-                        "method" => 'redirect_url',
-                        "value" => $rvvupOrder['redirectToStoreUrl'],
-                    ],
+                    "type" => 'authorization',
+                    "method" => 'redirect_url',
+                    "value" => $rvvupOrder["redirectToCheckoutUrl"],
+                ],
+                [
+                    "type" => 'cancel',
+                    "method" => 'redirect_url',
+                    "value" => $rvvupOrder['redirectToStoreUrl'],
+                ]
+            ];
+
+            $confirmAuthorizationAction = array_filter(
+                $rvvupOrder['payments'][0]['summary']['paymentActions'],
+                function ($action) {
+                    return $action['type'] === 'CONFIRM_AUTHORIZATION' && $action['method'] === 'URL';
+                }
+            );
+            if (!empty($confirmAuthorizationAction)) {
+                $result[] = [
+                    "type" => 'confirm_authorization',
+                    "method" => 'url',
+                    "value" => reset($confirmAuthorizationAction)['value'],
                 ];
+            }
+
+            return $result;
         }
         return [];
     }
