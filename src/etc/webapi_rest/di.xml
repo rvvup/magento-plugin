@@ -1,35 +1,11 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Preferences -->
-    <preference for="Rvvup\Payments\Api\ClearpayAvailabilityInterface"
-                type="Rvvup\Payments\Model\ClearpayAvailability"/>
-    <!-- Currently this services & Data objects are used only on WebAPI context, move to central di.xml if required -->
-    <!-- Reset Cart data (items, addresses, payment) -->
-    <preference for="Rvvup\Payments\Api\CartResetInterface"
-                type="Rvvup\Payments\Model\CartReset" />
-    <preference for="Rvvup\Payments\Api\GuestCartResetInterface"
-                type="Rvvup\Payments\Model\GuestCartReset" />
-    <!-- Get Order Payment Actions for logged-in & guest users -->
-    <preference for="Rvvup\Payments\Api\CustomerPaymentActionsGetInterface"
-                type="Rvvup\Payments\Model\CustomerPaymentActionsGet" />
-    <preference for="Rvvup\Payments\Api\GuestPaymentActionsGetInterface"
-                type="Rvvup\Payments\Model\GuestPaymentActionsGet" />
-    <!-- Get Session messages for any user type -->
-    <preference for="Rvvup\Payments\Api\SessionMessagesGetInterface"
-                type="Rvvup\Payments\Model\SessionMessagesGet" />
-    <!-- Session Message model di -->
-    <preference for="Rvvup\Payments\Api\Data\SessionMessageInterface"
-                type="Rvvup\Payments\Model\SessionMessage" />
-
-    <preference for="Rvvup\Payments\Api\CreatePaymentSessionInterface"
-                type="Rvvup\Payments\Model\CreatePaymentSessionEndpoint" />
     <!-- Plugins -->
     <type name ="Magento\Checkout\Api\ShippingInformationManagementInterface">
         <plugin name="Rvvup_Payments::checkout.express_payment_validate_customer_address.plugin"
                 type="Rvvup\Payments\Plugin\Checkout\ExpressPaymentValidateCustomerAddress"/>
     </type>
-
     <!-- DI -->
     <type name="Rvvup\Payments\Model\SessionMessagesGet">
         <arguments>
