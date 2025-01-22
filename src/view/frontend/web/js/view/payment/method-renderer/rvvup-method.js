@@ -353,6 +353,7 @@ define([
                     return;
                 }
                 const createError = "Something went wrong, please try again later.";
+                const authorizeError = "Something went wrong when authorizing the payment, please try again later.";
 
                 rvvup_paypal.Buttons({
                     style: getPayPalCheckoutButtonStyle(),
@@ -390,17 +391,32 @@ define([
                     },
 
                     /**
-                     * On PayPal approved, show modal with capture URL.
+                     * On PayPal approved, authorize payment if using manual capture and show modal with capture URL.
                      *
                      * @returns {Promise<unknown>}
                      */
                     onApprove: function () {
                         return new Promise((resolve, reject) => {
-                            resolve(orderPaymentAction.getCaptureUrl());
-                        }).then((url) => {
+                            if (orderPaymentAction.getConfirmAuthorizationUrl() === null) {
+                                resolve();
+                                return;
+                            }
+
+                            $.ajax({
+                                type: "POST",
+                                url: orderPaymentAction.getConfirmAuthorizationUrl(),
+                                error: function () {
+                                    reject(authorizeError);
+                                },
+                                success: function () {
+                                    resolve();
+                                }
+                            });
+                        }).then(() => {
+                            const captureUrl = orderPaymentAction.getCaptureUrl();
                             self.resetDefaultData();
                             loader.stopLoader();
-                            self.showModal(url);
+                            self.showModal(captureUrl);
                         });
                     },
                     /**
@@ -625,7 +641,7 @@ define([
 
             /**
              * After Place order actions.
-             * If PayPal payment, allow paypal buttons to handle logic.
+             * If PayPal payment (non-express), allow paypal buttons to handle logic.
              */
             afterPlaceOrder: function () {
                 let self = this;
@@ -659,9 +675,32 @@ define([
                             return;
                         }
 
-                        if (orderPaymentAction.getRedirectUrl() !== null) {
-                            self.showRvvupModal(orderPaymentAction.getRedirectUrl());
-                        }
+                        new Promise((resolve, reject) => {
+                            // Authorize express PayPal payment if manual capture is enabled. The authorize call is made
+                            // here instead of the onApprove callback as the "Place Order" updates the PayPal order details
+                            // for an express payment, but you can't update a PayPal order after it has been authorized.
+                            if (orderPaymentAction.getConfirmAuthorizationUrl() === null) {
+                                resolve();
+                                return;
+                            }
+
+                            $.ajax({
+                                type: "POST",
+                                url: orderPaymentAction.getConfirmAuthorizationUrl(),
+                                success: resolve,
+                                error: () => {
+                                    messageList.addErrorMessage({
+                                        message: $t('Something went wrong when authorizing the payment')
+                                    });
+                                    loader.stopLoader();
+                                    reject();
+                                }
+                            })
+                        }).then(() => {
+                            if (orderPaymentAction.getRedirectUrl() !== null) {
+                                self.showRvvupModal(orderPaymentAction.getRedirectUrl());
+                            }
+                        });
                     })
                 }).fail(function () {
                     loader.stopLoader();
