@@ -1,4 +1,4 @@
-import {expect} from "@playwright/test";
+import { expect } from "@playwright/test";
 
 export default class OrderConfirmation {
   constructor(page) {
@@ -16,6 +16,8 @@ export default class OrderConfirmation {
         ),
       ).toBeVisible();
     }
-      return (await (await this.page.getByText('Your order # is: ')).innerText()).replace("Your order # is: ", "").replace(".", "");
+    return (await (await this.page.getByText("Your order # is: ")).innerText())
+      .replace("Your order # is: ", "")
+      .replace(".", "");
   }
 }

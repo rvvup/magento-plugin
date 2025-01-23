@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Wait for Magento Store
         uses: mydea/action-wait-for-api@v2.0.0
