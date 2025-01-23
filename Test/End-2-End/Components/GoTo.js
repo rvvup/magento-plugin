@@ -1,15 +1,15 @@
-import {expect} from "@playwright/test";
+import { expect } from "@playwright/test";
 import AdminLogin from "./Admin/AdminLogin";
 
 export default class GoTo {
   constructor(page) {
-      this.page = page;
-      this.product = new GoToProduct(page);
+    this.page = page;
+    this.product = new GoToProduct(page);
   }
 
-    admin(username) {
-        return new GoToAdmin(this.page, username);
-    }
+  admin(username) {
+    return new GoToAdmin(this.page, username);
+  }
 
   async checkout() {
     await this.page.goto("./checkout");
@@ -30,36 +30,54 @@ class GoToProduct {
 }
 
 class GoToAdmin {
-    constructor(page, username) {
-        this.page = page;
-        this.username = username;
-    }
+  constructor(page, username) {
+    this.page = page;
+    this.username = username;
+  }
 
-    async ordersList() {
-        await new AdminLogin(this.page).login(this.username);
+  async ordersList() {
+    await new AdminLogin(this.page).login(this.username);
 
-        await this.page.getByRole('link', {name: 'Sales'}).click();
-        await this.page.getByRole('link', {name: 'Orders'}).click();
-    }
+    await this.page.getByRole("link", { name: "Sales" }).click();
+    await this.page.getByRole("link", { name: "Orders" }).click();
+  }
 
-    async order(orderId) {
-        await this.ordersList();
-        await expect(this.page.locator('#container > .admin__data-grid-outer-wrap > .admin__data-grid-loading-mask > .spinner')).not.toBeVisible();
-        await this.page.getByRole('textbox', {name: 'Search by keyword'}).fill(orderId);
-        await expect(this.page.locator('#container > .admin__data-grid-outer-wrap > .admin__data-grid-loading-mask > .spinner')).not.toBeVisible();
-        await this.page.getByRole('button', {name: 'Search'}).click();
-        await expect(this.page.locator('#container')).toContainText('1 records found');
-        await expect(this.page.locator('#container > .admin__data-grid-outer-wrap > .admin__data-grid-loading-mask > .spinner')).not.toBeVisible();
-        await this.page.getByRole('link', {name: 'View'}).click();
-    }
+  async order(orderId) {
+    await this.ordersList();
+    await expect(
+      this.page.locator(
+        "#container > .admin__data-grid-outer-wrap > .admin__data-grid-loading-mask > .spinner",
+      ),
+    ).not.toBeVisible();
+    await this.page
+      .getByRole("textbox", { name: "Search by keyword" })
+      .fill(orderId);
+    await expect(
+      this.page.locator(
+        "#container > .admin__data-grid-outer-wrap > .admin__data-grid-loading-mask > .spinner",
+      ),
+    ).not.toBeVisible();
+    await this.page.getByRole("button", { name: "Search" }).click();
+    await expect(this.page.locator("#container")).toContainText(
+      "1 records found",
+    );
+    await expect(
+      this.page.locator(
+        "#container > .admin__data-grid-outer-wrap > .admin__data-grid-loading-mask > .spinner",
+      ),
+    ).not.toBeVisible();
+    await this.page.getByRole("link", { name: "View" }).click();
+  }
 
-    async creditMemoForOrder(orderId) {
-        await this.order(orderId);
-        await this.page.waitForTimeout(500);
-        await this.page.getByRole('link', {name: 'Invoices'}).click();
-        await expect(this.page.locator('#sales_order_view_tabs_order_invoices_content')).toContainText('1 records found');
-        await this.page.getByRole('link', {name: 'View'}).click();
-        await this.page.waitForTimeout(500);
-        await this.page.getByRole('button', {name: 'Credit Memo'}).click();
-    }
+  async creditMemoForOrder(orderId) {
+    await this.order(orderId);
+    await this.page.waitForTimeout(500);
+    await this.page.getByRole("link", { name: "Invoices" }).click();
+    await expect(
+      this.page.locator("#sales_order_view_tabs_order_invoices_content"),
+    ).toContainText("1 records found");
+    await this.page.getByRole("link", { name: "View" }).click();
+    await this.page.waitForTimeout(500);
+    await this.page.getByRole("button", { name: "Credit Memo" }).click();
+  }
 }

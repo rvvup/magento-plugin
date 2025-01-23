@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import Cart from "../Components/Cart";
 import GoTo from "../Components/GoTo";
-import {v7 as uuidv7} from 'uuid';
+import { v7 as uuidv7 } from "uuid";
 
 export default class VisitCheckoutPayment {
   constructor(page) {
