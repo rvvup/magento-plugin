@@ -353,7 +353,7 @@ define([
                     return;
                 }
                 const createError = "Something went wrong, please try again later.";
-                const authorizeError = "Something went wrong when authorizing the payment, please try again later.";
+                const authorizeError = "Something went wrong when authorizing the payment.";
 
                 rvvup_paypal.Buttons({
                     style: getPayPalCheckoutButtonStyle(),
