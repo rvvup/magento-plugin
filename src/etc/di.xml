@@ -211,6 +211,7 @@
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
                 <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
+                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\Cancel</item>
             </argument>
         </arguments>
     </type>
@@ -226,7 +227,7 @@
             <argument name="commands" xsi:type="array">
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
                 <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
-                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\Cancel</item>
+                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\PaymentLink\Cancel</item>
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
             </argument>
         </arguments>
@@ -238,6 +239,7 @@
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
                 <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
+                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\Cancel</item>
             </argument>
         </arguments>
     </virtualType>
@@ -511,12 +513,6 @@
                 <item name="0" xsi:type="const">\Magento\Sales\Model\Order::STATE_COMPLETE</item>
                 <item name="1" xsi:type="const">\Magento\Sales\Model\Order::STATE_PROCESSING</item>
             </argument>
-        </arguments>
-    </type>
-
-    <type name="Rvvup\Payments\Gateway\Command\Cancel">
-        <arguments>
-            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
 
