@@ -24,7 +24,6 @@ class Cancel implements CommandInterface
     /** @var Cache */
     private $cache;
 
-
     /**
      * @param SdkProxy $sdkProxy
      * @param Cache $cache
@@ -74,7 +73,10 @@ class Cancel implements CommandInterface
                         $paymentAfterCancellation['status'] !== 'EXPIRED' &&
                         $paymentAfterCancellation['status'] !== 'AUTHORIZATION_EXPIRED') {
                         throw new LocalizedException(
-                            __('Payment could not be cancelled as it is in state: %1 in rvvup.', $paymentAfterCancellation['status'])
+                            __(
+                                'Payment could not be cancelled as it is in state: %1 in rvvup.',
+                                $paymentAfterCancellation['status']
+                            )
                         );
                     }
             }
