@@ -7,13 +7,13 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Service\PaymentLink;
 
 class Cancel implements CommandInterface
 {
-    /** @var LoggerInterface */
+    /** @var Logger */
     private $logger;
 
     /** @var PaymentLink */
@@ -25,12 +25,12 @@ class Cancel implements CommandInterface
     /**
      * @param PaymentLink $paymentLinkService
      * @param CartRepositoryInterface $cartRepository
-     * @param LoggerInterface $logger
+     * @param Logger $logger
      */
     public function __construct(
         PaymentLink $paymentLinkService,
         CartRepositoryInterface $cartRepository,
-        LoggerInterface $logger
+        Logger $logger
     ) {
         $this->paymentLinkService = $paymentLinkService;
         $this->cartRepository = $cartRepository;

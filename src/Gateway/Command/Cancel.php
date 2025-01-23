@@ -6,7 +6,6 @@ namespace Rvvup\Payments\Gateway\Command;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
-use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Model\SdkProxy;
@@ -29,12 +28,12 @@ class Cancel implements CommandInterface
     /**
      * @param SdkProxy $sdkProxy
      * @param Cache $cache
-     * @param LoggerInterface $logger
+     * @param Logger $logger
      */
     public function __construct(
         SdkProxy        $sdkProxy,
         Cache           $cache,
-        LoggerInterface $logger
+        Logger $logger
     ) {
         $this->sdkProxy = $sdkProxy;
         $this->cache = $cache;
