@@ -63,7 +63,7 @@ class VirtualTerminal extends Action implements HttpPostActionInterface
         try {
             $body = $this->virtualCheckoutService->createVirtualCheckout($amount, $storeId, $orderId, $currencyCode);
             $result->setData([
-                'iframe-url' => $body['url'],
+                'iframe-url' => $body->getUrl(),
                 'success' => true
             ]);
         } catch (\Exception $e) {

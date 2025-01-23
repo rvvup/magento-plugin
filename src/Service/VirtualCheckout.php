@@ -4,34 +4,24 @@ declare(strict_types=1);
 
 namespace Rvvup\Payments\Service;
 
-use Laminas\Http\Request;
 use Magento\Framework\App\Area;
 use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Quote\Model\ResourceModel\Quote\Payment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\App\Emulation;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Rvvup\Api\Model\ApplicationSource;
+use Rvvup\Api\Model\Checkout;
+use Rvvup\Api\Model\CheckoutCreateInput;
+use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
-use Rvvup\Payments\Sdk\Curl;
 
 class VirtualCheckout
 {
-    /** @var SerializerInterface */
-    private $json;
-
-    /** @var Curl */
-    private $curl;
-
-    /** @var RvvupConfigurationInterface */
-    private $config;
 
     /** @var OrderRepositoryInterface */
     private $orderRepository;
@@ -54,40 +44,37 @@ class VirtualCheckout
     /** @var UrlInterface */
     private $url;
 
+    /** @var ApiProvider */
+    private $apiProvider;
+
     /**
-     * @param RvvupConfigurationInterface $config
      * @param OrderRepositoryInterface $orderRepository
      * @param Payment $paymentResource
-     * @param SerializerInterface $json
-     * @param Curl $curl
      * @param Emulation $emulation
      * @param LoggerInterface $logger
      * @param StoreManagerInterface $storeManager
      * @param PaymentLink $paymentLinkService
      * @param UrlInterface $url
+     * @param ApiProvider $apiProvider
      */
     public function __construct(
-        RvvupConfigurationInterface $config,
         OrderRepositoryInterface $orderRepository,
         Payment                  $paymentResource,
-        SerializerInterface      $json,
-        Curl                     $curl,
         Emulation                $emulation,
         LoggerInterface          $logger,
         StoreManagerInterface    $storeManager,
         PaymentLink              $paymentLinkService,
-        UrlInterface             $url
+        UrlInterface $url,
+        ApiProvider  $apiProvider
     ) {
-        $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->paymentResource = $paymentResource;
-        $this->json = $json;
-        $this->curl = $curl;
         $this->emulation = $emulation;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
         $this->paymentLinkService = $paymentLinkService;
         $this->url = $url;
+        $this->apiProvider = $apiProvider;
     }
 
     /**
@@ -95,15 +82,20 @@ class VirtualCheckout
      * @param string $storeId
      * @param string $orderId
      * @param string $currencyCode
-     * @return array
+     * @return Checkout
+     * @throws \Exception
      */
-    public function createVirtualCheckout(string $amount, string $storeId, string $orderId, string $currencyCode): array
+    public function createVirtualCheckout(string $amount, string $storeId, string $orderId, string $currencyCode): Checkout
     {
-        $params = $this->buildRequestData($amount, $storeId, $orderId, $currencyCode);
-        $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
-        $body = $this->json->unserialize($request->body);
-        $this->processResponse($orderId, $body);
-        return $body;
+
+        $checkoutInput = $this->buildRequestData($amount, $storeId, $orderId, $currencyCode);
+        $result = $this->apiProvider->getSdk($storeId)->checkouts()->create($checkoutInput, $orderId);
+        $motoId = $result->getId();
+        $order = $this->orderRepository->get($orderId);
+        $payment = $this->paymentLinkService->getQuotePaymentByOrder($order);
+        $payment->setAdditionalInformation(Method::MOTO_ID, $motoId);
+        $this->paymentResource->save($payment);
+        return $result;
     }
 
     /**
@@ -167,6 +159,7 @@ class VirtualCheckout
      * @param OrderInterface $order
      * @return mixed
      * @throws AlreadyExistsException
+     * @throws \Exception
      */
     private function getRvvupIdByPaymentSessionId(
         string $storeId,
@@ -174,18 +167,8 @@ class VirtualCheckout
         string $paymentSessionId,
         OrderInterface $order
     ): string {
-        $url = $this->getApiUrl($storeId) . '/' . $virtualCheckoutId .'/payment-sessions/' . $paymentSessionId;
-        $headers = $this->getHeaders($storeId);
-        $request = $this->curl->request(
-            Request::METHOD_GET,
-            $url,
-            [
-                'headers' => $headers,
-                'json' => []
-            ]
-        );
-        $body = $this->json->unserialize($request->body);
-        $id = $body['id'];
+        $request = $this->apiProvider->getSdk($storeId)->paymentSessions()->get($virtualCheckoutId, $paymentSessionId);
+        $id = $request->getId();
         $payment = $order->getPayment();
         $payment->setAdditionalInformation(Method::ORDER_ID, $id);
         $this->paymentResource->save($payment);
@@ -197,58 +180,11 @@ class VirtualCheckout
      * @param string $virtualCheckoutId
      * @param string $storeId
      * @return string
+     * @throws \Exception
      */
     private function getPaymentSessionId(string $virtualCheckoutId, string $storeId): string
     {
-        $url = $this->getApiUrl($storeId) . '/' . $virtualCheckoutId;
-
-        $headers = $this->getHeaders($storeId);
-        $request = $this->curl->request(
-            Request::METHOD_GET,
-            $url,
-            [
-                'headers' => $headers,
-                'json' => []
-            ]
-        );
-        $body = $this->json->unserialize($request->body);
-        return $body['paymentSessionIds'][0];
-    }
-
-    /**
-     * @param string $orderId
-     * @param array $body
-     * @return void
-     */
-    private function processResponse(string $orderId, array $body): void
-    {
-        $motoId = $body['id'];
-        try {
-            $order = $this->orderRepository->get($orderId);
-            $payment = $this->paymentLinkService->getQuotePaymentByOrder($order);
-            $payment->setAdditionalInformation(Method::MOTO_ID, $motoId);
-            $this->paymentResource->save($payment);
-        } catch (\Exception $e) {
-            $this->logger->error(
-                'Failed to process rvvup response for virtual checkout',
-                [
-                    $orderId,
-                    $this->json->serialize($body),
-                    $e->getMessage()
-                ]
-            );
-        }
-    }
-
-    /** @todo move to rest api sdk
-     * @param string $storeId
-     * @return string
-     */
-    private function getApiUrl(string $storeId): string
-    {
-        $merchantId = $this->config->getMerchantId($storeId);
-        $baseUrl = $this->config->getRestApiUrl($storeId);
-        return "$baseUrl/$merchantId/checkouts";
+        return $this->apiProvider->getSdk($storeId)->checkouts()->get($virtualCheckoutId)->getPaymentSessionIds()[0];
     }
 
     /**
@@ -256,47 +192,18 @@ class VirtualCheckout
      * @param string $storeId
      * @param string $orderId
      * @param string $currencyCode
-     * @return array
+     * @return CheckoutCreateInput
      */
-    private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): array
+    private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): CheckoutCreateInput
     {
         $url = $this->url->getBaseUrl(['_scope' => $storeId, '_type' => UrlInterface::URL_TYPE_WEB])
             . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
 
-        $postData = [
-            'amount' => ['amount' => $amount, 'currency' => $currencyCode],
-            'reference' => $orderId,
-            'source' => 'MAGENTO_MOTO',
-            'successUrl' => $url,
-            'pendingUrl' => $url
-        ];
-
-        $headers = $this->getHeaders($storeId, $orderId);
-
-        return [
-            'headers' => $headers,
-            'json' => $postData
-        ];
-    }
-
-    /**
-     * @param string $storeId
-     * @param string|null $orderId
-     * @return string[]
-     */
-    private function getHeaders(string $storeId, ?string $orderId = null): array
-    {
-        $token = $this->config->getBearerToken($storeId);
-        $result =  [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Authorization: Bearer ' . $token
-        ];
-
-        if ($orderId) {
-            $result[] = 'Idempotency-Key: ' . $orderId;
-        }
-
-        return $result;
+        return (new CheckoutCreateInput())
+            ->setSource(ApplicationSource::MAGENTO_MOTO)
+            ->setAmount((new MoneyInput())->setAmount($amount)->setCurrency($currencyCode))
+            ->setReference($orderId)
+            ->setSuccessUrl($url)
+            ->setPendingUrl($url);
     }
 }
