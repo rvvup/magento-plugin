@@ -226,7 +226,7 @@
             <argument name="commands" xsi:type="array">
                 <item name="refund" xsi:type="string">Rvvup\Payments\Gateway\Command\Refund</item>
                 <item name="void" xsi:type="string">Rvvup\Payments\Gateway\Command\VoidPayment</item>
-                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\Cancel</item>
+                <item name="cancel" xsi:type="string">Rvvup\Payments\Gateway\Command\PaymentLink\Cancel</item>
                 <item name="capture" xsi:type="string">Rvvup\Payments\Gateway\Command\Capture</item>
             </argument>
         </arguments>
@@ -514,7 +514,7 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Gateway\Command\Cancel">
+    <type name="Rvvup\Payments\Gateway\Command\PaymentLink\Cancel">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>

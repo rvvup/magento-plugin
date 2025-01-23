@@ -1,23 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace Rvvup\Payments\Gateway\Command;
+namespace Rvvup\Payments\Gateway\Command\PaymentLink;
 
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Config as OrderConfig;
-use Magento\Sales\Model\Order\InvoiceRepository;
-use Magento\Sales\Model\Order\Payment;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\RvvupConfigProvider;
-use Rvvup\Payments\Model\SdkProxy;
-use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\PaymentLink;
 
 class Cancel implements CommandInterface
