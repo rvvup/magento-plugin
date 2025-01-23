@@ -27,5 +27,8 @@ bin/magento config:set system/smtp/disable 0
 bin/magento config:set system/smtp/transport smtp
 bin/magento config:set system/smtp/host $MAGENTO_SMTP_HOST
 bin/magento config:set system/smtp/port $MAGENTO_SMTP_PORT
+echo "Registering Test Users"
+bin/magento admin:user:create --admin-user=e2e-tests-refunds --admin-password=password1 --admin-email=e2etestsrefund@rvvup.com --admin-firstname=E2E --admin-lastname=Refunds
+bin/magento admin:user:create --admin-user=e2e-tests-partial-refunds --admin-password=password1 --admin-email=e2etestspartialrefunds@rvvup.com --admin-firstname=E2E --admin-lastname=PartialRefunds
 
 bin/magento sampledata:deploy
