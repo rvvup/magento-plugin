@@ -679,7 +679,7 @@ define([
                             // Authorize express PayPal payment if manual capture is enabled. The authorize call is made
                             // here instead of the onApprove callback as the "Place Order" updates the PayPal order details
                             // for an express payment, but you can't update a PayPal order after it has been authorized.
-                            if (orderPaymentAction.getConfirmAuthorizationUrl() === null) {
+                            if (code !== 'rvvup_PAYPAL' || orderPaymentAction.getConfirmAuthorizationUrl() === null) {
                                 resolve();
                                 return;
                             }
