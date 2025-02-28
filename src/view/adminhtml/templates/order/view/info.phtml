@@ -59,7 +59,7 @@ use Rvvup\Payments\Block\Order\View\Info;
     $amount = $order->getGrandTotal();
     $storeId = $order->getStoreId();
     $currencyCode = $order->getOrderCurrencyCode();
-    $orderId = $order->getIncrementId();
+    $orderId = $order->getId();
     ?>
     <?= /* @noEscape */
     $secureRenderer->renderTag(
