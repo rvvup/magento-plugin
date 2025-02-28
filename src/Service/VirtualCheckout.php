@@ -99,10 +99,11 @@ class VirtualCheckout
      */
     public function createVirtualCheckout(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
-        $params = $this->buildRequestData($amount, $storeId, $orderId, $currencyCode);
+        $order = $this->orderRepository->get($orderId);
+        $params = $this->buildRequestData($amount, $storeId, $order->getIncrementId(), $currencyCode);
         $request = $this->curl->request(Request::METHOD_POST, $this->getApiUrl($storeId), $params);
         $body = $this->json->unserialize($request->body);
-        $this->processResponse($orderId, $body);
+        $this->processResponse($order, $body);
         return $body;
     }
 
@@ -216,15 +217,14 @@ class VirtualCheckout
     }
 
     /**
-     * @param string $orderId
+     * @param OrderInterface $order
      * @param array $body
      * @return void
      */
-    private function processResponse(string $orderId, array $body): void
+    private function processResponse(OrderInterface $order, array $body): void
     {
         $motoId = $body['id'];
         try {
-            $order = $this->orderRepository->get($orderId);
             $payment = $this->paymentLinkService->getQuotePaymentByOrder($order);
             $payment->setAdditionalInformation(Method::MOTO_ID, $motoId);
             $this->paymentResource->save($payment);
@@ -232,7 +232,7 @@ class VirtualCheckout
             $this->logger->error(
                 'Failed to process rvvup response for virtual checkout',
                 [
-                    $orderId,
+                    $order->getId(),
                     $this->json->serialize($body),
                     $e->getMessage()
                 ]
