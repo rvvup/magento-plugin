@@ -267,7 +267,7 @@ class VirtualCheckout
         $postData = [
             'amount' => ['amount' => $amount, 'currency' => $currencyCode],
             'reference' => $orderId,
-            'source' => 'MAGENTO_MOTO',
+            'source' => $applicationSource,
             'successUrl' => $url,
             'pendingUrl' => $url
         ];
