@@ -335,6 +335,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param string|null $storeId
      * @param string|boolean $paymentLinkId
      * @param string|boolean $checkoutId
+     * @param string|boolean $applicationSource
      * @param Quote|null $quote
      * @param OrderInterface|null $order
      * @return ResultInterface

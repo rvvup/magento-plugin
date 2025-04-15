@@ -92,7 +92,6 @@ class IndexTest extends TestCase
         $storeMock = $this->createMock(StoreInterface::class);
         $this->storeManager->method('getStore')->willReturn($storeMock);
         $storeMock->method('getId')->willReturn(1);
-
     }
 
     public function testReturnsInvalidResponseWhenMerchantIdIsMissing()
@@ -154,6 +153,7 @@ class IndexTest extends TestCase
             'store_id' => 1,
             'payment_link_id' => false,
             'checkout_id' => false,
+            'application_source' => false,
             'origin' => 'webhook'
         ]]);
 
@@ -342,6 +342,5 @@ class IndexTest extends TestCase
                 ->method('setData')
                 ->with($data);
         }
-
     }
 }
