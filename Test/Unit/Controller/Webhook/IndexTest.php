@@ -153,7 +153,7 @@ class IndexTest extends TestCase
             'store_id' => 1,
             'payment_link_id' => false,
             'checkout_id' => false,
-            'application_source' => false,
+            'application_source' => 'MAGENTO_CHECKOUT',
             'origin' => 'webhook'
         ]]);
 
@@ -257,7 +257,7 @@ class IndexTest extends TestCase
                 'store_id' => 5,
                 'payment_link_id' => 'PL01J7BVM004DDWDFM73BGXTT1J4',
                 'checkout_id' => false,
-                'application_source' => false,
+                'application_source' => 'MAGENTO_CHECKOUT',
                 'origin' => 'webhook',
                 'magento_order_id' => 123
             ]);

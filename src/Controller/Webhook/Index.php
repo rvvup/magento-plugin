@@ -122,7 +122,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $refundId = $this->request->getParam('refund_id', false);
         $paymentLinkId = $this->request->getParam('payment_link_id', false);
         $checkoutId = $this->request->getParam('checkout_id', false);
-        $applicationSource = $this->request->getParam('application_source', false);
+        $applicationSource = $this->request->getParam('application_source', false) ?? "MAGENTO_CHECKOUT";
         $storeId = null;
 
         try {
