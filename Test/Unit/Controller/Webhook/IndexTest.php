@@ -92,7 +92,6 @@ class IndexTest extends TestCase
         $storeMock = $this->createMock(StoreInterface::class);
         $this->storeManager->method('getStore')->willReturn($storeMock);
         $storeMock->method('getId')->willReturn(1);
-
     }
 
     public function testReturnsInvalidResponseWhenMerchantIdIsMissing()
@@ -154,6 +153,7 @@ class IndexTest extends TestCase
             'store_id' => 1,
             'payment_link_id' => false,
             'checkout_id' => false,
+            'application_source' => 'MAGENTO_CHECKOUT',
             'origin' => 'webhook'
         ]]);
 
@@ -192,6 +192,7 @@ class IndexTest extends TestCase
             ['merchant_id', false, 'ME01J7BNM88DQ8Z0FPAXTNQE2X0W'],
             ['order_id', false, 'OR01J7BV2CNG46PQY5CK6M1X9MJ2'],
             ['payment_id', false, 'PA01J7BV2D778CS3Z8XQSKGVRYYZ'],
+            ['application_source', false, 'MAGENTO_CHECKOUT'],
             ['event_type', false, $eventType],
         ]);
         $this->config->method('getMerchantId')->with(5)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
@@ -212,6 +213,7 @@ class IndexTest extends TestCase
                 'store_id' => 5,
                 'payment_link_id' => false,
                 'checkout_id' => false,
+                'application_source' => 'MAGENTO_CHECKOUT',
                 'origin' => 'webhook',
                 'quote_id' => 123
 
@@ -255,6 +257,7 @@ class IndexTest extends TestCase
                 'store_id' => 5,
                 'payment_link_id' => 'PL01J7BVM004DDWDFM73BGXTT1J4',
                 'checkout_id' => false,
+                'application_source' => 'MAGENTO_CHECKOUT',
                 'origin' => 'webhook',
                 'magento_order_id' => 123
             ]);
@@ -274,6 +277,7 @@ class IndexTest extends TestCase
             ['order_id', false, 'OR01J7BV2CNG46PQY5CK6M1X9MJ2'],
             ['payment_id', false, 'PA01J7BV2D778CS3Z8XQSKGVRYYZ'],
             ['checkout_id', false, 'CO01J7BVM004DDWDFM73BGXTT1J4'],
+            ['application_source', false, 'MAGENTO_MOTO'],
             ['event_type', false, $eventType],
         ]);
         $this->config->method('getMerchantId')->with(5)->willReturn('ME01J7BNM88DQ8Z0FPAXTNQE2X0W');
@@ -297,6 +301,7 @@ class IndexTest extends TestCase
                 'store_id' => 5,
                 'payment_link_id' => false,
                 'checkout_id' => 'CO01J7BVM004DDWDFM73BGXTT1J4',
+                'application_source' => 'MAGENTO_MOTO',
                 'origin' => 'webhook',
                 'magento_order_id' => 123
             ]);
@@ -337,6 +342,5 @@ class IndexTest extends TestCase
                 ->method('setData')
                 ->with($data);
         }
-
     }
 }

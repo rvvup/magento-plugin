@@ -122,6 +122,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $refundId = $this->request->getParam('refund_id', false);
         $paymentLinkId = $this->request->getParam('payment_link_id', false);
         $checkoutId = $this->request->getParam('checkout_id', false);
+        $applicationSource = $this->request->getParam('application_source', false) ?? "MAGENTO_CHECKOUT";
         $storeId = null;
 
         try {
@@ -155,6 +156,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                     $storeId,
                     $paymentLinkId,
                     $checkoutId,
+                    $applicationSource,
                     $quote,
                     $order
                 );
@@ -167,6 +169,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
                     $storeId,
                     $paymentLinkId,
                     $checkoutId,
+                    $applicationSource,
                     $quote,
                     $order
                 );
@@ -332,6 +335,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param string|null $storeId
      * @param string|boolean $paymentLinkId
      * @param string|boolean $checkoutId
+     * @param string|boolean $applicationSource
      * @param Quote|null $quote
      * @param OrderInterface|null $order
      * @return ResultInterface
@@ -345,6 +349,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         ?string         $storeId,
         $paymentLinkId,
         $checkoutId,
+        $applicationSource,
         ?Quote          $quote,
         ?OrderInterface $order
     ): ResultInterface {
@@ -356,6 +361,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
             'store_id' => $storeId,
             'payment_link_id' => $paymentLinkId,
             'checkout_id' => $checkoutId,
+            'application_source' => $applicationSource,
             'origin' => 'webhook'
         ];
         if (!$rvvupOrderId) {

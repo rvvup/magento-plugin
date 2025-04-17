@@ -90,9 +90,10 @@ class In implements HttpGetActionInterface
         $quote = $this->captureService->getQuoteByRvvupId($rvvupId);
         $checkoutId = $this->request->getParam('checkout_id');
         $storeId = (string) $this->request->getParam('store_id');
+        $applicationSource = $this->request->getParam('application_source') ?? "MAGENTO_CHECKOUT";
         $origin = 'customer-flow';
 
-        if ($checkoutId && $storeId) {
+        if ($checkoutId && $storeId && $applicationSource === 'MAGENTO_MOTO') {
             $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId);
 
             if (!$rvvupId) {

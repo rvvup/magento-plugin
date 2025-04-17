@@ -260,13 +260,14 @@ class VirtualCheckout
      */
     private function buildRequestData(string $amount, string $storeId, string $orderId, string $currencyCode): array
     {
+        $applicationSource = 'MAGENTO_MOTO';
         $url = $this->url->getBaseUrl(['_scope' => $storeId, '_type' => UrlInterface::URL_TYPE_WEB])
-            . "rvvup/redirect/in?store_id=$storeId&checkout_id={{CHECKOUT_ID}}";
+            . "rvvup/redirect/in?store_id=$storeId&application_source=$applicationSource&checkout_id={{CHECKOUT_ID}}";
 
         $postData = [
             'amount' => ['amount' => $amount, 'currency' => $currencyCode],
             'reference' => $orderId,
-            'source' => 'MAGENTO_MOTO',
+            'source' => $applicationSource,
             'successUrl' => $url,
             'pendingUrl' => $url
         ];

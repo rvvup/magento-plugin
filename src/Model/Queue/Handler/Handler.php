@@ -128,6 +128,7 @@ class Handler
             $storeId = $payload['store_id'] ?? false;
             $checkoutId = $payload['checkout_id'] ?? false;
             $origin = $payload['origin'] ?? false;
+            $applicationSource = $payload['application_source'] ?? false;
 
             if (!$storeId) {
                 $this->logger->addRvvupError(
@@ -158,7 +159,7 @@ class Handler
                 return;
             }
 
-            if ($checkoutId) {
+            if ($checkoutId && (!$applicationSource || $applicationSource === 'MAGENTO_MOTO')) {
                 $order = $this->captureService->getOrderByPaymentField(Method::MOTO_ID, $checkoutId);
                 $this->processOrderIfPresent($order, $rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
                 return;
