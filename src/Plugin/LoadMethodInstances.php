@@ -44,6 +44,17 @@ class LoadMethodInstances
     }
 
     /**
+     * Invalidate cache
+     *
+     * @return void
+     */
+    public function clean()
+    {
+        $this->instances = [];
+        $this->processed = null;
+    }
+
+    /**
      * Modify results of getMethodInstance() call to add in details about Klarna payment methods
      *
      * @param Data $subject
