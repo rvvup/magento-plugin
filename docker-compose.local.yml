@@ -44,7 +44,7 @@ services:
       - elasticsearch
       - mailpit
   elasticsearch:
-    image: docker.io/bitnami/elasticsearch:7
+    image: docker.io/bitnami/elasticsearch:9
     volumes:
       - 'rvvup_magento_elasticsearch_data:/bitnami/elasticsearch/data'
   mailpit:
