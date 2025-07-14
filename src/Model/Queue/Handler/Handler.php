@@ -22,6 +22,7 @@ use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
+use Rvvup\Payments\Service\Card\CardMetaService;
 
 class Handler
 {
@@ -64,6 +65,9 @@ class Handler
     /** @var QueueContextCleaner */
     private $queueContextCleaner;
 
+    /** @var CardMetaService */
+    private $cardMetaService;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -78,6 +82,7 @@ class Handler
      * @param OrderRepositoryInterface $orderRepository
      * @param CartRepositoryInterface $cartRepository
      * @param QueueContextCleaner $queueContextCleaner
+     * @param CardMetaService $cardMetaService
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -92,7 +97,8 @@ class Handler
         Json $json,
         OrderRepositoryInterface $orderRepository,
         CartRepositoryInterface $cartRepository,
-        QueueContextCleaner $queueContextCleaner
+        QueueContextCleaner $queueContextCleaner,
+        CardMetaService $cardMetaService
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
@@ -107,6 +113,7 @@ class Handler
         $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
         $this->queueContextCleaner = $queueContextCleaner;
+        $this->cardMetaService = $cardMetaService;
     }
 
     /**
@@ -285,6 +292,7 @@ class Handler
         $payment->setAdditionalInformation(Method::ORDER_ID, $rvvupOrderId);
         $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
         $payment->setAdditionalInformation(Method::DASHBOARD_URL, $dashboardUrl);
+        $this->cardMetaService->process($rvvupData['payments'][0], $order);
         $this->paymentResource->save($payment);
         $this->cacheService->clear($rvvupOrderId, $order->getState());
         if ($order->getPayment()->getMethod() == 'rvvup_payment-link') {
