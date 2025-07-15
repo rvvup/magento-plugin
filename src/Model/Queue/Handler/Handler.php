@@ -211,6 +211,10 @@ class Handler
                 $shouldCaptureNow = $payment->getMethodInstance()->getCaptureType() !== 'MANUAL';
                 if ($shouldCaptureNow) {
                     $this->captureService->paymentCapture($rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
+                } else {
+                    $order = $this->orderRepository->get($orderId);
+                    $rvvupData = $this->paymentDataGet->execute($rvvupOrderId, $storeId);
+                    $this->cardMetaService->process($rvvupData['payments'][0], $order);
                 }
                 return;
             }
