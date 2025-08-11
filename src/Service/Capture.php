@@ -288,16 +288,16 @@ class Capture
      * @param string $rvvupPaymentId
      * @param string $origin
      * @param string $storeId
-     * @return bool
+     * @return string|null
      */
     public function paymentCapture(
         string $rvvupOrderId,
         string $rvvupPaymentId,
         string $origin,
         string $storeId
-    ): bool {
+    ): ?string {
         try {
-            $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId, $storeId);
+            return $this->sdkProxy->paymentCapture($rvvupOrderId, $rvvupPaymentId, $storeId);
         } catch (\Exception $e) {
             $this->logger->addRvvupError(
                 'Rvvup order capture failed during payment capture',
@@ -307,9 +307,8 @@ class Capture
                 null,
                 $origin
             );
-            return false;
+            return null;
         }
-        return true;
     }
 
     /**

@@ -69,14 +69,14 @@ class Capture implements CommandInterface
                 break;
             case 'SUCCEEDED':
             case 'AUTHORIZED':
-                $captureSucceeded = $this->captureService->paymentCapture(
+                $capturedStatus = $this->captureService->paymentCapture(
                     $rvvupOrderId,
                     $rvvupPaymentId,
                     'invoice',
                     $storeId
                 );
-                if (!$captureSucceeded) {
-                    throw new CommandException(__("Error when trying to capture the payment, please try again."));
+                if ($capturedStatus != 'SUCCEEDED') {
+                    throw new CommandException(__('Payment capture failed, please try again.'));
                 }
                 break;
             case 'CANCELLED':
