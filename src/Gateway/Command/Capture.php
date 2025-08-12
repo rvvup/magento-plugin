@@ -81,7 +81,9 @@ class Capture implements CommandInterface
                     throw new CommandException(__('We have started capturing your payment. The status will update 
                 automatically once the funds are confirmed.'));
                 } else {
-                    throw new CommandException(__('Payment capture failed with status: %1. please try again.', $capturedStatus));
+                    throw new CommandException(
+                        __('Payment capture failed with status: %1. please try again.', $capturedStatus)
+                    );
                 }
             case 'CANCELLED':
             case 'DECLINED':
