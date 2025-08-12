@@ -75,10 +75,14 @@ class Capture implements CommandInterface
                     'invoice',
                     $storeId
                 );
-                if ($capturedStatus != 'SUCCEEDED') {
-                    throw new CommandException(__('Payment capture failed, please try again.'));
+                if ($capturedStatus == 'SUCCEEDED') {
+                    break;
+                } elseif ($capturedStatus == 'PENDING') {
+                    throw new CommandException(__('We have started capturing your payment. The status will update 
+                automatically once the funds are confirmed.'));
+                } else {
+                    throw new CommandException(__('Payment capture failed with status: %1. please try again.', $capturedStatus));
                 }
-                break;
             case 'CANCELLED':
             case 'DECLINED':
             default:
