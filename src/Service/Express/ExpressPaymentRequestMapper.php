@@ -29,6 +29,8 @@ class ExpressPaymentRequestMapper
      */
     public function map(Quote $quote): array
     {
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
         $total = $quote->getGrandTotal();
         $result = [
             'methodOptions' => [
@@ -46,6 +48,21 @@ class ExpressPaymentRequestMapper
         // If methods are empty, need to choose a new address in the express sheet
         if (empty($result['shippingMethods'])) {
             $result['shipping'] = null;
+        } else {
+            /*
+            If the user didn't pick a shipping method, drop the shipping postcode. This forces the user to confirm their
+            shipping address in the Apple Pay sheet. Which in turn sends the appropriate events from apple to the
+            frontend, and we can keep the quotes in sync at this point.
+
+            We also can't just default to the first method ourselves since that would force a preselection on page load.
+            Also, no heavy work can run on Apple Pay button click — the browser only allows direct user actions there
+            */
+            $hasSelected = in_array(true, array_column($result['shippingMethods'], 'selected'), true);
+            if (!$hasSelected) {
+                if (isset($result['shipping']['address'])) {
+                    $result['shipping']['address']['postcode'] = null;
+                }
+            }
         }
         return $result;
     }
@@ -71,9 +88,7 @@ class ExpressPaymentRequestMapper
         }
 
         $selectedMethod = $quote->getShippingAddress()->getShippingMethod();
-        if (empty($selectedMethod)) {
-            $shippingMethods[0]['selected'] = true;
-        } else {
+        if (!empty($selectedMethod)) {
             $numShippingMethods = count($shippingMethods);
             for ($i = 0; $i < $numShippingMethods; $i++) {
                 if ($shippingMethods[$i]['id'] === $selectedMethod) {
