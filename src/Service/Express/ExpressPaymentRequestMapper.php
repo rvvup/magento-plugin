@@ -29,6 +29,8 @@ class ExpressPaymentRequestMapper
      */
     public function map(Quote $quote): array
     {
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
         $total = $quote->getGrandTotal();
         $result = [
             'methodOptions' => [
