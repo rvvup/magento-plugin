@@ -674,6 +674,10 @@ define([
                             window.location.replace(orderPaymentAction.getRedirectUrl());
                             return;
                         }
+                        if (code === 'rvvup_ZOPA_RETAIL_FINANCE' && orderPaymentAction.getRedirectUrl() !== null) {
+                            window.location.replace(orderPaymentAction.getRedirectUrl());
+                            return;
+                        }
 
                         new Promise((resolve, reject) => {
                             // Authorize express PayPal payment if manual capture is enabled. The authorize call is made
