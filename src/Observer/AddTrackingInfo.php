@@ -63,13 +63,12 @@ class AddTrackingInfo implements ObserverInterface
             ];
         }
 
-        return new ShipmentTrackingCreateInput([
-            'items' => $items,
-            'tracking_detail' => [[
+        return (new ShipmentTrackingCreateInput())
+            ->setItems($items)
+            ->setTrackingDetail([[
                 'carrierCode' => $this->track->getCarrierCode(),
                 'title' => $this->track->getTitle(),
                 'trackingNumber' => $this->track->getTrackNumber(),
-            ]],
-        ]);
+            ]]);
     }
 }
