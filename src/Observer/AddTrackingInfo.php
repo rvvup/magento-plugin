@@ -53,7 +53,7 @@ class AddTrackingInfo implements ObserverInterface
         foreach ($this->shipment->getAllItems() as $item) {
             $items[] = [
                 'name' => $item->getName(),
-                'quantity' => (int) $item->getQty(),
+                'quantity' => $item->getQty(),
                 'sku' => $item->getSku(),
             ];
         }
