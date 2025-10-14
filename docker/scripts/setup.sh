@@ -17,4 +17,5 @@ fi
 /rvvup/scripts/rebuild-magento.sh;
 /rvvup/scripts/configure-plugins.sh;
 /rvvup/scripts/fix-perms.sh;
+/rvvup/scripts/configure-dataset.sh;
 /opt/bitnami/scripts/magento/run.sh;

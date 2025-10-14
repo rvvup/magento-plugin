@@ -27,6 +27,14 @@
                 </arguments>
             </block>
         </referenceContainer>
+        <referenceContainer name="product.info.main">
+            <block class="Magento\Catalog\Block\Product\View"
+                   name="product.page.info.rvvup.widgets"
+                   template="Rvvup_Payments::product/view/rvvup-pdp-widgets.phtml"
+                   ifconfig="payment/rvvup/active"
+                   before="product.info">
+            </block>
+        </referenceContainer>
         <!-- After add to cart -->
         <referenceBlock name="product.info.addtocart">
             <block class="Magento\Catalog\Block\Product\View"
