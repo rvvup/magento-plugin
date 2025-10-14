@@ -39,7 +39,7 @@ class AddTrackingInfo implements ObserverInterface
                 ->getSdk($order->getStoreId())
                 ->shipmentTrackings()
                 ->create(
-                    paymentSessionId: $payment->getAdditionalInformation(Method::ORDER_ID).'s',
+                    paymentSessionId: $payment->getAdditionalInformation(Method::ORDER_ID),
                     input: $this->getShipmentTrackingCreateInput()
                 );
         } catch (ApiException $e) {
