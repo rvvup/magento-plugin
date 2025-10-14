@@ -1,6 +1,6 @@
 services:
   mariadb:
-    image: docker.io/bitnami/mariadb:10.4
+    image: docker.io/bitnamilegacy/mariadb:10.4
     platform: linux/amd64
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
@@ -44,7 +44,7 @@ services:
       - elasticsearch
       - mailpit
   elasticsearch:
-    image: docker.io/bitnami/elasticsearch:7
+    image: docker.io/bitnamilegacy/elasticsearch:7
     volumes:
       - 'rvvup_magento_elasticsearch_data:/bitnami/elasticsearch/data'
   mailpit:
