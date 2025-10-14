@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Rvvup\Api\Model\ShipmentTrackingCreateInput;
 use Rvvup\ApiException;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Service\ApiProvider;
 
 class AddTrackingInfo implements ObserverInterface
@@ -33,6 +34,10 @@ class AddTrackingInfo implements ObserverInterface
         $this->shipment = $this->track->getShipment();
         $order = $this->shipment->getOrder();
         $payment = $order->getPayment();
+
+        if (strpos($payment->getMethod(), RvvupConfigProvider::CODE) !== 0) {
+            return; // Silent return if the payment method is not Rvvup - no need to throw exceptions
+        }
 
         try {
             $this->apiProvider
