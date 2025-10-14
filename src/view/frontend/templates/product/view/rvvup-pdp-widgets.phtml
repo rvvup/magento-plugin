@@ -1,0 +1,26 @@
+<?php
+/**
+ * @var \Magento\Catalog\Block\Product\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+/** Magento 2.3.5 backward compatibility fix */
+if (!isset($escaper)) {
+    $escaper = $block;
+}
+
+$initialPrice = number_format($block->getProduct()->getFinalPrice(), 2, '.', '');
+$currencyCode = $block->getProduct()->getStore()->getCurrentCurrencyCode();
+?>
+<div id="rvvup-zrf-widget-container"></div>
+<script type="text/x-magento-init">
+    {
+        "#rvvup-zrf-widget-container": {
+            "Rvvup_Payments/js/pdp-widgets": {
+                "containerId": "rvvup-zrf-widget-container",
+                "initialPrice": "<?= $escaper->escapeHtmlAttr($initialPrice); ?>",
+                "currency": "<?= $escaper->escapeHtmlAttr($currencyCode); ?>",
+                "widgetName": "ZOPA_RETAIL_FINANCE"
+            }
+        }
+    }
+</script>

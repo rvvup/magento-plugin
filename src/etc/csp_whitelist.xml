@@ -34,6 +34,8 @@
                 <value id="rvvup-cardinalcommerce-script" type="host">*.cardinalcommerce.com</value>
                 <value id="rvvup-mastercard-script" type="host">*.mastercard.com</value>
                 <value id="rvvup-applepay-script" type="host">applepay.cdn-apple.com</value>
+                <value id="rvvup-zrf-widgts-sandbox-script" type="host">widgets.dividebuysandbox.co.uk</value>
+                <value id="rvvup-zrf-widgts-script" type="host">widgets.dividebuy.co.uk</value>
             </values>
         </policy>
         <policy id="style-src">
@@ -41,6 +43,8 @@
                 <value id="rvvup-dev-sdk-style" type="host">checkout.dev.rvvuptech.com</value>
                 <value id="rvvup-sdk-style" type="host">checkout.rvvup.com</value>
                 <value id="rvvup-googleapis-style" type="host">fonts.googleapis.com</value>
+                <value id="rvvup-zrf-style" type="host">widgets.dividebuy.co.uk</value>
+                <value id="rvvup-zrf-sandbox-style" type="host">widgets.dividebuysandbox.co.uk</value>
             </values>
         </policy>
         <policy id="img-src">
@@ -55,6 +59,8 @@
                 <value id="rvvup-visa-img" type="host">*.vims.visa.com</value>
                 <value id="rvvup-secure-visa-img" type="host">*.secure.checkout.visa.com</value>
                 <value id="rvvup-mastercard-img" type="host">*.mastercard.com</value>
+                <value id="rvvup-zrf-img" type="host">widgets.dividebuy.co.uk</value>
+                <value id="rvvup-zrf-sandbox-img" type="host">widgets.dividebuysandbox.co.uk</value>
             </values>
         </policy>
         <policy id="child-src">
@@ -82,6 +88,8 @@
                 <value id="rvvup-apple-connect" type="host">apple.com</value>
                 <value id="rvvup-datadog-connect" type="host">browser-intake-datadoghq.com</value>
                 <value id="rvvup-datadog-eu-connect" type="host">browser-intake-datadoghq.eu</value>
+                <value id="rvvup-zrf-sandbox-connect" type="host">api.dividebuysandbox.co.uk</value>
+                <value id="rvvup-zrf-connect" type="host">api.dividebuy.co.uk</value>
             </values>
         </policy>
         <policy id="form-action">

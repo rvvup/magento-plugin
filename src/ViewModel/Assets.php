@@ -83,7 +83,7 @@ class Assets implements ArgumentInterface
     /**
      * @var bool|null
      */
-    private $shouldLoadCoreSdk = null;
+    private $shouldCreateCheckout = null;
 
     /**
      * @param SerializerInterface $serializer
@@ -162,19 +162,20 @@ class Assets implements ArgumentInterface
     }
 
     /**
+     * Should we create a new checkout object, this is only currently needed for any flows that support the JS SDK flow.
      * @return bool
      */
-    public function shouldLoadCoreSdk(): bool
+    public function shouldCreateCheckout(): bool
     {
-        if ($this->shouldLoadCoreSdk === null) {
+        if ($this->shouldCreateCheckout === null) {
             $applePayFlow = $this->getPaymentMethodsSettings()["rvvup_apple_pay"]["applePayFlow"] ?? 'HOSTED';
 
             $applePayExpressCheckoutEnabled =
                 $this->getPaymentMethodsSettings()["rvvup_apple_pay"]["checkout"]["express"]["enabled"] ?? false;
 
-            $this->shouldLoadCoreSdk = ($applePayFlow == 'INLINE') || $applePayExpressCheckoutEnabled;
+            $this->shouldCreateCheckout = ($applePayFlow == 'INLINE') || $applePayExpressCheckoutEnabled;
         }
-        return $this->shouldLoadCoreSdk;
+        return $this->shouldCreateCheckout;
     }
 
     /**
@@ -194,7 +195,7 @@ class Assets implements ArgumentInterface
             $rvvupParameters['settings'][str_replace(Method::PAYMENT_TITLE_PREFIX, '', $key)] = $methodSettings;
         }
 
-        if ($this->shouldLoadCoreSdk()) {
+        if ($this->shouldCreateCheckout()) {
             try {
 
                 $storeId = (string)$this->getStore()->getId();
