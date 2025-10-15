@@ -26,7 +26,9 @@ define([
             if (this.initialPrice === null) {
                 return this;
             }
-            if(window)
+            if (rvvup_parameters.settings.zopa_retail_finance.product.widget.enabled !== true) {
+                return this;
+            }
             this.render();
 
         },
