@@ -8,6 +8,8 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Psr\Log\LoggerInterface;
 use Rvvup\Api\Model\ShipmentTrackingCreateInput;
+use Rvvup\Api\Model\ShipmentTrackingDetailInput;
+use Rvvup\Api\Model\ShipmentTrackingItemInput;
 use Rvvup\ApiException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\RvvupConfigProvider;
@@ -56,19 +58,19 @@ class AddTrackingInfo implements ObserverInterface
     {
         $items = [];
         foreach ($this->shipment->getAllItems() as $item) {
-            $items[] = [
-                'name' => $item->getName(),
-                'quantity' => $item->getQty(),
-                'sku' => $item->getSku(),
-            ];
+            $items[] = (new ShipmentTrackingItemInput())
+                ->setName($item->getName())
+                ->setQuantity($item->getQty())
+                ->setSku($item->getSku());
         }
 
         return (new ShipmentTrackingCreateInput())
             ->setItems($items)
-            ->setTrackingDetail([[
-                'carrierCode' => $this->track->getCarrierCode(),
-                'title' => $this->track->getTitle(),
-                'trackingNumber' => $this->track->getTrackNumber(),
-            ]]);
+            ->setTrackingDetail([
+                (new ShipmentTrackingDetailInput())
+                    ->setCarrierCode($this->track->getCarrierCode())
+                    ->setTitle($this->track->getTitle())
+                    ->setTrackingNumber($this->track->getTrackNumber()),
+            ]);
     }
 }
