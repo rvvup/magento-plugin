@@ -45,13 +45,18 @@ class AddTrackingInfo implements ObserverInterface
         if (strpos($payment->getMethod(), RvvupConfigProvider::CODE) !== 0) {
             return; // Silent return if the payment method is not Rvvup - no need to throw exceptions
         }
+        $rvvupOrderId = $payment->getAdditionalInformation(Method::ORDER_ID);
+        if (!$rvvupOrderId) {
+            $this->logger->error('Rvvup AddTrackingInfo: No Rvvup Order ID found in payment additional information.');
+            return;
+        }
 
         try {
             $this->apiProvider
                 ->getSdk($order->getStoreId())
                 ->shipmentTrackings()
                 ->create(
-                    $payment->getAdditionalInformation(Method::ORDER_ID),
+                    $rvvupOrderId,
                     $this->getShipmentTrackingCreateInput($observer->getEvent()->getTrack())
                 );
         } catch (ApiException $e) {
