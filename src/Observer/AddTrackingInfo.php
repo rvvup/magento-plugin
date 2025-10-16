@@ -12,15 +12,21 @@ use Rvvup\Api\Model\ShipmentTrackingDetailInput;
 use Rvvup\Api\Model\ShipmentTrackingItemInput;
 use Rvvup\ApiException;
 use Rvvup\Payments\Gateway\Method;
+use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Service\ApiProvider;
 
 class AddTrackingInfo implements ObserverInterface
 {
-    private $track;
+    /** @var LoggerInterface|Logger $logger */
+    private $logger;
+    /** @var ApiProvider */
+    private $apiProvider;
 
-    private $shipment;
-
+    /**
+     * @param LoggerInterface|Logger $logger
+     * @param ApiProvider $apiProvider
+     */
     public function __construct(
         private LoggerInterface $logger,
         private ApiProvider $apiProvider,
@@ -32,9 +38,8 @@ class AddTrackingInfo implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $this->track = $observer->getEvent()->getTrack();
-        $this->shipment = $this->track->getShipment();
-        $order = $this->shipment->getOrder();
+        $track = $observer->getEvent()->getTrack();
+        $order = $track->getShipment()->getOrder();
         $payment = $order->getPayment();
 
         if (strpos($payment->getMethod(), RvvupConfigProvider::CODE) !== 0) {
@@ -46,18 +51,18 @@ class AddTrackingInfo implements ObserverInterface
                 ->getSdk($order->getStoreId())
                 ->shipmentTrackings()
                 ->create(
-                    paymentSessionId: $payment->getAdditionalInformation(Method::ORDER_ID),
-                    input: $this->getShipmentTrackingCreateInput()
+                    $payment->getAdditionalInformation(Method::ORDER_ID),
+                    $this->getShipmentTrackingCreateInput($observer->getEvent()->getTrack())
                 );
         } catch (ApiException $e) {
             $this->logger->error('Rvvup AddTrackingInfo API error: ' . $e->getMessage());
         }
     }
 
-    private function getShipmentTrackingCreateInput(): ShipmentTrackingCreateInput
+    private function getShipmentTrackingCreateInput($track): ShipmentTrackingCreateInput
     {
         $items = [];
-        foreach ($this->shipment->getAllItems() as $item) {
+        foreach ($track->getShipment()->getAllItems() as $item) {
             $items[] = (new ShipmentTrackingItemInput())
                 ->setName($item->getName())
                 ->setQuantity($item->getQty())
@@ -68,9 +73,9 @@ class AddTrackingInfo implements ObserverInterface
             ->setItems($items)
             ->setTrackingDetail([
                 (new ShipmentTrackingDetailInput())
-                    ->setCarrierCode($this->track->getCarrierCode())
-                    ->setTitle($this->track->getTitle())
-                    ->setTrackingNumber($this->track->getTrackNumber()),
+                    ->setCarrierCode($track->getCarrierCode())
+                    ->setTitle($track->getTitle())
+                    ->setTrackingNumber($track->getTrackNumber()),
             ]);
     }
 }
