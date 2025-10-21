@@ -20,9 +20,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
-use Rvvup\Payments\Model\Config\RvvupConfiguration;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
-use Rvvup\Payments\Service\Capture;
 
 class OrderDataBuilder
 {
@@ -50,9 +48,6 @@ class OrderDataBuilder
     /** @var QuoteValidator */
     private $quoteValidator;
 
-    /** @var Capture */
-    private $captureService;
-
     /**
      * @param AddressRepositoryInterface $customerAddressRepository
      * @param UrlInterface $urlBuilder
@@ -62,7 +57,6 @@ class OrderDataBuilder
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param QuoteValidator $quoteValidator
      * @param Payment $paymentResource
-     * @param Capture $captureService
      */
     public function __construct(
         AddressRepositoryInterface $customerAddressRepository,
@@ -72,8 +66,7 @@ class OrderDataBuilder
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         QuoteValidator $quoteValidator,
-        Payment $paymentResource,
-        Capture $captureService
+        Payment $paymentResource
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
@@ -83,7 +76,6 @@ class OrderDataBuilder
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->quoteValidator = $quoteValidator;
         $this->paymentResource = $paymentResource;
-        $this->captureService = $captureService;
     }
 
     /**
