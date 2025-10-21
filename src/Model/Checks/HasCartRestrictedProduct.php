@@ -56,9 +56,8 @@ class HasCartRestrictedProduct implements SpecificationInterface
      */
     public function isApplicable(MethodInterface $paymentMethod, Quote $quote)
     {
-        // We only check rvvup clearpay for now.
-        // This can be expanded
-        if ($paymentMethod->getCode() !== 'rvvup_CLEARPAY') {
+        if ($paymentMethod->getCode() !== 'rvvup_CLEARPAY' &&
+            $paymentMethod->getCode() !== 'rvvup_ZOPA_RETAIL_FINANCE') {
             return true;
         }
 
