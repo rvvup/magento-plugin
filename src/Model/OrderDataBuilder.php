@@ -21,6 +21,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Rvvup\Payments\Exception\QuoteValidationException;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Config\RvvupConfigurationInterface;
+use Rvvup\Payments\Service\TaxRateCalculator;
 
 class OrderDataBuilder
 {
@@ -48,6 +49,9 @@ class OrderDataBuilder
     /** @var QuoteValidator */
     private $quoteValidator;
 
+    /** @var TaxRateCalculator */
+    private $taxRateCalculator;
+
     /**
      * @param AddressRepositoryInterface $customerAddressRepository
      * @param UrlInterface $urlBuilder
@@ -57,6 +61,7 @@ class OrderDataBuilder
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param QuoteValidator $quoteValidator
      * @param Payment $paymentResource
+     * @param TaxRateCalculator $taxRateCalculator
      */
     public function __construct(
         AddressRepositoryInterface $customerAddressRepository,
@@ -66,7 +71,8 @@ class OrderDataBuilder
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         QuoteValidator $quoteValidator,
-        Payment $paymentResource
+        Payment $paymentResource,
+        TaxRateCalculator $taxRateCalculator
     ) {
         $this->customerAddressRepository = $customerAddressRepository;
         $this->urlBuilder = $urlBuilder;
@@ -76,6 +82,7 @@ class OrderDataBuilder
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->quoteValidator = $quoteValidator;
         $this->paymentResource = $paymentResource;
+        $this->taxRateCalculator = $taxRateCalculator;
     }
 
     /**
@@ -262,6 +269,10 @@ class OrderDataBuilder
             $product = $item->getProduct();
 
             if ($product !== null) {
+                $taxRate = $this->taxRateCalculator->getItemTaxRate($quote, $product);
+                if ($taxRate !== null) {
+                    $itemData['taxRate'] = $taxRate;
+                }
                 $itemData['restriction'] = $product->getData('rvvup_restricted') ? 'RESTRICTED' : 'ALLOWED';
             }
 

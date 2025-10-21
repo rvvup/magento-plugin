@@ -41,22 +41,28 @@ class PaymentSessionService
     /** @var UrlFactory */
     protected $urlFactory;
 
+    /** @var TaxRateCalculator */
+    private $taxRateCalculator;
+
     /**
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
      * @param ApiProvider $apiProvider
      * @param UrlFactory $urlFactory
+     * @param TaxRateCalculator $taxRateCalculator
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
         ApiProvider $apiProvider,
-        UrlFactory $urlFactory
+        UrlFactory $urlFactory,
+        TaxRateCalculator $taxRateCalculator
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
         $this->apiProvider = $apiProvider;
         $this->urlFactory = $urlFactory;
+        $this->taxRateCalculator = $taxRateCalculator;
     }
 
     /**
@@ -124,7 +130,6 @@ class PaymentSessionService
         foreach ($items as $item) {
             $quantity = number_format($item->getQty(), 0, '.', '');
             $tax = $item->getPriceInclTax() - $item->getPrice();
-
             $itemData = new ItemInput();
             $itemData
                 ->setSku($item->getSku())
@@ -140,6 +145,11 @@ class PaymentSessionService
             $product = $item->getProduct();
 
             if ($product !== null) {
+                $taxRate = $this->taxRateCalculator->getItemTaxRate($quote, $product);
+                if ($taxRate !== null) {
+                    $itemData->setTaxRate($taxRate);
+                }
+
                 $itemData->setRestriction(
                     $product->getData('rvvup_restricted') ? ItemRestriction::RESTRICTED : ItemRestriction::ALLOWED
                 );
