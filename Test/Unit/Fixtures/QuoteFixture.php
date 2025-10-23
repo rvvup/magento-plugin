@@ -106,7 +106,7 @@ class QuoteFixture
     }
 
     /**
-     * Create a basic Quote mock with common default behaviors (legacy method for backward compatibility)
+     * Create a basic Quote mock with common default behaviors
      *
      * @param TestCase $testCase
      * @return Quote|MockObject
