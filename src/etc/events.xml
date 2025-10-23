@@ -9,6 +9,10 @@
         <observer name="Rvvup_Payments::cancelPaymentLinks" instance="Rvvup\Payments\Observer\Cancel" />
     </event>
 
+    <event name="sales_order_shipment_track_save_after">
+        <observer name="Rvvup_Payments::submitTracking" instance="Rvvup\Payments\Observer\AddTrackingInfo" />
+    </event>
+
     <event name="rvvup_payments_process_order_cancel_after">
         <observer name="Rvvup_Payments::Model\ProcessOrder\Cancel\AddOrderHistoryCommentObserver"
                   instance="Rvvup\Payments\Observer\Model\ProcessOrder\AddOrderHistoryCommentObserver"

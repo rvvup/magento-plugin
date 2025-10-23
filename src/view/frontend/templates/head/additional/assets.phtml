@@ -18,20 +18,18 @@ if ($assetsViewModel === null) {
     return;
 }
 ?>
-<?php if ($assetsViewModel->shouldLoadCoreSdk()) { ?>
-    <script id="rvvup-core-sdk" src="<?= $escaper->escapeUrl($assetsViewModel->getCoreSdkUrl()); ?>"></script>
+<script id="rvvup-core-sdk" src="<?= $escaper->escapeUrl($assetsViewModel->getCoreSdkUrl()); ?>"></script>
 
-    <?= /* @noEscape */
-    $secureRenderer->renderTag(
-        'script',
-        ['type' => 'text/javascript'],
-        "if(window.Rvvup){
-        window.rvvup_sdk = window.Rvvup({publishableKey: '" . $assetsViewModel->getPublishableKey() . "'});
-    }",
-        false
-    );
-    ?>
-<?php } ?>
+<?= /* @noEscape */
+$secureRenderer->renderTag(
+    'script',
+    ['type' => 'text/javascript'],
+    "if(window.Rvvup){
+    window.rvvup_sdk = window.Rvvup({publishableKey: '" . $assetsViewModel->getPublishableKey() . "'});
+}",
+    false
+);
+?>
 <?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets() as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
         <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable?>

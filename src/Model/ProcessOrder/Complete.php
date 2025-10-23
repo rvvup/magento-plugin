@@ -18,6 +18,7 @@ use Rvvup\Payments\Api\Data\ProcessOrderResultInterface;
 use Rvvup\Payments\Exception\PaymentValidationException;
 use Magento\Framework\Event\ManagerInterface as EventManager;
 use Rvvup\Payments\Api\Data\ProcessOrderResultInterfaceFactory;
+use Rvvup\Payments\Service\OrderDetail\OrderDetailService;
 
 class Complete implements ProcessorInterface
 {
@@ -51,6 +52,9 @@ class Complete implements ProcessorInterface
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
+    /** @var OrderDetailService */
+    private $orderDetailService;
+
     /**
      * @param EventManager $eventManager
      * @param InvoiceOrderInterface $invoiceOrder
@@ -58,6 +62,7 @@ class Complete implements ProcessorInterface
      * @param OrderConfig $config
      * @param OrderRepositoryInterface $orderRepository
      * @param LoggerInterface $logger
+     * @param OrderDetailService $orderDetailService
      */
     public function __construct(
         EventManager $eventManager,
@@ -65,7 +70,8 @@ class Complete implements ProcessorInterface
         ProcessOrderResultInterfaceFactory $processOrderResultFactory,
         OrderConfig $config,
         OrderRepositoryInterface $orderRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderDetailService $orderDetailService
     ) {
         $this->eventManager = $eventManager;
         $this->invoiceOrder = $invoiceOrder;
@@ -73,6 +79,7 @@ class Complete implements ProcessorInterface
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->logger = $logger;
+        $this->orderDetailService = $orderDetailService;
     }
 
     /**
@@ -111,6 +118,7 @@ class Complete implements ProcessorInterface
 
             /** Manually set to processing */
             $order = $this->orderRepository->get($order->getEntityId());
+            $order = $this->orderDetailService->syncOrderWithRvvupData($order, $rvvupData);
             $order->setState(Order::STATE_PROCESSING);
             $order->setStatus($this->config->getStateDefaultStatus($order->getState()));
             $this->orderRepository->save($order);
