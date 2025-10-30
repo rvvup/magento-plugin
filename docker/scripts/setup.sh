@@ -16,5 +16,6 @@ if [ "$RVVUP_PLUGIN_VERSION" == "local" ]; then
 fi
 /rvvup/scripts/rebuild-magento.sh;
 /rvvup/scripts/configure-plugins.sh;
+/rvvup/scripts/configure-dataset.sh;
 /rvvup/scripts/fix-perms.sh;
 /opt/bitnami/scripts/magento/run.sh;
