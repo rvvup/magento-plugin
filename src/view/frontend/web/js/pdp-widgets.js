@@ -26,9 +26,6 @@ define([
             if (this.initialPrice === null) {
                 return this;
             }
-            if (rvvup_parameters.settings.zopa_retail_finance.product.widget.enabled !== true) {
-                return this;
-            }
             this.render();
 
         },
@@ -50,6 +47,9 @@ define([
                 el.style.display = "block";
             }
             window.rvvup_sdk.createWidget($self.widgetName, {
+                settings: {
+                    context: "product"
+                },
                 total: {
                     currency: $self.currency,
                     amount: $self.initialPrice.toString()
