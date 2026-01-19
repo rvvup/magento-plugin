@@ -83,7 +83,7 @@ class HasCartRestrictedProduct implements SpecificationInterface
 
                 // If empty, log it and return restricted. Any errors should already be logged.
                 if (empty($cartItemSkus)) {
-                    return true;
+                    continue;
                 }
 
                 foreach ($cartItemSkus as $cartItemProductsSku) {
@@ -94,19 +94,9 @@ class HasCartRestrictedProduct implements SpecificationInterface
                     }
                 }
             } catch (NoSuchEntityException $ex) {
-                // Fail-safe, if no product is found, should not happen for new orders.
-                $this->logger->error(
-                    'Error thrown when checking if a Product is restricted on Rvvup with message: ' . $ex->getMessage(),
-                    [
-                        'cart_id' => $quote->getId(),
-                        'sku' => $item->getSku(),
-                        'product_type' => $item->getProductType(),
-                        'cart_item_skus' => $cartItemSkus ?? null,
-                        'store_id' => $quote->getStoreId()
-                    ],
-                );
-
-                return true;
+                /* Some skus won't have a product (like SKUs for product options), in those cases we can ignore this
+                and continue checking other products as we rely on the parent product's restricted flag. */
+                continue;
             }
         }
 

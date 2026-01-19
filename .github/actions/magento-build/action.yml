@@ -28,7 +28,7 @@ runs:
 
     - run: |
         composer config repositories.repo.magento.com composer https://repo.magento.com
-        COMPOSER_MEMORY_LIMIT=-1 composer create-project --repository-url=https://repo.magento.com/ ${{ inputs.magento-version }} build
+        COMPOSER_MEMORY_LIMIT=-1 composer config --global audit.block-insecure false && COMPOSER_MEMORY_LIMIT=-1 composer create-project --repository-url=https://repo.magento.com/ ${{ inputs.magento-version }} build --no-audit
         cd build
         composer require rvvup/sdk
         cp ../CI/config.php app/etc/config.php
