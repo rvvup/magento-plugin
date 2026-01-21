@@ -51,8 +51,8 @@ class Validator extends Encrypted
         UserAgentBuilder $userAgentBuilder,
         GraphQlSdkFactory $sdkFactory,
         ManagerInterface $messageManager,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->urlBuilder = $urlBuilder;

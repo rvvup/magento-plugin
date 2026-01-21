@@ -30,7 +30,7 @@ interface ConfigInterface
      * @param string|null $scopeCode
      * @return bool
      */
-    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool;
+    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, ?string $scopeCode = null): bool;
 
     /**
      * Get the active value from the config.
@@ -69,7 +69,7 @@ interface ConfigInterface
      * @param string|null $scopeCode
      * @return string
      */
-    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string;
+    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, ?string $scopeCode = null): string;
 
     /**
      * Get valid product types

@@ -109,7 +109,7 @@ class SdkProxy
      * @param array|null $inputOptions
      * @return array
      */
-    public function getMethods(string $value = null, string $currency = null, ?array $inputOptions = null): array
+    public function getMethods(?string $value = null, ?string $currency = null, ?array $inputOptions = null): array
     {
         // If value & currency are both not null, use separate method.
         if ($value !== null && $currency !== null) {

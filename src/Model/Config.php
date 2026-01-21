@@ -45,7 +45,7 @@ class Config implements ConfigInterface
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): bool
+    public function isActive(string $scopeType = ScopeInterface::SCOPE_STORE, ?string $scopeCode = null): bool
     {
         if (!$this->getActiveConfig($scopeType)) {
             return false;
@@ -78,7 +78,7 @@ class Config implements ConfigInterface
      */
     public function getJwtConfig(
         string $scopeType = ScopeInterface::SCOPE_STORE,
-        string $scopeCode = null
+        ?string $scopeCode = null
     ): ?string {
         $scopeCode = $scopeCode ?:
             ($this->storeManager->getStore() ? $this->storeManager->getStore()->getCode() : null);
@@ -124,7 +124,7 @@ class Config implements ConfigInterface
      * @return \stdClass|null
      * @throws NoSuchEntityException
      */
-    private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): ?stdClass
+    private function getJwt(string $scopeType = ScopeInterface::SCOPE_STORE, ?string $scopeCode = null): ?stdClass
     {
         if (!$scopeCode) {
             $scopeCode = $this->storeManager->getStore()->getId();
@@ -194,7 +194,7 @@ class Config implements ConfigInterface
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, string $scopeCode = null): string
+    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, ?string $scopeCode = null): string
     {
         $config = self::RVVUP_CONFIG . self::XML_PATH_EMAIL . self::XML_PATH_PAY_BY_LINK_TEXT;
         $scopeCode = $scopeCode ?:

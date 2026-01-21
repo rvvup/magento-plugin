@@ -182,7 +182,7 @@ class PaymentLink
         string $currencyCode,
         Create $subject,
         array $data,
-        string $orderIncrementId = null
+        ?string $orderIncrementId = null
     ): ?array {
         try {
             $amount = number_format($amount, 2, '.', '');

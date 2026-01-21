@@ -122,7 +122,7 @@ class Capture
      * @return OrderInterface|null
      * @throws PaymentValidationException
      */
-    public function getOrderByRvvupId(string $rvvupOrderId, int $storeId = null): ?OrderInterface
+    public function getOrderByRvvupId(string $rvvupOrderId, ?int $storeId = null): ?OrderInterface
     {
         $resultSet = $this->getOrderListByRvvupId($rvvupOrderId);
 
@@ -181,9 +181,9 @@ class Capture
      */
     public function validate(
         ?Quote &$quote,
-        string $rvvupId = null,
-        string $paymentStatus = null,
-        string $origin = null
+        ?string $rvvupId = null,
+        ?string $paymentStatus = null,
+        ?string $origin = null
     ): ValidationInterface {
         return $this->validationInterface->validate($quote, $rvvupId, $paymentStatus, $origin);
     }
@@ -316,7 +316,7 @@ class Capture
      * @param string|null $storeId
      * @return Quote|null
      */
-    public function getQuoteByRvvupId(string $rvvupId, string $storeId = null): ?Quote
+    public function getQuoteByRvvupId(string $rvvupId, ?string $storeId = null): ?Quote
     {
         /** @var Collection $collection */
         $collection = $this->collectionFactory->create();

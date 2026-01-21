@@ -8,12 +8,9 @@ use Magento\Payment\Gateway\Command\CommandManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
-use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
 use Magento\Payment\Model\Method\Adapter;
-use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 class AdminPaymentMethod extends Adapter
 {
@@ -42,9 +39,9 @@ class AdminPaymentMethod extends Adapter
         string $infoBlockType,
         LoggerInterface $logger,
         ?string $title = null,
-        CommandPoolInterface $commandPool = null,
-        ValidatorPoolInterface $validatorPool = null,
-        CommandManagerInterface $commandExecutor = null
+        ?CommandPoolInterface $commandPool = null,
+        ?ValidatorPoolInterface $validatorPool = null,
+        ?CommandManagerInterface $commandExecutor = null
     ) {
         parent::__construct(
             $eventManager,
