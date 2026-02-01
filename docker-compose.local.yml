@@ -48,7 +48,7 @@ services:
     volumes:
       - 'rvvup_magento_elasticsearch_data:/bitnami/elasticsearch/data'
   mailpit:
-    image: docker.io/axllent/mailpit:v1.26
+    image: docker.io/axllent/mailpit:v1.29
     ports:
       - '8925:8025'
 volumes:
