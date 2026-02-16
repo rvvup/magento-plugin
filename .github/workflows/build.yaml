@@ -72,7 +72,7 @@ jobs:
       - name: Run PHPUnit
         run: ./vendor/bin/phpunit --testdox
 
-  build-php81-magento-ce-243:
+  build-php74-magento-ce-243:
     name: Build (Magento Community 2.4.3 w/ PHP 7.4)
     runs-on: ubuntu-latest
     steps:
@@ -88,3 +88,18 @@ jobs:
           php-version: 7.4
           magento-version: magento/project-community-edition:2.4.3
 
+  build-php84-magento-ce-248:
+    name: Build (Magento Community 2.4.8 w/ PHP 8.4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Configure
+        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+
+      - name: Build
+        uses: ./.github/actions/magento-build
+        with:
+          php-version: 8.4
+          magento-version: magento/project-community-edition:2.4.8
