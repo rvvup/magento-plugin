@@ -109,7 +109,7 @@ class Result
         string $origin,
         string $storeId,
         bool $reservedOrderId = false,
-        string $redirectUrl = null
+        ?string $redirectUrl = null
     ): Redirect {
         $this->emulation->startEnvironmentEmulation((int)$storeId);
 
