@@ -54,7 +54,7 @@ test("renders the ZRF widget on the configurable product page", async ({
   await expect(
     page
       .locator("#rvvup-zrf-widget-container")
-      .getByText("Or from £1.99 p/m, at 7.90%"),
+      .getByText("Or from £4.17 p/m, at 0.00%"),
   ).toBeVisible();
 
   await selectSwatchWithRetry(page, "XL");
@@ -90,6 +90,6 @@ test("renders the ZRF widget on the standard product page", async ({
   await expect(
     page
       .locator("#rvvup-zrf-widget-container")
-      .getByText("Or from £3 p/m, at 7.90%"),
+      .getByText("Or from £6.25 p/m, at 0.00%"),
   ).toBeVisible();
 });
