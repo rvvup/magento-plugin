@@ -69,7 +69,10 @@ interface ConfigInterface
      * @param string|null $scopeCode
      * @return string
      */
-    public function getPayByLinkText(string $scopeType = ScopeInterface::SCOPE_STORE, ?string $scopeCode = null): string;
+    public function getPayByLinkText(
+        string $scopeType = ScopeInterface::SCOPE_STORE,
+        ?string $scopeCode = null
+    ): string;
 
     /**
      * Get valid product types
