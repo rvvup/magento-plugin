@@ -37,7 +37,7 @@ class DisableOrderCreation
         callable                                 $proceed,
         $cartId,
         PaymentInterface                         $paymentMethod,
-        AddressInterface                         $billingAddress = null
+        ?AddressInterface                         $billingAddress = null
     ): int {
         // Return reserved order id if Rvvup Payment.
         if (strpos($paymentMethod->getMethod(), Method::PAYMENT_TITLE_PREFIX) === 0) {

@@ -26,7 +26,7 @@ class ThresholdProvider
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function get(string $provider, string $currency = null): array
+    public function get(string $provider, ?string $currency = null): array
     {
         if (!$this->thresholds) {
             $this->init($currency);
@@ -42,7 +42,7 @@ class ThresholdProvider
      * @param string|null $currency
      * @return void
      */
-    private function init(string $currency = null): void
+    private function init(?string $currency = null): void
     {
         $methods = $this->sdkProxy->getMethods('0', $currency ?? 'GBP');
         foreach ($methods as $method) {

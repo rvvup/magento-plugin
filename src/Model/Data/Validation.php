@@ -58,9 +58,9 @@ class Validation extends DataObject implements ValidationInterface
      */
     public function validate(
         ?Quote  &$quote,
-        string $rvvupId = null,
-        string $paymentStatus = null,
-        string $origin = null
+        ?string $rvvupId = null,
+        ?string $paymentStatus = null,
+        ?string $origin = null
     ): ValidationInterface {
         $data = $this->getDefaultData();
 
