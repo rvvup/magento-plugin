@@ -61,7 +61,7 @@ jobs:
             mkdir -p logs/magento
             docker compose logs > logs/container_logs.log
             docker cp magento-plugin-magento-1:/bitnami/magento/var/log logs/magento
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: results-${{ matrix.MAGENTO_VERSION }}-${{ github.run_number }}
