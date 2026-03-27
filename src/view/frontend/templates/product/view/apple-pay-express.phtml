@@ -1,0 +1,48 @@
+<?php
+/**
+ * Apple Pay express checkout button on product pages.
+ *
+ * @var \Magento\Catalog\Block\Product\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+/** Magento 2.3.5 backward compatibility fix */
+if (!isset($escaper)) {
+    $escaper = $block;
+}
+
+/** @var \Rvvup\Payments\ViewModel\ApplePayPdp $applePayPdpViewModel */
+$applePayPdpViewModel = $block->getData('rvvup_payments_apple_pay_pdp_view_model');
+
+if ($applePayPdpViewModel === null || !$applePayPdpViewModel->isAvailable()) {
+    return;
+}
+
+$product = $block->getProduct();
+if ($product === null) {
+    return;
+}
+
+if (!$applePayPdpViewModel->canUseForProductType($product)) {
+    return;
+}
+
+if ((bool) $product->getRvvupRestricted()) {
+    return;
+}
+
+$initialPrice = number_format((float) $product->getFinalPrice(), 2, '.', '');
+$currencyCode = $product->getStore()->getCurrentCurrencyCode();
+?>
+
+<div id="rvvup-apple-pay-pdp-express-container" class="rvvup-apple-pay-pdp-express-container"></div>
+<script type="text/x-magento-init">
+    {
+        "#rvvup-apple-pay-pdp-express-container": {
+            "Rvvup_Payments/js/method/apple-pay/pdp-express-checkout": {
+                "containerId": "rvvup-apple-pay-pdp-express-container",
+                "initialPrice": "<?= $escaper->escapeHtmlAttr($initialPrice); ?>",
+                "currency": "<?= $escaper->escapeHtmlAttr($currencyCode); ?>"
+            }
+        }
+    }
+</script>

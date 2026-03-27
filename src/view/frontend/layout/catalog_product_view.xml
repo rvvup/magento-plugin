@@ -35,6 +35,18 @@
                    before="product.info">
             </block>
         </referenceContainer>
+        <!-- Apple Pay express checkout on PDP -->
+        <referenceBlock name="product.info.addtocart">
+            <block class="Magento\Catalog\Block\Product\View"
+                   name="rvvup_payments.product.catalog_product_view.apple_pay_express"
+                   template="Rvvup_Payments::product/view/apple-pay-express.phtml"
+                   ifconfig="payment/rvvup/active">
+                <arguments>
+                    <argument name="rvvup_payments_apple_pay_pdp_view_model"
+                              xsi:type="object">Rvvup\Payments\ViewModel\ApplePayPdp</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
         <!-- After add to cart -->
         <referenceBlock name="product.info.addtocart">
             <block class="Magento\Catalog\Block\Product\View"
