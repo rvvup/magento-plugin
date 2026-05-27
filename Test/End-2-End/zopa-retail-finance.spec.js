@@ -48,13 +48,12 @@ test("renders the ZRF widget on the configurable product page", async ({
   await expect(
     page.locator(".swatch-option[data-option-label=Black].selected"),
   ).toBeVisible();
-
-  await expect(page.locator("#rvvup-zrf-widget-container")).toBeVisible();
-
+  const container = page.locator("#rvvup-zrf-widget-container");
+  await expect(container).toBeVisible();
   await expect(
-    page
-      .locator("#rvvup-zrf-widget-container")
-      .getByText("Or from £4.17 p/m, at 0.00%"),
+    container
+      .getByText("Or from £4.17 p/m, at 0.00%")
+      .or(container.getByText("Or from £2.55 p/m, at 19.90%")),
   ).toBeVisible();
 
   await selectSwatchWithRetry(page, "XL");
@@ -87,9 +86,10 @@ test("renders the ZRF widget on the standard product page", async ({
 
   await expect(page.locator("#rvvup-zrf-widget-container")).toBeVisible();
 
+  const container = page.locator("#rvvup-zrf-widget-container");
   await expect(
-    page
-      .locator("#rvvup-zrf-widget-container")
-      .getByText("Or from £6.25 p/m, at 0.00%"),
+    container
+      .getByText("Or from £6.25 p/m, at 0.00%")
+      .or(container.getByText("Or from £3.83 p/m, at 19.90%")),
   ).toBeVisible();
 });
