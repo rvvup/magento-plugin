@@ -35,6 +35,7 @@ class UserAgentBuilderTest extends TestCase
             ->method('execute')
             ->willReturn([
                 'rvvp_module_version' => '0.1.0',
+                'rvvp_hyva_checkout_module_version' => '0.2.0',
                 'php_version' => $this->phpVersion,
                 'magento_version' => [
                     'name' => 'Magento',
