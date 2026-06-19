@@ -54,7 +54,10 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
      */
     private $cachedEnvironmentVersions;
 
-    private array $installedMagentoPackages = [];
+    /**
+     * @var array
+     */
+    private $installedMagentoPackages = [];
 
     /**
      * @param \Magento\Framework\App\CacheInterface $cache

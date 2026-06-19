@@ -44,7 +44,8 @@ class UserAgentBuilder
 
         $environmentVersions = $this->getEnvironmentVersions->execute();
 
-        $magentoProduct = $environmentVersions['magento_version']['name'] .'-'. $environmentVersions['magento_version']['edition'];
+        $magentoProduct = $environmentVersions['magento_version']['name']
+            .'-'. $environmentVersions['magento_version']['edition'];
 
         // Build result
         $parts = array_filter([
