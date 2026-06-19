@@ -97,7 +97,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEverythingIsWorkingInstalledViaComposer(): void
     {
-        $this->composerInfoMock->expects($this->atLeastOnce())->method('getInstalledMagentoPackages')->willReturn([
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([
             'rvvup/module-magento-payments' => [
                 'version' => '0.1.0'
             ],
@@ -114,7 +114,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEverythingIsWorkingInstalledInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atLeastOnce())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -135,7 +135,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testComposerJsonMissingVersionInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atLeastOnce())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -157,7 +157,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testCorruptComposerJsonInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atLeastOnce())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -179,7 +179,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEmptyComposerJsonInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atLeastOnce())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -199,7 +199,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testSuccessfulFallbackIfUnableToLocateVersion(): void
     {
-        $this->composerInfoMock->expects($this->atLeastOnce())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -221,7 +221,7 @@ class GetEnvironmentVersionsTest extends TestCase
         $jsonEncode = json_encode($this->getEnvironmentVersionsExecuteDefault());
 
         $this->cacheMock
-            ->expects($this->atLeastOnce())
+            ->expects($this->atMost(2))
             ->method('load')
             ->with(GetEnvironmentVersions::RVVUP_ENVIRONMENT_VERSIONS)
             ->willReturnOnConsecutiveCalls(
@@ -230,7 +230,7 @@ class GetEnvironmentVersionsTest extends TestCase
             );
 
         $this->composerInfoMock
-            ->expects($this->atLeastOnce())
+            ->expects($this->atMost(2))
             ->method('getInstalledMagentoPackages')
             ->willReturn([
                 'rvvup/module-magento-payments' => [
