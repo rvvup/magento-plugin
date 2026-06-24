@@ -76,11 +76,11 @@ class HandlerTest extends TestCase
         $this->quoteMock = $this->createMock(Quote::class);
         $this->quoteMock->method('getId')->willReturn(123);
         $paymentMock = $this->getMockBuilder('stdClass')
-            ->setMethods(['getAdditionalInformation', 'getMethodInstance'])->getMock();
+            ->addMethods(['getAdditionalInformation', 'getMethodInstance'])->getMock();
         $this->quoteMock->method('getPayment')->willReturn($paymentMock);
         $paymentMock->method('getAdditionalInformation')->willReturn('PA123');
         $this->methodInstanceMock = $this->getMockBuilder('stdClass')
-            ->setMethods(['getCaptureType'])->getMock();
+            ->addMethods(['getCaptureType'])->getMock();
         $paymentMock->method('getMethodInstance')->willReturn($this->methodInstanceMock);
         $this->cartRepository->method('get')->willReturn($this->quoteMock);
         $this->orderMock = $this->createMock(OrderInterface::class);

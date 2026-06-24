@@ -8,6 +8,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Address;
+use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -133,7 +134,7 @@ class OrderFixture
      */
     public function build(): MockObject
     {
-        $mock = $this->testCase->getMockBuilder(Order::class)
+        $mock = (new MockBuilder($this->testCase, Order::class))
             ->disableOriginalConstructor()
             ->getMock();
 
