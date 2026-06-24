@@ -19,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: 8.1
 
       - name: Configure
         run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
@@ -40,7 +40,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: 8.1
 
       - name: Configure
         run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
@@ -61,7 +61,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: 8.1
 
       - name: Configure
         run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
@@ -85,7 +85,7 @@ jobs:
       - name: Build
         uses: ./.github/actions/magento-build
         with:
-          php-version: 7.4
+          php-version: 8.1
           magento-version: magento/project-community-edition:2.4.3
 
   build-php84-magento-ce-248:
