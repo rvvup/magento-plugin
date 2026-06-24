@@ -15,7 +15,7 @@ $block->setPriceDataObject($item);
         <td>
             <?= 'Invoiced qty ' . (float)$item->getQty() ?>
             <br>
-            <?= $block->escapeHtml(__('Pending refund from Rvvup ' . $block->getQtyRvvupPendingRefund())); ?>
+            <?= $escaper->escapeHtml(__('Pending refund from Rvvup ' . $block->getQtyRvvupPendingRefund())); ?>
         </td>
     <?php else: ?>
         <td class="col-qty"><?= (float)$item->getQty() ?></td>

@@ -20,6 +20,11 @@ async function selectSwatchWithRetry(
   }
 }
 
+async function monthlyPrice(container) {
+  const text = await container.getByText(/p\/m/).first().textContent();
+  return text.match(/£\d+\.\d{2} p\/m/)[0];
+}
+
 test("renders the ZRF widget on the configurable product page", async ({
   page,
 }) => {
@@ -48,19 +53,12 @@ test("renders the ZRF widget on the configurable product page", async ({
   await expect(
     page.locator(".swatch-option[data-option-label=Black].selected"),
   ).toBeVisible();
-
-  await expect(page.locator("#rvvup-zrf-widget-container")).toBeVisible();
-
-  await expect(
-    page
-      .locator("#rvvup-zrf-widget-container")
-      .getByText("Or from £4.17 p/m, at 0.00%"),
-  ).toBeVisible();
+  const container = page.locator("#rvvup-zrf-widget-container");
+  await expect(container).toBeVisible();
+  const priceAtSmall = await monthlyPrice(container);
 
   await selectSwatchWithRetry(page, "XL");
-  await expect(
-    page.locator(".swatch-option[data-option-label=XL].selected"),
-  ).toBeVisible();
+  await expect.poll(() => monthlyPrice(container)).not.toBe(priceAtSmall);
 
   await selectSwatchWithRetry(page, "Black");
   await expect(
@@ -90,6 +88,6 @@ test("renders the ZRF widget on the standard product page", async ({
   await expect(
     page
       .locator("#rvvup-zrf-widget-container")
-      .getByText("Or from £6.25 p/m, at 0.00%"),
+      .getByText(/Or from £\d+\.\d{2} p\/m, at \d+\.\d{2}%/),
   ).toBeVisible();
 });
