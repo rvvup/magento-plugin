@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Test\Unit\Fixtures;
 
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -57,7 +58,7 @@ class OrderPaymentFixture
      */
     public function build(): MockObject
     {
-        $mock = $this->testCase->getMockBuilder(OrderPaymentInterface::class)
+        $mock = (new MockBuilder($this->testCase, OrderPaymentInterface::class))
             ->disableOriginalConstructor()
             ->getMock();
 

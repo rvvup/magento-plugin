@@ -17,7 +17,7 @@ $block->setPriceDataObject($item) ?>
             <?= 'Refunded Qty ' . ((int)$item->getQty() - $block->getQtyRvvupPendingRefund($item->getOrderItem())) ?>
             <br>
             <?=
-            $block->escapeHtml(
+            $escaper->escapeHtml(
                 __('Pending refund from Rvvup ' . $block->getQtyRvvupPendingRefund($item->getOrderItem()))
             );
             ?>

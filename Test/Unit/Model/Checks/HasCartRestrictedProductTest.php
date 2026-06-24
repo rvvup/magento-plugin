@@ -31,7 +31,7 @@ class HasCartRestrictedProductTest extends TestCase
      *
      * @return array
      */
-    public function paymentMethodAvailabilityProvider(): array
+    public static function paymentMethodAvailabilityProvider(): array
     {
         return [['rvvup_CLEARPAY'], ['rvvup_ZOPA_RETAIL_FINANCE']];
     }
