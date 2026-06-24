@@ -6,6 +6,7 @@ namespace Rvvup\Payments\Test\Unit\Fixtures;
 
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
+use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -64,7 +65,7 @@ class QuoteItemFixture
      */
     public function build(): MockObject
     {
-        $item = $this->testCase->getMockBuilder(Item::class)
+        $item = (new MockBuilder($this->testCase, Item::class))
             ->disableOriginalConstructor()->getMock();
         $item->method('getSku')->willReturn($this->sku);
 

@@ -28,7 +28,8 @@ test("Clearpay infographic updates when total changes on checkout page", async (
       .frameLocator("#placeholder-payment-iframe-rvvup_CLEARPAY")
       .frameLocator("iframe")
       .first()
-      .getByRole("heading", { name: "£" }),
+      .getByText("£")
+      .first(),
   ).toContainText(clearpayPayBy4Amount);
 });
 

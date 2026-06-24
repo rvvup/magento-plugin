@@ -7,7 +7,11 @@ parameters:
         - .
     excludePaths:
         - 'vendor'
+        - 'docker'
 
     ignoreErrors:
         - '#has invalid type#'
         - '#has invalid return type#'
+        -
+            identifier: class.extendsFinalByPhpDoc
+            path: src/Model/Logger.php

@@ -19,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: 8.1
 
       - name: Configure
         run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
@@ -40,7 +40,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: 8.1
 
       - name: Configure
         run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
@@ -61,7 +61,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: 8.1
 
       - name: Configure
         run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
@@ -72,8 +72,8 @@ jobs:
       - name: Run PHPUnit
         run: ./vendor/bin/phpunit --testdox
 
-  build-php74-magento-ce-243:
-    name: Build (Magento Community 2.4.3 w/ PHP 7.4)
+  build-php81-magento-ce-245:
+    name: Build (Magento Community 2.4.5 w/ PHP 8.1)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -85,8 +85,8 @@ jobs:
       - name: Build
         uses: ./.github/actions/magento-build
         with:
-          php-version: 7.4
-          magento-version: magento/project-community-edition:2.4.3
+          php-version: 8.1
+          magento-version: magento/project-community-edition:2.4.5
 
   build-php84-magento-ce-248:
     name: Build (Magento Community 2.4.8 w/ PHP 8.4)
