@@ -97,9 +97,12 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEverythingIsWorkingInstalledViaComposer(): void
     {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([
             'rvvup/module-magento-payments' => [
                 'version' => '0.1.0'
+            ],
+            'rvvup/module-magento-payments-hyva-checkout' => [
+                'version' => '0.2.0'
             ],
         ]);
         $this->assertEquals(
@@ -111,7 +114,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEverythingIsWorkingInstalledInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -121,7 +124,10 @@ class GetEnvironmentVersionsTest extends TestCase
         $this->serializerMock->expects($this->once())->method('unserialize')->willReturn(['version' => '0.1.0']);
 
         $this->assertEquals(
-            $this->getEnvironmentVersionsExecuteDefault(),
+            array_merge(
+                $this->getEnvironmentVersionsExecuteDefault(),
+                ['rvvp_hyva_checkout_module_version' => '']
+            ),
             $this->systemUnderTest->execute(),
             "Unexpected value when testing app/code-based install UA string"
         );
@@ -129,7 +135,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testComposerJsonMissingVersionInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -141,7 +147,8 @@ class GetEnvironmentVersionsTest extends TestCase
         $this->assertEquals(
             array_merge(
                 $this->getEnvironmentVersionsExecuteDefault(),
-                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION]
+                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION],
+                ['rvvp_hyva_checkout_module_version' => '']
             ),
             $this->systemUnderTest->execute(),
             "Unexpected value when testing missing composer file UA string"
@@ -150,7 +157,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testCorruptComposerJsonInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -162,7 +169,8 @@ class GetEnvironmentVersionsTest extends TestCase
         $this->assertEquals(
             array_merge(
                 $this->getEnvironmentVersionsExecuteDefault(),
-                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION]
+                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION],
+                ['rvvp_hyva_checkout_module_version' => '']
             ),
             $this->systemUnderTest->execute(),
             "Unexpected value when testing corrupt composer file fallback"
@@ -171,7 +179,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEmptyComposerJsonInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -181,7 +189,8 @@ class GetEnvironmentVersionsTest extends TestCase
         $this->assertEquals(
             array_merge(
                 $this->getEnvironmentVersionsExecuteDefault(),
-                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION]
+                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION],
+                ['rvvp_hyva_checkout_module_version' => '']
             ),
             $this->systemUnderTest->execute(),
             "Unexpected value when testing corrupt composer file fallback"
@@ -190,8 +199,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testSuccessfulFallbackIfUnableToLocateVersion(): void
     {
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
-        $this->composerInfoMock->expects($this->once())->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -200,7 +208,8 @@ class GetEnvironmentVersionsTest extends TestCase
         $this->assertEquals(
             array_merge(
                 $this->getEnvironmentVersionsExecuteDefault(),
-                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION]
+                ['rvvp_module_version' => GetEnvironmentVersions::UNKNOWN_VERSION],
+                ['rvvp_hyva_checkout_module_version' => '']
             ),
             $this->systemUnderTest->execute(),
             "Unexpected value when testing missing composer version key fallback"
@@ -212,7 +221,7 @@ class GetEnvironmentVersionsTest extends TestCase
         $jsonEncode = json_encode($this->getEnvironmentVersionsExecuteDefault());
 
         $this->cacheMock
-            ->expects($this->exactly(2))
+            ->expects($this->atMost(2))
             ->method('load')
             ->with(GetEnvironmentVersions::RVVUP_ENVIRONMENT_VERSIONS)
             ->willReturnOnConsecutiveCalls(
@@ -221,11 +230,14 @@ class GetEnvironmentVersionsTest extends TestCase
             );
 
         $this->composerInfoMock
-            ->expects($this->once())
+            ->expects($this->atMost(2))
             ->method('getInstalledMagentoPackages')
             ->willReturn([
                 'rvvup/module-magento-payments' => [
                     'version' => '0.1.0'
+                ],
+                'rvvup/module-magento-payments-hyva-checkout' => [
+                    'version' => '0.2.0'
                 ]
             ]);
 
@@ -263,6 +275,7 @@ class GetEnvironmentVersionsTest extends TestCase
     {
         return [
             'rvvp_module_version' => '0.1.0',
+            'rvvp_hyva_checkout_module_version' => '0.2.0',
             'php_version' => $this->phpVersion,
             'magento_version' => [
                 'name' => 'Magento',

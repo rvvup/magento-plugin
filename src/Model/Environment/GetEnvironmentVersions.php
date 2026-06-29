@@ -55,6 +55,11 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
     private $cachedEnvironmentVersions;
 
     /**
+     * @var array
+     */
+    private $installedMagentoPackages = [];
+
+    /**
      * @param \Magento\Framework\App\CacheInterface $cache
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
      * @param \Magento\Framework\Composer\ComposerInformation $composerInformation
@@ -100,6 +105,7 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
 
         $environmentVersions = [
             'rvvp_module_version' => $this->getRvvupModuleVersion(),
+            'rvvp_hyva_checkout_module_version' => $this->getRvvupHyvaCheckoutModuleVersion(),
             'php_version' => phpversion(),
             'magento_version' => [
                 'name' => $this->productMetadata->getName(),
@@ -149,7 +155,7 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
     public function getRvvupModuleVersion(): string
     {
         // Attempt to figure out what plugin version we have depending on installation method
-        $packages = $this->composerInformation->getInstalledMagentoPackages();
+        $packages = $this->getInstalledMagentoPackages();
 
         // Get the value from the composer.lock file if set.
         if (isset($packages['rvvup/module-magento-payments']['version'])
@@ -163,6 +169,32 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
 
         // If set use it, otherwise unknown.
         return $appCodeComposerJsonVersion ?? self::UNKNOWN_VERSION;
+    }
+
+    /**
+     * Get the Rvvup Hyva Checkout Module version installed from project's `composer.lock`.
+     *
+     * Fallback to unknown if version cannot be determined and empty string of module is not present.
+     *
+     * @return string
+     */
+    public function getRvvupHyvaCheckoutModuleVersion(): string
+    {
+        // Attempt to figure out what plugin version we have depending on installation method
+        $packages = $this->getInstalledMagentoPackages();
+
+        // Get the value from the composer.lock file if set.
+        if (isset($packages['rvvup/module-magento-payments-hyva-checkout']['version'])
+            && is_string($packages['rvvup/module-magento-payments-hyva-checkout']['version'])
+        ) {
+            return (string) $packages['rvvup/module-magento-payments-hyva-checkout']['version'];
+        }
+
+        if (isset($packages['rvvup/module-magento-payments-hyva-checkout'])) {
+            return self::UNKNOWN_VERSION;
+        }
+
+        return '';
     }
 
     /**
@@ -206,5 +238,17 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
         } catch (Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * @return array
+     */
+    private function getInstalledMagentoPackages(): array
+    {
+        if (!$this->installedMagentoPackages) {
+            $this->installedMagentoPackages = $this->composerInformation->getInstalledMagentoPackages();
+        }
+
+        return $this->installedMagentoPackages;
     }
 }

@@ -44,14 +44,20 @@ class UserAgentBuilder
 
         $environmentVersions = $this->getEnvironmentVersions->execute();
 
+        $magentoProduct = $environmentVersions['magento_version']['name']
+            .'-'. $environmentVersions['magento_version']['edition'];
+
         // Build result
-        $parts = [
-            'RvvupMagentoPayments/' . $environmentVersions['rvvp_module_version'],
-            $environmentVersions['magento_version']['name'] . '-'
-            . $environmentVersions['magento_version']['edition'] . '/'
-            . $environmentVersions['magento_version']['version'],
-            'PHP/' . $environmentVersions['php_version'],
-        ];
+        $parts = array_filter([
+            'RvvupMagentoPayments' => $environmentVersions['rvvp_module_version'],
+            'RvvupMagentoPaymentsHyvaCheckout' => $environmentVersions['rvvp_hyva_checkout_module_version'],
+            $magentoProduct => $environmentVersions['magento_version']['version'],
+            'PHP' => $environmentVersions['php_version'],
+        ]);
+
+        array_walk($parts, function (&$value, $key) {
+            $value = $key . '/' . $value;
+        });
 
         $userAgent = implode("; ", $parts);
 
