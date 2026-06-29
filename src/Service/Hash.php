@@ -63,6 +63,9 @@ class Hash
         $quote->collectTotals();
         $hashedValues = [];
         foreach ($quote->getTotals() as $total) {
+            if ($this->isEmptyTotal($total->getValue())) {
+                continue;
+            }
             $hashedValues[$total->getCode()] = $total->getValue();
         }
         $items = $quote->getItems() ?: $quote->getItemsCollection()->getItems();
@@ -85,5 +88,10 @@ class Hash
         );
 
         return [$output, hash('sha256', $output)];
+    }
+
+    private function isEmptyTotal($value): bool
+    {
+        return $value === null || $value === '';
     }
 }
