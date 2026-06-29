@@ -14,6 +14,7 @@
                 <value id="rvvup-securetrading-frame" type="host">*.securetrading.net</value>
                 <value id="rvvup-visa-frame" type="host">*.secure.checkout.visa.com</value>
                 <value id="rvvup-cardinalcommerce-frame" type="host">*.cardinalcommerce.com</value>
+                <value id="rvvup-cardinaltrusted-frame" type="host">*.cardinaltrusted.com</value>
                 <value id="rvvup-google-frame" type="host">pay.google.com</value>
                 <value id="rvvup-thm-visa-frame" type="host">thm.visa.com</value>
                 <value id="rvvup-mastercard-frame" type="host">*.mastercard.com</value>
@@ -36,6 +37,7 @@
                 <value id="rvvup-applepay-script" type="host">applepay.cdn-apple.com</value>
                 <value id="rvvup-zrf-widgets-sandbox-script" type="host">widgets.dividebuysandbox.co.uk</value>
                 <value id="rvvup-zrf-widgets-script" type="host">widgets.dividebuy.co.uk</value>
+                <value id="rvvup-cardinaltrusted-script" type="host">*.cardinaltrusted.com</value>
             </values>
         </policy>
         <policy id="style-src">
@@ -81,6 +83,7 @@
                 <value id="rvvup-sandbox-paypal-connect" type="host">*.sandbox.paypal.com</value>
                 <value id="rvvup-sentry-connect" type="host">*.sentry.io</value>
                 <value id="rvvup-cardinalcommerce-connect" type="host">*.cardinalcommerce.com</value>
+                <value id="rvvup-cardinaltrusted-connect" type="host">*.cardinaltrusted.com</value>
                 <value id="rvvup-google-connect" type="host">google.com</value>
                 <value id="rvvup-dev-connect" type="host">*.dev.rvvuptech.com</value>
                 <value id="rvvup-prod-connect" type="host">*.rvvup.com</value>
@@ -90,12 +93,14 @@
                 <value id="rvvup-datadog-eu-connect" type="host">browser-intake-datadoghq.eu</value>
                 <value id="rvvup-zrf-sandbox-connect" type="host">api.dividebuysandbox.co.uk</value>
                 <value id="rvvup-zrf-connect" type="host">api.dividebuy.co.uk</value>
+                <value id="rvvup-card-objects-connect" type="host">cdn.eu.trustpayments.com</value>
             </values>
         </policy>
         <policy id="form-action">
             <values>
                 <value id="rvvup-paypal-form" type="host">*.paypal.com</value>
                 <value id="rvvup-cardinalcommerce-form" type="host">*.cardinalcommerce.com</value>
+                <value id="rvvup-cardinaltrusted-form" type="host">*.cardinaltrusted.com</value>
                 <value id="rvvup-securetrading-form" type="host">*.securetrading.net</value>
                 <value id="rvvup-paypal-form" type="host">*.paypal.com</value>
             </values>
