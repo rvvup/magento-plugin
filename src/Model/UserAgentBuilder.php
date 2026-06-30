@@ -51,7 +51,7 @@ class UserAgentBuilder
         $parts = array_filter([
             'RvvupMagentoPayments' => $environmentVersions['rvvp_module_version'],
             'RvvupMagentoPaymentsHyvaCheckout' => $environmentVersions['rvvp_hyva_checkout_module_version'],
-            'HyvaCheckout' => $environmentVersions['hyva_checkout_version'] ?? '',
+            'HyvaCheckout' => $environmentVersions['hyva_checkout_version'],
             $magentoProduct => $environmentVersions['magento_version']['version'],
             'PHP' => $environmentVersions['php_version'],
         ]);
