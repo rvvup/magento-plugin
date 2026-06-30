@@ -106,6 +106,7 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
         $environmentVersions = [
             'rvvp_module_version' => $this->getRvvupModuleVersion(),
             'rvvp_hyva_checkout_module_version' => $this->getRvvupHyvaCheckoutModuleVersion(),
+            'hyva_checkout_version' => $this->getHyvaThemesCheckoutVersion(),
             'php_version' => phpversion(),
             'magento_version' => [
                 'name' => $this->productMetadata->getName(),
@@ -191,6 +192,30 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
         }
 
         if (isset($packages['rvvup/module-magento-payments-hyva-checkout'])) {
+            return self::UNKNOWN_VERSION;
+        }
+
+        return '';
+    }
+
+    /**
+     * Get the hyva-themes/magento2-hyva-checkout version from composer.lock.
+     *
+     * Returns empty string if the package is not installed.
+     *
+     * @return string
+     */
+    public function getHyvaThemesCheckoutVersion(): string
+    {
+        $packages = $this->getInstalledMagentoPackages();
+
+        if (isset($packages['hyva-themes/magento2-hyva-checkout']['version'])
+            && is_string($packages['hyva-themes/magento2-hyva-checkout']['version'])
+        ) {
+            return $packages['hyva-themes/magento2-hyva-checkout']['version'];
+        }
+
+        if (isset($packages['hyva-themes/magento2-hyva-checkout'])) {
             return self::UNKNOWN_VERSION;
         }
 

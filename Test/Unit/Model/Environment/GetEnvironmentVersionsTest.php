@@ -114,7 +114,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEverythingIsWorkingInstalledInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -135,7 +135,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testComposerJsonMissingVersionInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -157,7 +157,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testCorruptComposerJsonInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -179,7 +179,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testEmptyComposerJsonInAppCode(): void
     {
-        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -199,7 +199,7 @@ class GetEnvironmentVersionsTest extends TestCase
 
     public function testSuccessfulFallbackIfUnableToLocateVersion(): void
     {
-        $this->composerInfoMock->expects($this->atMost(2))->method('getInstalledMagentoPackages')->willReturn([]);
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([]);
         $path = dirname((new ReflectionClass(GetEnvironmentVersions::class))->getFileName())
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . '..'
@@ -266,6 +266,42 @@ class GetEnvironmentVersionsTest extends TestCase
         );
     }
 
+    public function testHyvaThemesCheckoutInstalledWithVersion(): void
+    {
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([
+            'rvvup/module-magento-payments' => ['version' => '0.1.0'],
+            'rvvup/module-magento-payments-hyva-checkout' => ['version' => '0.2.0'],
+            'hyva-themes/magento2-hyva-checkout' => ['version' => '1.3.0'],
+        ]);
+
+        $result = $this->systemUnderTest->execute();
+
+        $this->assertSame('1.3.0', $result['hyva_checkout_version']);
+    }
+
+    public function testHyvaThemesCheckoutInstalledWithoutVersion(): void
+    {
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([
+            'rvvup/module-magento-payments' => ['version' => '0.1.0'],
+            'hyva-themes/magento2-hyva-checkout' => [],
+        ]);
+
+        $result = $this->systemUnderTest->execute();
+
+        $this->assertSame(GetEnvironmentVersions::UNKNOWN_VERSION, $result['hyva_checkout_version']);
+    }
+
+    public function testHyvaThemesCheckoutNotInstalled(): void
+    {
+        $this->composerInfoMock->expects($this->atMost(3))->method('getInstalledMagentoPackages')->willReturn([
+            'rvvup/module-magento-payments' => ['version' => '0.1.0'],
+        ]);
+
+        $result = $this->systemUnderTest->execute();
+
+        $this->assertSame('', $result['hyva_checkout_version']);
+    }
+
     /**
      * Get default values of `execute` method return for test purposes.
      *
@@ -276,6 +312,7 @@ class GetEnvironmentVersionsTest extends TestCase
         return [
             'rvvp_module_version' => '0.1.0',
             'rvvp_hyva_checkout_module_version' => '0.2.0',
+            'hyva_checkout_version' => '',
             'php_version' => $this->phpVersion,
             'magento_version' => [
                 'name' => 'Magento',

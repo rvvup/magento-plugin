@@ -62,6 +62,7 @@ class UserAgentBuilderTest extends TestCase
         return [
             'rvvp_module_version' => '0.1.0',
             'rvvp_hyva_checkout_module_version' => '',
+            'hyva_checkout_version' => '',
             'php_version' => $this->phpVersion,
             'magento_version' => [
                 'name' => 'Magento',
@@ -82,7 +83,7 @@ class UserAgentBuilderTest extends TestCase
         );
     }
 
-    public function testHyvaCheckoutModuleInstalled(): void
+    public function testRvvupHyvaCheckoutModuleInstalled(): void
     {
         $systemUnderTest = $this->createSystemUnderTest([
             'rvvp_hyva_checkout_module_version' => '0.2.0',
@@ -92,6 +93,32 @@ class UserAgentBuilderTest extends TestCase
             'RvvupMagentoPayments/0.1.0; RvvupMagentoPaymentsHyvaCheckout/0.2.0; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
             $systemUnderTest->get(),
             'UA string should include hyva checkout segment when module is installed'
+        );
+    }
+
+    public function testHyvaThemesCheckoutInstalled(): void
+    {
+        $systemUnderTest = $this->createSystemUnderTest([
+            'hyva_checkout_version' => '1.0.0',
+        ]);
+
+        $this->assertEquals(
+            'RvvupMagentoPayments/0.1.0; HyvaCheckout/1.0.0; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
+            $systemUnderTest->get(),
+            'UA string should include HyvaCheckout segment when hyva-themes/magento2-hyva-checkout is installed'
+        );
+    }
+
+    public function testHyvaThemesCheckoutNotInstalled(): void
+    {
+        $systemUnderTest = $this->createSystemUnderTest([
+            'hyva_checkout_version' => '',
+        ]);
+
+        $this->assertEquals(
+            'RvvupMagentoPayments/0.1.0; Magento-Community/2.4.4; PHP/' . $this->phpVersion,
+            $systemUnderTest->get(),
+            'UA string should not include HyvaCheckout segment when hyva-themes/magento2-hyva-checkout is not installed'
         );
     }
 
