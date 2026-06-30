@@ -212,7 +212,7 @@ class GetEnvironmentVersions implements GetEnvironmentVersionsInterface
         if (isset($packages['hyva-themes/magento2-hyva-checkout']['version'])
             && is_string($packages['hyva-themes/magento2-hyva-checkout']['version'])
         ) {
-            return (string) $packages['hyva-themes/magento2-hyva-checkout']['version'];
+            return $packages['hyva-themes/magento2-hyva-checkout']['version'];
         }
 
         if (isset($packages['hyva-themes/magento2-hyva-checkout'])) {
