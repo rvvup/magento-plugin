@@ -1,0 +1,11 @@
+<div id="rvvup-card-form-container" class="rvvup-card-form" afterRender="mountCardForm"></div>
+<div class="actions-toolbar rvvup-actions-toolbar">
+    <div class="primary rvvup-primary">
+        <button type="button"
+                id="submit-card"
+                class="action primary checkout"
+                data-bind="click: submitCard, attr: {disabled: !formReady()}, css: {disabled: !formReady()}">
+            <span data-bind="i18n: 'Pay with Card'"></span>
+        </button>
+    </div>
+</div>

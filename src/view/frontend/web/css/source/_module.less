@@ -100,6 +100,23 @@
         }
     }
 
+    .rvvup-card-form {
+        width: 100%;
+        margin-bottom: 20px;
+
+        iframe {
+            width: 100%;
+        }
+
+        // Fallback until the SDK honours the appearance configuration for card fields:
+        // it sets border-width and border-color inline on the wrappers but never
+        // border-style, leaving the inputs borderless.
+        div[id^='rvvup-card-'] {
+            border-style: solid;
+            border-color: @form-element-input__border-color !important;
+        }
+    }
+
     .rvvup-card-field iframe {
         width: 100%;
     }

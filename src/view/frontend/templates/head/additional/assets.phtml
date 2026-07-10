@@ -17,19 +17,74 @@ $assetsViewModel = $block->getData('rvvup_payments_assets_view_model');
 if ($assetsViewModel === null) {
     return;
 }
-?>
-<script id="rvvup-core-sdk" src="<?= $escaper->escapeUrl($assetsViewModel->getCoreSdkUrl()); ?>"></script>
 
+$coreSdkUrl = $assetsViewModel->getCoreSdkUrl();
+$publishableKey = $assetsViewModel->getPublishableKey();
+?>
+<?php /* Payment scripts (Rvvup SDK, PayPal, Afterpay and the scripts they inject, such as the
+Afterpay tracking pixel and Basis Theory elements) are UMD bundles loaded outside RequireJS.
+When they see define.amd they register as anonymous AMD modules instead of setting their
+browser globals, which corrupts RequireJS module resolution for the whole page. This guard
+makes define.amd invisible to cross origin scripts that RequireJS did not load itself, so
+those bundles take the browser-global path they were designed for. Same origin scripts and
+scripts from the RequireJS base url origin (bundled frontends, static content CDNs) always
+see define.amd, so AMD registration inside Magepack or baler bundles keeps working. */ ?>
 <?= /* @noEscape */
 $secureRenderer->renderTag(
     'script',
     ['type' => 'text/javascript'],
-    "if(window.Rvvup){
-    window.rvvup_sdk = window.Rvvup({publishableKey: '" . $assetsViewModel->getPublishableKey() . "'});
-}",
+    "(function () {
+    if (!window.define || !window.define.amd) {
+        return;
+    }
+    var amd = window.define.amd;
+    var trustedOrigins = [window.location.origin];
+    try {
+        if (window.require && window.require.toUrl) {
+            trustedOrigins.push(new URL(window.require.toUrl(''), window.location.href).origin);
+        }
+    } catch (ignored) {
+    }
+    Object.defineProperty(window.define, 'amd', {
+        configurable: true,
+        get: function () {
+            var script = document.currentScript;
+            if (!script || !script.src || script.hasAttribute('data-requiremodule')) {
+                return amd;
+            }
+            try {
+                if (trustedOrigins.indexOf(new URL(script.src, window.location.href).origin) !== -1) {
+                    return amd;
+                }
+            } catch (ignored) {
+                return amd;
+            }
+            return undefined;
+        },
+        set: function (value) {
+            amd = value;
+        }
+    });
+})();",
     false
 );
 ?>
+<?php if ($coreSdkUrl !== null): ?>
+<script id="rvvup-core-sdk" src="<?= $escaper->escapeUrl($coreSdkUrl); ?>"></script>
+<?php endif; ?>
+
+<?php if ($publishableKey !== null): ?>
+    <?= /* @noEscape */
+    $secureRenderer->renderTag(
+        'script',
+        ['type' => 'text/javascript'],
+        "if(window.Rvvup){
+    window.rvvup_sdk = window.Rvvup({publishableKey: '" . $escaper->escapeJs($publishableKey) . "'});
+}",
+        false
+    );
+    ?>
+<?php endif; ?>
 <?php foreach ($assetsViewModel->getPaymentMethodsScriptAssets() as $method => $scripts): ?>
     <?php foreach ($scripts as $index => $script): ?>
         <?php // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable?>
@@ -38,15 +93,6 @@ $secureRenderer->renderTag(
         <?php endif; ?>
         <?php // phpcs:enable?>
 
-        <?php if ($method == 'rvvup_card'): ?>
-            <?= /* @noEscape */ $secureRenderer->renderTag(
-                'script',
-                ['type' => 'text/javascript'],
-                "window.rvvup_card_script ='" . $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) . "';",
-                false
-            )
-            ?>
-        <?php else: ?>
         <script id="<?= $escaper->escapeHtmlAttr($assetsViewModel->getScriptElementId($method, (string) $index)) ?>"
             <?php foreach ($assetsViewModel->getScriptDataAttributes($script) as $dataAttribute => $value): ?>
                 <?php if ($value === null): ?>
@@ -56,14 +102,13 @@ $secureRenderer->renderTag(
                 <?php endif; ?>
             <?php endforeach; ?>
                 src="<?= $escaper->escapeUrl($assetsViewModel->getScriptElementSrc($script)) ?>"></script>
-        <?php endif; ?>
     <?php endforeach; ?>
 <?php endforeach; ?>
 
 <?= /* @noEscape */ $secureRenderer->renderTag(
     'script',
     ['type' => 'text/javascript'],
-    "const rvvup_parameters = JSON.parse('" . $assetsViewModel->getRvvupParametersJsObject() . "');",
+    "const rvvup_parameters = JSON.parse('" . $escaper->escapeJs($assetsViewModel->getRvvupParametersJsObject()) . "');",
     false
 );
 ?>

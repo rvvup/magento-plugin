@@ -17,7 +17,6 @@ define([
         'Rvvup_Payments/js/model/checkout/payment/order-payment-action',
         'Rvvup_Payments/js/model/checkout/payment/rvvup-method-properties',
         'Rvvup_Payments/js/method/paypal/cancel',
-        'cardPayment',
         'mage/url',
         'Magento_Checkout/js/action/set-payment-information-extended',
         'Magento_Ui/js/model/messageList',
@@ -44,7 +43,6 @@ define([
         orderPaymentAction,
         rvvupMethodProperties,
         cancel,
-        cardPayment,
         url,
         setPaymentInformation,
         messageList,
@@ -60,7 +58,6 @@ define([
                 templates: {
                     rvvupCancelExpressPaymentTemplate: 'Rvvup_Payments/payment/cancel-express-payment',
                     rvvupPlaceOrderTemplate: 'Rvvup_Payments/payment/place-order',
-                    rvvupCardFormTemplate: 'Rvvup_Payments/payment/card-form',
                     rvvupPaypalButtonTemplate: 'Rvvup_Payments/payment/paypal-button',
                     rvvupPaypalPayLaterTemplate: 'Rvvup_Payments/payment/paypal-pay-later',
                     rvvupIframeModalTemplate: 'Rvvup_Payments/payment/iframe-modal',
@@ -179,141 +176,6 @@ define([
 
             getPaypalBlockStyling: function () {
                 return window.checkoutConfig.payment[this.index].style;
-            },
-
-            renderCardForm: function () {
-
-                if (rvvup_parameters.settings.card.flow === "INLINE") {
-                    $('body').trigger("processStart");
-                    window.rvvup_card_rendered = false;
-                    this.render(this);
-                }
-            },
-
-            render: function (context) {
-                if (window.rvvup_card_rendered === false) {
-                    this.renderCardFields(context);
-                }
-            },
-
-            renderCardFields: function (context) {
-                if (typeof SecureTrading === "function" && window.rvvup_card_rendered === false) {
-                    window.SecureTrading = SecureTrading({
-                        jwt: rvvup_parameters.settings.card.initializationToken,
-                        animatedCard: true,
-                        livestatus: rvvup_parameters.settings.card.liveStatus,
-                        buttonId: "tp_place_order",
-                        deferInit: true,
-                        submitOnSuccess: false,
-                        panIcon: true,
-                        stopSubmitFormOnEnter: true,
-                        formId: "st-form",
-                        submitCallback: function (data) {
-                            var submitData = {
-                                auth: data.jwt,
-                                form_key: $.mage.cookies.get('form_key')
-                            };
-                            if (data.threedresponse) {
-                                submitData["three_d"] = data.threedresponse;
-                            }
-
-                            context.confirmCardAuthorization(submitData, context);
-                        },
-                        errorCallback: function () {
-                            messageList.addErrorMessage({
-                                message: $t('Something went wrong')
-                            });
-                            // This ajax call will reload quote and cancel orders with payment
-                            let data = {form_key: $.mage.cookies.get('form_key')};
-                            $.ajax({
-                                type: "POST",
-                                data: data,
-                                url: url.build('rvvup/payment/cancel'),
-                                complete: function (e) {
-                                    $('body').trigger("processStop");
-                                },
-                            });
-                            $('body').trigger("processStop");
-                        },
-                        translations: {
-                            "Card number": rvvup_parameters.settings.card?.form?.translation?.label?.cardNumber || "Card Number",
-                            "Expiration date": rvvup_parameters.settings.card?.form?.translation?.label?.expiryDate || "Expiration Date",
-                            "Security code": rvvup_parameters.settings.card?.form?.translation?.label?.securityCode || "Security Code",
-                            Pay: rvvup_parameters.settings.card?.form?.translation?.button?.pay || "Pay",
-                            Processing: rvvup_parameters.settings.card?.form?.translation?.button?.processing || "Processing",
-                            "Field is required":
-                                rvvup_parameters.settings.card?.form?.translation?.error?.fieldRequired || "Field is required",
-                            "Value is too short":
-                                rvvup_parameters.settings.card?.form?.translation?.error?.valueTooShort || "Value is too short",
-                            "Value mismatch pattern":
-                                rvvup_parameters.settings.card?.form?.translation?.error?.valueMismatch || "Value is invalid",
-                        },
-                        styles: {
-                            "background-color-input": "#FFFFFF",
-                            "border-color-input": "#EBEBF2",
-                            "border-radius-input": "8px",
-                            "border-size-input": "1px",
-                            "color-input": "#050505",
-                            "border-color-input-error": "#ff4545",
-                            "color-label": "#050505",
-                            "position-left-label": "0.5rem",
-                            "font-size-label": "1.2rem",
-                            "font-size-message": "1rem",
-                            "space-outset-message": "0rem 0px 0px 0.5rem",
-                            // a few browser engines round up the iframe context window, making it cut off the border.
-                            // Giving it a padding helps to prevent this.
-                            "space-inset-body": "0 1px 0 0",
-                        },
-                    });
-                    window.SecureTrading.Components();
-                    window.rvvup_card_rendered = true;
-                    $('body').trigger("processStop");
-                } else {
-                    setTimeout(function () {
-                        context.render(context);
-                    }, 250);
-                }
-            },
-
-            confirmCardAuthorization: function (submitData, context, remainingRetries = 5) {
-                $.ajax({
-                    type: "POST",
-                    url: url.build('rvvup/cardpayments/confirm'),
-                    data: submitData,
-                    dataType: "json",
-                    success: function (e) {
-                        if (e.success) {
-                            context.showModal(orderPaymentAction.getCaptureUrl());
-                        } else {
-                            if (remainingRetries > 0 && e.retryable) {
-                                setTimeout(function () {
-                                    context.confirmCardAuthorization(submitData, context, remainingRetries - 1);
-                                }, 2000);
-                                return;
-                            }
-
-                            if (e.error_message == null) {
-                                messageList.addErrorMessage({
-                                    message: $t('Something went wrong')
-                                });
-                            } else {
-                                messageList.addErrorMessage({
-                                    message: $t(e.error_message)
-                                });
-                            }
-                            let data = {form_key: $.mage.cookies.get('form_key')};
-
-                            $.ajax({
-                                type: "POST",
-                                data: data,
-                                url: url.build('rvvup/payment/cancel'),
-                                complete: function (e) {
-                                    $('body').trigger("processStop");
-                                },
-                            });
-                        }
-                    },
-                });
             },
 
             getPaypalBlockBorderStyling: function () {
@@ -661,11 +523,6 @@ define([
                 setPaymentInformation(self.messageContainer, self.getData(), false).done(function () {
                     let code = self.getCode();
                     $.when(getOrderPaymentActions(self.messageContainer)).done(function () {
-                        if (code === 'rvvup_CARD' && rvvup_parameters.settings.card.flow === "INLINE") {
-                            window.SecureTrading.updateJWT(orderPaymentAction.getPaymentToken());
-                            $("#tp_place_order").trigger("click");
-                            return;
-                        }
                         if (code === 'rvvup_APPLE_PAY' && orderPaymentAction.getRedirectUrl() !== null) {
                             window.location.replace(orderPaymentAction.getRedirectUrl());
                             return;
