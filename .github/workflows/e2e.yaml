@@ -5,14 +5,6 @@ on:
   schedule:
     - cron:  '0 8 * * *'
   workflow_dispatch:
-    inputs:
-      rvvupPluginVersion:
-        description: 'Rvvup Plugin Version'
-        required: true
-        default: 'dev-main'
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 jobs:
   end-2-end-tests:
     strategy:
@@ -25,7 +17,7 @@ jobs:
 
     env:
       MAGENTO_VERSION: ${{ matrix.MAGENTO_VERSION }}
-      RVVUP_PLUGIN_VERSION: ${{ github.event.inputs.rvvupPluginVersion || format('dev-{0}', github.head_ref || github.ref_name) }}
+      RVVUP_PLUGIN_VERSION: checkout
       MAGENTO_REPO_PUBLIC_KEY: ${{ secrets.REPO_PUB_KEY }}
       MAGENTO_REPO_PRIVATE_KEY: ${{ secrets.REPO_SEC_KEY }}
       RVVUP_API_KEY: ${{ secrets.RVVUP_API_KEY }}
@@ -60,7 +52,7 @@ jobs:
         run: |
             mkdir -p logs/magento
             docker compose logs > logs/container_logs.log
-            docker cp magento-plugin-magento-1:/bitnami/magento/var/log logs/magento
+            docker compose cp magento:/bitnami/magento/var/log logs/magento
       - uses: actions/upload-artifact@v4
         if: always()
         with:

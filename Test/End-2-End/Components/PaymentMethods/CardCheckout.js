@@ -24,9 +24,9 @@ export const INLINE_DECLINED_TEST_CARD_NUMBER = "4000 0000 0000 0119";
  * src/view/frontend/web/js/view/payment/method-renderer/card.js, i.e. the Basis Theory SDK
  * fields mounted into #rvvup-card-form-container, submitted via #submit-card.
  *
- * The card number/expiry/cvc inputs themselves live inside an iframe injected by the Basis
- * Theory SDK. The exact iframe title/selector and field labels below are a best guess and are
- * marked with TODOs; confirm them against a live sandbox run and update accordingly.
+ * Basis Theory mounts one iframe per field into the container, each holding a single input.
+ * The iframes are identified by their accessible titles, e.g.
+ * "Basis Theory CardNumberElement Safe Data Frame <uuid>".
  */
 export default class CardCheckout {
   constructor(page) {
@@ -39,19 +39,22 @@ export default class CardCheckout {
     await expect(this.page.locator(CARD_FORM_CONTAINER_SELECTOR)).toBeVisible();
   }
 
-  cardFieldsFrame() {
-    // TODO: confirm the exact Basis Theory iframe selector against a live sandbox run. This
-    // assumes a single iframe is injected directly into the mount container.
-    return this.page.frameLocator(`${CARD_FORM_CONTAINER_SELECTOR} iframe`);
+  cardFieldFrame(elementName) {
+    return this.page.frameLocator(
+      `${CARD_FORM_CONTAINER_SELECTOR} iframe[title*="${elementName}"]`,
+    );
   }
 
   async fillCardDetails(cardNumber, expiry = "12/33", cvc = "123") {
-    const cardFieldsFrame = this.cardFieldsFrame();
-
-    // TODO: confirm the exact accessible labels Basis Theory renders for these fields.
-    await cardFieldsFrame.getByLabel(/card number/i).fill(cardNumber);
-    await cardFieldsFrame.getByLabel(/expiry|expiration/i).fill(expiry);
-    await cardFieldsFrame.getByLabel(/security code|cvc|cvv/i).fill(cvc);
+    await this.cardFieldFrame("CardNumberElement")
+      .getByRole("textbox")
+      .fill(cardNumber);
+    await this.cardFieldFrame("CardExpirationDateElement")
+      .getByRole("textbox")
+      .fill(expiry);
+    await this.cardFieldFrame("CardVerificationCodeElement")
+      .getByRole("textbox")
+      .fill(cvc);
   }
 
   async submit() {
