@@ -29,7 +29,7 @@ while true; do
         exit 1
     fi
 
-    http_status=$(curl -o /dev/null -s -w "%{http_code}\n" -I "$URL" || echo "000")
+    http_status=$(curl -o /dev/null -s -w "%{http_code}" -I "$URL" || true)
 
     if [ "$http_status" = "200" ]; then
         print_green "\r✔ Server Ready. Time taken: ${elapsed} seconds."
