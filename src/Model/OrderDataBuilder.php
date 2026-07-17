@@ -191,7 +191,10 @@ class OrderDataBuilder
                 "currency" => $quote->getQuoteCurrencyCode(),
             ],
             "discountTotal" => [
-                "amount" => $this->toCurrency($quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount()),
+                "amount" => $this->toCurrency(
+                    ($quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount())
+                    + (float)($quote->getShippingAddress() ? $quote->getShippingAddress()->getShippingDiscountAmount() : 0.0)
+                ),
                 "currency" => $quote->getQuoteCurrencyCode(),
             ],
             "shippingTotal" => [

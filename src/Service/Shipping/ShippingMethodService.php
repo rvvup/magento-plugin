@@ -141,13 +141,23 @@ class ShippingMethodService
         if (empty($shippingMethods)) {
             return [];
         }
+
+        // Collect totals so shipping discount amounts are populated on the shipping address before we read them.
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
+        $shippingDiscount = (float)$quote->getShippingAddress()->getShippingDiscountAmount();
+
         $returnedShippingMethods = [];
         foreach ($shippingMethods as $shippingMethod) {
             if ($shippingMethod->getErrorMessage()) {
                 continue;
             }
 
-            $returnedShippingMethods[] = new ShippingMethod($shippingMethod, $quote->getQuoteCurrencyCode());
+            $returnedShippingMethods[] = new ShippingMethod(
+                $shippingMethod,
+                $quote->getQuoteCurrencyCode(),
+                $shippingDiscount
+            );
         }
         return $returnedShippingMethods;
     }
