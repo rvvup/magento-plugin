@@ -44,13 +44,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Wait for Magento Store
-        uses: mydea/action-wait-for-api@v2.0.0
-        with:
-          url: http://local.dev.rvvuptech.com/magento_version
-          method: GET
-          expected-status: "200"
-          timeout: "500"
-          interval: "5"
+        run: bash scripts/helpers/wait-for-server-startup.sh
 
       - name: Run Playwright tests
         run: TEST_BASE_URL=http://localhost npx playwright test
