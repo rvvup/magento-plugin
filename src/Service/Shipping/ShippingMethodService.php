@@ -134,20 +134,32 @@ class ShippingMethodService
      */
     public function getAvailableShippingMethods(Quote $quote): array
     {
+        $shippingAddress = $quote->getShippingAddress();
         $shippingMethods = $this->shipmentEstimation->estimateByExtendedAddress(
             $quote->getId(),
-            $quote->getShippingAddress()
+            $shippingAddress
         );
         if (empty($shippingMethods)) {
             return [];
         }
+
+        // estimateByExtendedAddress returns pre-discount shipping prices. Read the shipping discount
+        // from the address (populated by collectTotals) so the Apple Pay sheet shows the correct net amount.
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
+        $shippingDiscount = (float) $shippingAddress->getShippingDiscountAmount();
+
         $returnedShippingMethods = [];
         foreach ($shippingMethods as $shippingMethod) {
             if ($shippingMethod->getErrorMessage()) {
                 continue;
             }
 
-            $returnedShippingMethods[] = new ShippingMethod($shippingMethod, $quote->getQuoteCurrencyCode());
+            $returnedShippingMethods[] = new ShippingMethod(
+                $shippingMethod,
+                $quote->getQuoteCurrencyCode(),
+                $shippingDiscount
+            );
         }
         return $returnedShippingMethods;
     }
