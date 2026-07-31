@@ -87,6 +87,70 @@ define([
      */
     let activeComponent = null;
 
+    /**
+     * The shopper waits on the payment from the moment they submit the card until they are
+     * redirected, but the create payment session call takes the loader down again as soon as it
+     * returns and the SDK then spends several seconds on the 3DS device check before it shows a
+     * challenge, leaving the checkout looking idle. The loader is therefore held from here for
+     * the whole journey and only taken down while the challenge is asking for shopper input.
+     *
+     * Magento's loader is reference counted, so it is held through a single outstanding
+     * start/stop pair, which lets the create payment session call raise and drop its own count
+     * underneath without the loader ever disappearing.
+     */
+    let paymentInProgress = false;
+    let loaderHeld = false;
+
+    function holdLoader() {
+        if (loaderHeld) {
+            return;
+        }
+        loaderHeld = true;
+        loader.startLoader();
+    }
+
+    function releaseLoader() {
+        if (!loaderHeld) {
+            return;
+        }
+        loaderHeld = false;
+        loader.stopLoader(true);
+    }
+
+    function startPayment() {
+        paymentInProgress = true;
+        holdLoader();
+    }
+
+    function endPayment() {
+        paymentInProgress = false;
+        releaseLoader();
+    }
+
+    /**
+     * The SDK renders the 3DS challenge into #challengeFrameContainer and emits no event for
+     * it, so the container is watched directly.
+     */
+    function isChallengeOpen() {
+        return document.getElementById('challengeIframe') !== null;
+    }
+
+    let challengeOpen = false;
+
+    new MutationObserver(function () {
+        if (isChallengeOpen() === challengeOpen) {
+            return;
+        }
+        challengeOpen = !challengeOpen;
+        if (challengeOpen) {
+            releaseLoader();
+            return;
+        }
+        if (paymentInProgress) {
+            holdLoader();
+        }
+    }).observe(document.body, {childList: true, subtree: true});
+
     let cardReadyPromise = cardPromise.then(function (card) {
         return new Promise(function (resolve) {
             if (!card) {
@@ -101,7 +165,12 @@ define([
             return;
         }
         card.on("validate", async () => {
-            return placeOrderHelpers.validate(activeComponent, additionalValidators);
+            let valid = placeOrderHelpers.validate(activeComponent, additionalValidators);
+            if (!valid) {
+                endPayment();
+                activeComponent.formReady(true);
+            }
+            return valid;
         });
         card.on("beforePaymentAuth", async () => {
             return await activeComponent.beforePayment(activeComponent)
@@ -113,7 +182,7 @@ define([
             activeComponent.paymentAuthorized();
         });
         card.on("paymentFailed", (data) => {
-            loader.stopLoader();
+            endPayment();
             activeComponent.formReady(true);
             errorProcessor.process({
                     responseText: JSON.stringify({
@@ -124,7 +193,7 @@ define([
         });
         card.on("error", (err) => {
             console.error("Card payment error", err);
-            loader.stopLoader();
+            endPayment();
             activeComponent.formReady(true);
             errorProcessor.process({
                     responseText:
@@ -168,6 +237,7 @@ define([
                     return;
                 }
                 this.formReady(false);
+                startPayment();
                 cardPromise.then(function (card) {
                     card.update({paymentRequest: {total: getQuoteTotal()}});
                     card.submit();
@@ -205,7 +275,7 @@ define([
                         },
                         component.messageContainer);
                     console.error("Error creating payment", e);
-                    loader.stopLoader();
+                    endPayment();
                     component.formReady(true);
                     return false;
                 }

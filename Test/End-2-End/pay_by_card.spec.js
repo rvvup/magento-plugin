@@ -4,9 +4,10 @@ import OrderConfirmation from "./Components/OrderConfirmation";
 import CardCheckout, {
   CARD_FORM_CONTAINER_SELECTOR,
   CARD_SUBMIT_BUTTON_SELECTOR,
-  BASIS_THEORY_3DS_TEST_CARD_NUMBER,
   INLINE_DECLINED_TEST_CARD_NUMBER,
   FOUR_ONE_ONE_ONE_TEST_CARD_NUMBER,
+  THREE_DS_TEST_CARD_NUMBER,
+  THREE_DS_CHALLENGE_IFRAME_SELECTOR,
 } from "./Components/PaymentMethods/CardCheckout";
 import HostedCardCheckout from "./Components/PaymentMethods/HostedCardCheckout";
 import CheckoutPage from "./Components/CheckoutPage";
@@ -17,18 +18,26 @@ import GoTo from "./Components/GoTo";
 // reads the flow from the checkout page and skips itself when the other flow is active.
 async function skipUnlessCardFlowIs(page, expectedFlow) {
   // rvvup_parameters is a const in a page script, so it is a lexical global that is
-  // not reachable through the window object.
-  const flow = await page.evaluate(() => {
-    try {
-      return rvvup_parameters?.settings?.card?.flow ?? null;
-    } catch (ignored) {
-      return null;
-    }
-  });
-  expect(
-    flow,
-    "the card method is missing from the checkout, the store cannot reach the Rvvup API",
-  ).not.toBeNull();
+  // not reachable through the window object. The settings it carries arrive with the
+  // payment method list, which can land after the payment step renders, so this polls
+  // instead of reading once and failing the whole test on a slow response.
+  const readCardFlow = () =>
+    page.evaluate(() => {
+      try {
+        return rvvup_parameters?.settings?.card?.flow ?? null;
+      } catch (ignored) {
+        return null;
+      }
+    });
+
+  await expect
+    .poll(readCardFlow, {
+      message:
+        "the card method is missing from the checkout, the store cannot reach the Rvvup API",
+    })
+    .not.toBeNull();
+
+  const flow = await readCardFlow();
   test.skip(
     flow !== expectedFlow,
     `merchant account uses the ${flow} card flow`,
@@ -134,21 +143,75 @@ test.describe("inline card flow (Basis Theory SDK)", () => {
     await expect(page.locator("#order_status")).toHaveText("Processing");
   });
 
-  // Marked fixme until Rvvup confirms the 3DS and decline test cards and the
-  // selectors they produce, see the TODOs in Components/PaymentMethods/CardCheckout.js.
-  test.fixme(
-    "it opens the 3ds journey for an inline 3ds test card and reports the decline to the shopper",
-    async ({ page }) => {
-      await new VisitCheckoutPayment(page).visit();
+  test("it completes an inline card payment end to end through the 3ds challenge", async ({
+    page,
+  }) => {
+    await new VisitCheckoutPayment(page).visit();
+    await skipUnlessCardFlowIs(page, "INLINE");
 
-      const cardCheckout = new CardCheckout(page);
-      await cardCheckout.checkoutUsingCard(BASIS_THEORY_3DS_TEST_CARD_NUMBER);
+    await new CardCheckout(page).checkoutUsingThreeDsCard();
 
-      await cardCheckout.expectThreeDsChallengeToOpen();
-      // The 3DS journey is expected to end in a decline, see CARD_TESTING.md for why.
-      await cardCheckout.expectDeclineMessageToBeShown();
-    },
-  );
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
+  });
+
+  test("it registers the 3ds card order as processing in the admin", async ({
+    page,
+  }) => {
+    await new VisitCheckoutPayment(page).visit();
+    await skipUnlessCardFlowIs(page, "INLINE");
+
+    await new CardCheckout(page).checkoutUsingThreeDsCard();
+    const orderId = await new OrderConfirmation(
+      page,
+    ).expectOnOrderConfirmation();
+
+    await new GoTo(page).admin("e2e-tests-order-status").order(orderId);
+
+    await expect(page.locator("#order_status")).toHaveText("Processing");
+  });
+
+  test("it keeps a loader on screen from card submit until the 3ds challenge opens", async ({
+    page,
+  }) => {
+    await new VisitCheckoutPayment(page).visit();
+    await skipUnlessCardFlowIs(page, "INLINE");
+
+    const cardCheckout = new CardCheckout(page);
+    await cardCheckout.selectCard();
+    await cardCheckout.fillCardDetails(THREE_DS_TEST_CARD_NUMBER);
+    await cardCheckout.submit();
+
+    expect(await cardCheckout.findLoaderGapsBeforeThreeDsChallenge()).toEqual(
+      [],
+    );
+
+    // The challenge asks the shopper for input, so the loader steps aside for it and comes
+    // back once they have answered and the payment is being authorised.
+    await expect(cardCheckout.loaderLocator()).toBeHidden();
+
+    await cardCheckout.completeThreeDsChallenge();
+
+    await new OrderConfirmation(page).expectOnOrderConfirmation();
+  });
+
+  // Cancelling the challenge does not surface a shopper facing message today, the SDK only
+  // hands the card form back. This test pins the recovery behaviour, not the messaging.
+  test("it hands the card form back when the 3ds challenge is cancelled", async ({
+    page,
+  }) => {
+    await new VisitCheckoutPayment(page).visit();
+    await skipUnlessCardFlowIs(page, "INLINE");
+
+    const cardCheckout = new CardCheckout(page);
+    await cardCheckout.checkoutUsingCard(THREE_DS_TEST_CARD_NUMBER);
+    await cardCheckout.cancelThreeDsChallenge();
+
+    await expect(
+      page.locator(THREE_DS_CHALLENGE_IFRAME_SELECTOR),
+    ).not.toBeVisible();
+    await expect(page.locator(CARD_SUBMIT_BUTTON_SELECTOR)).toBeEnabled();
+    await expect(cardCheckout.loaderLocator()).toBeHidden();
+  });
 
   test.fixme(
     "it shows a shopper facing message when the inline payment is declined",

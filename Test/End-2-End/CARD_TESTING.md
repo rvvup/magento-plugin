@@ -63,47 +63,49 @@ Covered by:
 - `it completes an inline card payment end to end with the 4111 test card`
 - `it still completes a hosted card payment through the modal flow`
 
-### 3DS test cards - expected decline
+### 4761 3699 8032 0253 - 3DS challenge happy path
 
-Basis Theory publishes 3DS test cards at
-https://developers.basistheory.com/docs/api/testing#3ds-test-cards. Use one of those numbers to
-trigger the 3DS journey.
+This card runs the full 3DS challenge journey and then authorises:
 
-Expected result:
-- The 3DS challenge journey opens (a challenge iframe/redirect is shown to the shopper).
-- The acquirer declines the payment. This is visible as a reject on the `/card/auth` path on
-  `api.dev.rvvuptech.com` (check the Rvvup sandbox logs/dashboard for that merchant).
-- The plugin surfaces a shopper-facing failure message (no silent failure) and does **not**
-  throw any JavaScript errors in the browser console.
+1. Add a product to the cart and go to checkout.
+2. Fill in shipping details and select "Pay by Card".
+3. Enter card number `4761 3699 8032 0253`, any future expiry (e.g. `12/33`) and any CVC
+   (e.g. `123`).
+4. Submit the payment.
+5. The challenge opens in `iframe#challengeIframe`, which embeds Basis Theory's
+   `3ds.basistheory.com/pages/challenge.html`, which in turn embeds the acquirer's ACS page
+   (`acs.ravelin.com`). Enter passcode `1234` (the sandbox ACS shows it as the input's
+   placeholder, "hint: 1234") and press Submit.
 
-**Important caveat:** Basis Theory's test card matrix is not yet perfectly aligned with the
-acquirer's own test cards. As of this writing, a 3DS test card is expected to run the 3DS
-journey and then be declined by the acquirer - that decline is the expected, successful outcome
-of this test, not a bug. Do not treat the decline itself as a failure; treat a missing 3DS
-journey, a silent failure, or a JS error as a failure.
+Expected result: the same as the frictionless card, the order is placed, the shopper is
+redirected to the Rvvup return URL and the confirmation page is shown, with the order in
+Processing.
+
+The full screen loader stays up for the whole journey, including the several seconds the SDK
+spends on the 3DS device check before the challenge appears. It steps aside only while the
+challenge is on screen asking the shopper for input, and comes back once they have answered.
+
+Cancelling the challenge instead returns the shopper to the checkout with the card form usable
+again. No shopper-facing message is shown for a cancellation today.
 
 Covered by:
-- `it opens the 3ds journey for an inline 3ds test card and reports the decline to the shopper`
-- `it shows a shopper facing message when the inline payment is declined`
+- `it completes an inline card payment end to end through the 3ds challenge`
+- `it registers the 3ds card order as processing in the admin`
+- `it keeps a loader on screen from card submit until the 3ds challenge opens`
+- `it hands the card form back when the 3ds challenge is cancelled`
 
 ## Known TODOs before running against a live sandbox
 
-The Basis Theory card fields and the hosted card page are rendered by third parties (Basis
-Theory's SDK, Rvvup's hosted page) and their exact DOM structure was not available while
-authoring these specs. Before running the suite, confirm and update the following in
-`Test/End-2-End/Components/PaymentMethods/CardCheckout.js` and
-`Test/End-2-End/Components/PaymentMethods/HostedCardCheckout.js`:
+The inline card selectors in `Test/End-2-End/Components/PaymentMethods/CardCheckout.js` (Basis
+Theory field iframes, the `#challengeIframe` 3DS challenge and the ACS passcode form) were
+confirmed against the sandbox. Still open:
 
-- The Basis Theory iframe selector/title mounted into `#rvvup-card-form-container`
-  (currently guessed as `${CARD_FORM_CONTAINER_SELECTOR} iframe`).
-- The accessible labels Basis Theory renders for card number / expiry / CVC fields.
-- The 3DS challenge iframe title/selector (currently guessed as
-  `iframe[title="3DS Challenge"]`).
 - Whether the hosted card page (inside `#rvvup_iframe-rvvup_CARD`) still exposes the pre-SDK
   SecureTrading-style card iframes (`.st-card-number-iframe` etc.) assumed in
   `HostedCardCheckout.js`, and the exact submit button label.
-- The current Basis Theory 3DS test card number(s) and a card number that reliably declines
-  without a 3DS challenge, both currently placeholders in `CardCheckout.js`.
+- A card number that reliably declines without a 3DS challenge, so the decline path can be
+  asserted independently of the 3DS journey. `INLINE_DECLINED_TEST_CARD_NUMBER` in
+  `CardCheckout.js` is still a placeholder and its test is `fixme`.
 
 ## Running the suite
 

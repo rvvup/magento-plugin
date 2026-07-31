@@ -66,15 +66,16 @@ class GoToAdmin {
       ),
     ).not.toBeVisible();
     await this.page.getByRole("button", { name: "Search" }).click();
-    await expect(this.page.locator("#container")).toContainText(
-      "1 records found",
-    );
     await expect(
       this.page.locator(
         "#container > .admin__data-grid-outer-wrap > .admin__data-grid-loading-mask > .spinner",
       ),
     ).not.toBeVisible();
-    await this.page.getByRole("link", { name: "View" }).click();
+    // The grid's own "N records found" text settles before its rows do, and asserting on it
+    // also matches "21 records found", so the order's row is waited for and opened directly.
+    const orderRow = this.page.getByRole("row", { name: orderId });
+    await expect(orderRow).toHaveCount(1);
+    await orderRow.getByRole("link", { name: "View" }).click();
   }
 
   async creditMemoForOrder(orderId) {
