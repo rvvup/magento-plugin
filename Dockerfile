@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     vim \
     jq \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["/rvvup/scripts/entrypoint.sh"]
