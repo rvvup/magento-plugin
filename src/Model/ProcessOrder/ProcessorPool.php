@@ -26,15 +26,22 @@ class ProcessorPool
 
     /**
      * @param string $status
+     * @return ProcessorInterface|null
+     */
+    public function findProcessor(string $status): ?ProcessorInterface
+    {
+        return $this->processors[$status] ?? null;
+    }
+
+    /**
+     * @param string $status
      * @return ProcessorInterface
      * @throws LocalizedException
      */
     public function getProcessor(string $status): ProcessorInterface
     {
-        if (isset($this->processors[$status])) {
-            return $this->processors[$status];
-        }
-        throw new LocalizedException(__('No OrderProcessor for status %1', $status));
+        return $this->findProcessor($status)
+            ?? throw new LocalizedException(__('No OrderProcessor for status %1', $status));
     }
 
     /**

@@ -43,6 +43,31 @@ is configured for is the one that will actually pass; the other block's tests ar
 fail (or need to be skipped) until you switch merchants, since flow selection is entirely
 server-side and cannot be toggled per test run.
 
+## Automatic vs manual capture
+
+Capture type is the other merchant-side switch that changes what a passing test looks like. Like
+the flow it lives on the merchant record, is read from the `RVVUP_API_KEY` the store is pointed
+at, and cannot be changed per test run.
+
+- **Automatic capture** (`AUTOMATIC_CHECKOUT` / `AUTOMATIC_PLUGIN`) - the return trip invoices the
+  order (`src/Model/ProcessOrder/Complete.php`) and the admin order status becomes **Processing**.
+- **Manual capture** (`MANUAL`) - the payment is only authorised. The order is parked in **Pending
+  Payment** (`src/Model/ProcessOrder/Processing.php`) with a history notice reading "Please capture
+  the funds manually using the Rvvup Dashboard/by invoicing the order in magento.", and the funds
+  are captured later from the Rvvup Dashboard or by invoicing the order in the admin.
+
+Both outcomes are correct, so `it reflects the inline card payment in the admin order status` and
+its 3DS sibling assert whichever one matches the merchant. They read the capture type from that
+history notice rather than from configuration, because the notice is written only when the payment
+actually authorised under manual capture. Pending Payment *without* the notice is a real failure:
+that is also where a payment that never authorised ends up. The Playwright report records the
+observed capture type as a `capture type` annotation on the test, so a green run still tells you
+which mode it exercised.
+
+Known merchants at the time of writing: the `rvvup/magento-plugin` CI merchant is `MANUAL`, while
+the `controlaltdelete-nl/rvvup-magento` CI merchant and the local ddev sandbox are automatic. That
+is why the same commit exercises a different branch of these two tests in each environment.
+
 ## Test cards and expected outcomes
 
 ### 4111 1111 1111 1111 - happy path
@@ -61,6 +86,7 @@ order confirmation page ("Thank you for your purchase!") is shown with a complet
 Covered by:
 - `it renders the inline sdk card fields on the checkout payment step`
 - `it completes an inline card payment end to end with the 4111 test card`
+- `it reflects the inline card payment in the admin order status`
 - `it still completes a hosted card payment through the modal flow`
 
 ### 4761 3699 8032 0253 - 3DS challenge happy path
@@ -90,7 +116,7 @@ again. No shopper-facing message is shown for a cancellation today.
 
 Covered by:
 - `it completes an inline card payment end to end through the 3ds challenge`
-- `it registers the 3ds card order as processing in the admin`
+- `it reflects the 3ds card payment in the admin order status`
 - `it keeps a loader on screen from card submit until the 3ds challenge opens`
 - `it hands the card form back when the 3ds challenge is cancelled`
 

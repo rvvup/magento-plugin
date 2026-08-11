@@ -44,6 +44,30 @@ async function skipUnlessCardFlowIs(page, expectedFlow) {
   );
 }
 
+// Only written once the payment authorised on a manual capture merchant, so its presence is what
+// tells the two capture types apart, see Test/End-2-End/CARD_TESTING.md.
+const MANUAL_CAPTURE_NOTICE = /capture the funds manually/i;
+
+const STATUS_UPDATE_FAILURE_NOTICE = /Failed to update Magento order/i;
+
+async function expectOrderToReflectTheCardPayment(page, orderId) {
+  await new GoTo(page).admin("e2e-tests-order-status").order(orderId);
+  await expect(page.locator("#order_status")).toBeVisible();
+
+  const isManualCapture =
+    (await page.getByText(MANUAL_CAPTURE_NOTICE).count()) > 0;
+
+  test.info().annotations.push({
+    type: "capture type",
+    description: isManualCapture ? "MANUAL" : "AUTOMATIC",
+  });
+
+  await expect(page.locator("#order_status")).toHaveText(
+    isManualCapture ? "Pending Payment" : "Processing",
+  );
+  await expect(page.getByText(STATUS_UPDATE_FAILURE_NOTICE)).toHaveCount(0);
+}
+
 test.describe("inline card flow (Basis Theory SDK)", () => {
   test("it renders the inline sdk card fields on the checkout payment step", async ({
     page,
@@ -127,7 +151,7 @@ test.describe("inline card flow (Basis Theory SDK)", () => {
     await new OrderConfirmation(page).expectOnOrderConfirmation();
   });
 
-  test("it registers the inline card order as processing in the admin", async ({
+  test("it reflects the inline card payment in the admin order status", async ({
     page,
   }) => {
     await new VisitCheckoutPayment(page).visit();
@@ -138,9 +162,7 @@ test.describe("inline card flow (Basis Theory SDK)", () => {
       page,
     ).expectOnOrderConfirmation();
 
-    await new GoTo(page).admin("e2e-tests-order-status").order(orderId);
-
-    await expect(page.locator("#order_status")).toHaveText("Processing");
+    await expectOrderToReflectTheCardPayment(page, orderId);
   });
 
   test("it completes an inline card payment end to end through the 3ds challenge", async ({
@@ -154,7 +176,7 @@ test.describe("inline card flow (Basis Theory SDK)", () => {
     await new OrderConfirmation(page).expectOnOrderConfirmation();
   });
 
-  test("it registers the 3ds card order as processing in the admin", async ({
+  test("it reflects the 3ds card payment in the admin order status", async ({
     page,
   }) => {
     await new VisitCheckoutPayment(page).visit();
@@ -165,9 +187,7 @@ test.describe("inline card flow (Basis Theory SDK)", () => {
       page,
     ).expectOnOrderConfirmation();
 
-    await new GoTo(page).admin("e2e-tests-order-status").order(orderId);
-
-    await expect(page.locator("#order_status")).toHaveText("Processing");
+    await expectOrderToReflectTheCardPayment(page, orderId);
   });
 
   test("it keeps a loader on screen from card submit until the 3ds challenge opens", async ({
