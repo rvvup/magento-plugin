@@ -7,7 +7,6 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Magento\Store\Model\App\Emulation;
 use PHPUnit\Framework\TestCase;
 use Rvvup\Payments\Api\Data\ValidationInterface;
@@ -15,13 +14,12 @@ use Rvvup\Payments\Api\Data\WebhookInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Model\Logger;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
-use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\Queue\Handler\Handler;
 use Rvvup\Payments\Model\Queue\QueueContextCleaner;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
-use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Card\CardMetaService;
+use Rvvup\Payments\Service\Order\ProcessOrder;
 
 class HandlerTest extends TestCase
 {
@@ -34,6 +32,7 @@ class HandlerTest extends TestCase
     private $cartRepository;
     private $queueContextCleaner;
     private $cardMetaService;
+    private $processOrderService;
 
     private $quoteMock;
     private $methodInstanceMock;
@@ -44,33 +43,29 @@ class HandlerTest extends TestCase
         $this->webhookRepository = $this->createMock(WebhookRepositoryInterface::class);
         $serializer = new Json();
         $this->paymentDataGet = $this->createMock(PaymentDataGetInterface::class);
-        $processorPool = $this->createMock(ProcessorPool::class);
         $this->logger = $this->createMock(Logger::class);
         $this->captureService = $this->createMock(Capture::class);
-        $paymentResource = $this->createMock(Payment::class);
-        $cacheService = $this->createMock(Cache::class);
         $json = new Json();
         $emulation = $this->createMock(Emulation::class);
         $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $this->cartRepository = $this->createMock(CartRepositoryInterface::class);
         $this->queueContextCleaner = $this->createMock(QueueContextCleaner::class);
         $this->cardMetaService = $this->createMock(CardMetaService::class);
+        $this->processOrderService = $this->createMock(ProcessOrder::class);
 
         $this->handler = new Handler(
             $this->webhookRepository,
             $serializer,
             $this->paymentDataGet,
-            $processorPool,
             $this->logger,
-            $paymentResource,
-            $cacheService,
             $this->captureService,
             $emulation,
             $json,
             $this->orderRepository,
             $this->cartRepository,
             $this->queueContextCleaner,
-            $this->cardMetaService
+            $this->cardMetaService,
+            $this->processOrderService
         );
 
         $this->quoteMock = $this->createMock(Quote::class);
@@ -215,6 +210,30 @@ class HandlerTest extends TestCase
         $this->methodInstanceMock->method('getCaptureType')->willReturn('AUTOMATIC_PLUGIN');
         // Assert that we do NOT call the card meta service
         $this->cardMetaService->expects($this->never())->method('process');
+
+        $this->handler->execute(json_encode(['id' => 1]));
+    }
+
+    public function testStandardEventDelegatesToProcessOrderService()
+    {
+        $payload = [
+            'event_type' => WebhookEventType::PAYMENT_COMPLETED,
+            'order_id' => 'OR123',
+            'payment_id' => 'PA123',
+            'store_id' => 3,
+            'checkout_id' => false,
+            'payment_link_id' => false,
+            'origin' => 'webhook',
+            'application_source' => 'MAGENTO_CHECKOUT',
+        ];
+        $webhook = new WebhookStub(1, json_encode($payload));
+        $this->webhookRepository->method('getById')->willReturn($webhook);
+        $this->captureService->method('getOrderByRvvupId')->with('OR123')->willReturn($this->orderMock);
+        $this->orderMock->method('getId')->willReturn(42);
+
+        $this->processOrderService->expects($this->once())
+            ->method('execute')
+            ->with($this->orderMock, 'OR123', 'PA123', 'webhook', '3');
 
         $this->handler->execute(json_encode(['id' => 1]));
     }

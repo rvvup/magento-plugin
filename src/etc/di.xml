@@ -335,6 +335,12 @@
         </arguments>
     </type>
 
+    <type name="Rvvup\Payments\Service\Order\ProcessOrder">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+
     <type name="Rvvup\Payments\Service\Result">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>

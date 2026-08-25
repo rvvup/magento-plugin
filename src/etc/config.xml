@@ -43,6 +43,11 @@
                 <email>
                     <pay_by_link><![CDATA[This order requires payment, please pay using following button: ]]></pay_by_link>
                 </email>
+                <order_reconciliation>
+                    <enabled>1</enabled>
+                    <batch_size>50</batch_size>
+                    <lookback_hours>48</lookback_hours>
+                </order_reconciliation>
             </rvvup>
             <rvvup_payment-link>
                 <active>1</active>

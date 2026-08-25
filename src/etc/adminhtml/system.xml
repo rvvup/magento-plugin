@@ -84,6 +84,32 @@
                     </field>
                     <comment>This settings will be used as styling for paypal buttons</comment>
                 </group>
+                <group id="order_reconciliation" sortOrder="125" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Order Reconciliation</label>
+                    <comment>Fallback cron that recovers Rvvup orders stuck in Pending Payment when the
+                        webhook message queue consumer is not running. It only acts on already-stuck orders
+                        with a terminal Rvvup status, so it is safe to leave enabled.</comment>
+                    <field id="enabled" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enable Reconciliation Cron</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="batch_size" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Batch Size</label>
+                        <comment>Maximum number of orders processed per cron run.</comment>
+                        <frontend_class>validate-number validate-greater-than-zero</frontend_class>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="lookback_hours" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Lookback Window (hours)</label>
+                        <comment>Only orders created within this many hours are considered.</comment>
+                        <frontend_class>validate-number validate-greater-than-zero</frontend_class>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                </group>
                 <group id="email" sortOrder="130" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Email Configuration</label>
                     <field id="pay_by_link" type="text" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
