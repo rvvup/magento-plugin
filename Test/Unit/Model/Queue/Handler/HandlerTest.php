@@ -228,12 +228,17 @@ class HandlerTest extends TestCase
         ];
         $webhook = new WebhookStub(1, json_encode($payload));
         $this->webhookRepository->method('getById')->willReturn($webhook);
-        $this->captureService->method('getOrderByRvvupId')->with('OR123')->willReturn($this->orderMock);
-        $this->orderMock->method('getId')->willReturn(42);
+
+        $order = $this->getMockBuilder(\Magento\Sales\Model\Order::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getId'])
+            ->getMock();
+        $order->method('getId')->willReturn(42);
+        $this->captureService->method('getOrderByRvvupId')->with('OR123')->willReturn($order);
 
         $this->processOrderService->expects($this->once())
             ->method('execute')
-            ->with($this->orderMock, 'OR123', 'PA123', 'webhook', '3');
+            ->with($order, 'OR123', 'PA123', 'webhook', '3');
 
         $this->handler->execute(json_encode(['id' => 1]));
     }

@@ -115,8 +115,9 @@ class ProcessOrderTest extends TestCase
      */
     private function createOrderMock(string $method)
     {
-        $payment = $this->getMockBuilder('stdClass')
-            ->addMethods(['getMethod', 'setAdditionalInformation'])
+        $payment = $this->getMockBuilder(\Magento\Sales\Model\Order\Payment::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getMethod', 'setAdditionalInformation'])
             ->getMock();
         $payment->method('getMethod')->willReturn($method);
 
