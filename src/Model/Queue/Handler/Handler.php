@@ -10,19 +10,16 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\ResourceModel\Order\Payment;
 use Magento\Store\Model\App\Emulation;
 use Psr\Log\LoggerInterface;
 use Rvvup\Payments\Api\WebhookRepositoryInterface;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
-use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Model\Queue\QueueContextCleaner;
-use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Model\Webhook\WebhookEventType;
-use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Card\CardMetaService;
+use Rvvup\Payments\Service\Order\ProcessOrder;
 
 class Handler
 {
@@ -35,20 +32,11 @@ class Handler
     /** @var PaymentDataGetInterface */
     private $paymentDataGet;
 
-    /** @var ProcessorPool */
-    private $processorPool;
-
     /** @var LoggerInterface */
     private $logger;
 
     /** @var Capture  */
     private $captureService;
-
-    /** @var Payment */
-    private $paymentResource;
-
-    /** @var Cache */
-    private $cacheService;
 
     /** @var Json */
     private $json;
@@ -68,14 +56,14 @@ class Handler
     /** @var CardMetaService */
     private $cardMetaService;
 
+    /** @var ProcessOrder */
+    private $processOrderService;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
      * @param PaymentDataGetInterface $paymentDataGet
-     * @param ProcessorPool $processorPool
      * @param LoggerInterface $logger
-     * @param Payment $paymentResource
-     * @param Cache $cacheService
      * @param Capture $captureService
      * @param Emulation $emulation
      * @param Json $json
@@ -83,30 +71,26 @@ class Handler
      * @param CartRepositoryInterface $cartRepository
      * @param QueueContextCleaner $queueContextCleaner
      * @param CardMetaService $cardMetaService
+     * @param ProcessOrder $processOrderService
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
         SerializerInterface $serializer,
         PaymentDataGetInterface $paymentDataGet,
-        ProcessorPool $processorPool,
         LoggerInterface $logger,
-        Payment $paymentResource,
-        Cache $cacheService,
         Capture $captureService,
         Emulation $emulation,
         Json $json,
         OrderRepositoryInterface $orderRepository,
         CartRepositoryInterface $cartRepository,
         QueueContextCleaner $queueContextCleaner,
-        CardMetaService $cardMetaService
+        CardMetaService $cardMetaService,
+        ProcessOrder $processOrderService
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
         $this->paymentDataGet = $paymentDataGet;
-        $this->processorPool = $processorPool;
         $this->captureService = $captureService;
-        $this->paymentResource = $paymentResource;
-        $this->cacheService = $cacheService;
         $this->logger = $logger;
         $this->emulation = $emulation;
         $this->json = $json;
@@ -114,6 +98,7 @@ class Handler
         $this->cartRepository = $cartRepository;
         $this->queueContextCleaner = $queueContextCleaner;
         $this->cardMetaService = $cardMetaService;
+        $this->processOrderService = $processOrderService;
     }
 
     /**
@@ -277,40 +262,6 @@ class Handler
         string $origin,
         string $storeId
     ): void {
-        // if Payment method is not Rvvup, exit.
-        if (strpos($order->getPayment()->getMethod(), Method::PAYMENT_TITLE_PREFIX) !== 0) {
-            if (strpos($order->getPayment()->getMethod(), RvvupConfigProvider::CODE) !== 0) {
-                return;
-            }
-        }
-
-        $rvvupData = $this->paymentDataGet->execute($rvvupOrderId, $storeId);
-        if (empty($rvvupData) || !isset($rvvupData['payments'][0]['status'])) {
-            $this->logger->error('Webhook error. Rvvup order data could not be fetched.', [
-                    Method::ORDER_ID => $rvvupOrderId
-                ]);
-            return;
-        }
-        $payment = $order->getPayment();
-        $dashboardUrl = $rvvupData['dashboardUrl'] ?? '';
-        $payment->setAdditionalInformation(Method::ORDER_ID, $rvvupOrderId);
-        $payment->setAdditionalInformation(Method::PAYMENT_ID, $rvvupPaymentId);
-        $payment->setAdditionalInformation(Method::DASHBOARD_URL, $dashboardUrl);
-        $this->cardMetaService->process($rvvupData['payments'][0], $order);
-        $this->paymentResource->save($payment);
-        $this->cacheService->clear($rvvupOrderId, $order->getState());
-        if ($order->getPayment()->getMethod() == 'rvvup_payment-link') {
-            $this->processorPool->getPaymentLinkProcessor($rvvupData['payments'][0]['status'])->execute(
-                $order,
-                $rvvupData,
-                $origin
-            );
-        } else {
-            $this->processorPool->getProcessor($rvvupData['payments'][0]['status'])->execute(
-                $order,
-                $rvvupData,
-                $origin
-            );
-        }
+        $this->processOrderService->execute($order, $rvvupOrderId, $rvvupPaymentId, $origin, $storeId);
     }
 }

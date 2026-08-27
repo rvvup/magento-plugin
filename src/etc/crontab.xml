@@ -14,5 +14,8 @@
         <job name="rvvup_processed_webhooks_cleaner" instance="Rvvup\Payments\Cron\ProcessedWebhooksCleaner" method="execute">
             <schedule>15 2 * * *</schedule>
         </job>
+        <job name="rvvup_reconcile_pending_orders" instance="Rvvup\Payments\Cron\ReconcilePendingOrders" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
     </group>
 </config>
