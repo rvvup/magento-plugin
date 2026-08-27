@@ -71,7 +71,17 @@
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
         </arguments>
     </type>
+    <type name="Rvvup\Payments\Controller\Checkout\CreateOnDemand">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
     <!-- View Models -->
+    <type name="Rvvup\Payments\ViewModel\ApplePayPdp">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
     <type name="Rvvup\Payments\ViewModel\Clearpay">
         <arguments>
             <argument name="session" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
