@@ -50,6 +50,7 @@ class ReconcilePendingOrdersTest extends TestCase
 
         $select = $this->createMock(Select::class);
         $select->method('join')->willReturnSelf();
+        $select->method('order')->willReturnSelf();
         $select->method('limit')->willReturnSelf();
 
         $this->collection = $this->getMockBuilder(Collection::class)
@@ -140,6 +141,58 @@ class ReconcilePendingOrdersTest extends TestCase
         $this->emulation->expects($this->exactly(2))->method('stopEnvironmentEmulation');
         // ...and the good order is still processed.
         $this->processOrderService->expects($this->exactly(2))->method('execute');
+
+        $this->cron->execute();
+    }
+
+    public function testSkipsOrderWithNullPayment(): void
+    {
+        $this->enable();
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getPayment')->willReturn(null);
+        $this->collection->method('getItems')->willReturn([$order]);
+
+        $this->processOrderService->expects($this->never())->method('execute');
+
+        $this->cron->execute();
+    }
+
+    public function testSkipsOrderWithStoreIdZero(): void
+    {
+        $this->enable();
+        $order = $this->createOrder('OR123', 'PA123', 0, 99);
+        $this->collection->method('getItems')->willReturn([$order]);
+
+        $this->processOrderService->expects($this->never())->method('execute');
+
+        $this->cron->execute();
+    }
+
+    public function testUsesDefaultBatchSizeWhenConfigReturnsZero(): void
+    {
+        $this->scopeConfig->method('isSetFlag')
+            ->with(ReconcilePendingOrders::XML_PATH_ENABLED)
+            ->willReturn(true);
+        $this->scopeConfig->method('getValue')->willReturn('0');
+        $this->collection->method('getItems')->willReturn([]);
+
+        $select = $this->collection->getSelect();
+        // limit() must still be called — with the default 50, not 0
+        $select->expects($this->once())->method('limit')->with(50)->willReturnSelf();
+
+        $this->cron->execute();
+    }
+
+    public function testQueryOrdersByCreatedAtAscending(): void
+    {
+        $this->enable();
+        $this->collection->method('getItems')->willReturn([]);
+
+        $select = $this->collection->getSelect();
+        $select->expects($this->once())
+            ->method('order')
+            ->with('main_table.created_at ASC')
+            ->willReturnSelf();
 
         $this->cron->execute();
     }

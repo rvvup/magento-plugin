@@ -12,14 +12,17 @@ use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollection
 use Magento\Store\Model\App\Emulation;
 use Rvvup\Payments\Gateway\Method;
 use Rvvup\Payments\Model\Logger;
+use Rvvup\Payments\Model\RvvupConfigProvider;
 use Rvvup\Payments\Service\Order\ProcessOrder;
 
 /**
  * Self-healing reconciliation cron.
  *
- * Recovers Rvvup orders that are stuck in `pending_payment` because the async PAYMENT_COMPLETED
- * webhook was never consumed off the message queue (e.g. on merchant environments where the MQ
- * consumer is not running and only cron is available).
+ * Recovers Rvvup orders that are stuck in `pending_payment` due to the webhook race condition:
+ * when PAYMENT_AUTHORIZED and PAYMENT_COMPLETED are published to the message queue in the same
+ * cron window and PAYMENT_COMPLETED is consumed before PAYMENT_AUTHORIZED finishes creating the
+ * order, getOrderByRvvupId() finds nothing, throws PaymentValidationException, and the exception
+ * is swallowed — leaving the order permanently stuck.
  *
  * For each stuck order it fetches the live Rvvup payment status and routes the order through the
  * same processing logic used by the webhook queue handler
@@ -175,13 +178,14 @@ class ReconcilePendingOrders
             []
         );
         $collection->addFieldToFilter('main_table.state', Order::STATE_PENDING_PAYMENT);
-        $collection->addFieldToFilter('sop.method', ['like' => Method::PAYMENT_TITLE_PREFIX . '%']);
+        $collection->addFieldToFilter('sop.method', ['like' => RvvupConfigProvider::CODE . '%']);
         $collection->addFieldToFilter(
             'sop.additional_information',
             ['like' => '%' . Method::ORDER_ID . '%']
         );
         $collection->addFieldToFilter('main_table.created_at', ['lteq' => $olderThan]);
         $collection->addFieldToFilter('main_table.created_at', ['gteq' => $lookbackStart]);
+        $collection->getSelect()->order('main_table.created_at ASC');
         $collection->getSelect()->limit($this->getBatchSize());
 
         return $collection;
