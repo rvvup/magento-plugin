@@ -84,8 +84,9 @@ class ShippingMethodTest extends TestCase
 
     public function testLabelIsUnaffectedByDiscount(): void
     {
-        $noDiscount = new ShippingMethod($this->makeMethod(7.50, 'flatrate', 'flatrate', 'Flat Rate', 'Fixed'), 'GBP');
-        $withDiscount = new ShippingMethod($this->makeMethod(7.50, 'flatrate', 'flatrate', 'Flat Rate', 'Fixed'), 'GBP', 7.50);
+        $method = $this->makeMethod(7.50, 'flatrate', 'flatrate', 'Flat Rate', 'Fixed');
+        $noDiscount = new ShippingMethod($method, 'GBP');
+        $withDiscount = new ShippingMethod($method, 'GBP', 7.50);
         $this->assertSame($noDiscount->getLabel(), $withDiscount->getLabel());
     }
 

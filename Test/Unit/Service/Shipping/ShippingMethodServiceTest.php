@@ -21,8 +21,11 @@ use Rvvup\Payments\Service\Shipping\ShippingMethodService;
  */
 class ShippingMethodServiceTest extends TestCase
 {
-    private ShipmentEstimationInterface|MockObject $shipmentEstimation;
-    private ShippingMethodService $service;
+    /** @var ShipmentEstimationInterface|MockObject */
+    private $shipmentEstimation;
+
+    /** @var ShippingMethodService */
+    private $service;
 
     protected function setUp(): void
     {
