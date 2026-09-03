@@ -142,21 +142,15 @@ class ShippingMethodService
             return [];
         }
 
-        // collectTotals must run after estimateByExtendedAddress to populate getShippingDiscountAmount().
-        // estimateByExtendedAddress calls collectShippingRates() which does not reset the discount amount,
-        // so the value is stable once set. Callers that also call collectTotals() afterwards will trigger
-        // a second collection; this is idempotent. Refactoring to expose this as a caller responsibility
-        // would require extracting the estimation step — tracked as a follow-up.
-        //
-        // Known limitation: the discount value reflects the currently-selected shipping method. It is applied
-        // uniformly to all methods in the list. This is correct for blanket discounts (e.g. a free-shipping
-        // rule applying to all methods) but will show an incorrect discounted price for other methods if the
-        // discount is method-specific. When no method is selected (common at express checkout start),
-        // getShippingDiscountAmount() returns 0 and all methods show at gross price. Both cases are
-        // tracked as a follow-up.
-        $quote->setTotalsCollectedFlag(false);
-        $quote->collectTotals();
-        $shippingDiscount = (float)$quote->getShippingAddress()->getShippingDiscountAmount();
+        // getShippingDiscountAmount() is only meaningful when a shipping method is already selected.
+        // collectTotals() calculates the discount against the selected method's cost — with no method
+        // selected (e.g. when the Apple Pay sheet opens before the customer confirms their address),
+        // the value is 0 regardless of any active discount rules. We fall back to 0.0 in that case
+        // so all methods show at gross price, which matches the behaviour before this PR.
+        $selectedMethod = $quote->getShippingAddress()->getShippingMethod();
+        $shippingDiscount = $selectedMethod
+            ? (float)$quote->getShippingAddress()->getShippingDiscountAmount()
+            : 0.0;
 
         $returnedShippingMethods = [];
         foreach ($shippingMethods as $shippingMethod) {

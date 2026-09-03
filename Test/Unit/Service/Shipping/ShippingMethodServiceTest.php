@@ -39,27 +39,36 @@ class ShippingMethodServiceTest extends TestCase
         );
     }
 
-    private function makeAddress(float $shippingDiscount = 0.0): Address|MockObject
-    {
-        // getShippingDiscountAmount is a Magento magic DataObject method — addMethods() makes it mockable.
+    private function makeAddress(
+        float $shippingDiscount = 0.0,
+        ?string $selectedMethod = null
+    ): Address|MockObject {
+        // getShippingDiscountAmount is a magic DataObject method; getShippingMethod is declared on Address.
         $address = $this->getMockBuilder(Address::class)
             ->disableOriginalConstructor()
             ->addMethods(['getShippingDiscountAmount'])
+            ->onlyMethods(['getShippingMethod'])
             ->getMock();
         $address->method('getShippingDiscountAmount')->willReturn($shippingDiscount);
+        $address->method('getShippingMethod')->willReturn($selectedMethod);
         return $address;
     }
 
-    private function makeQuote(float $shippingDiscount = 0.0, string $currency = 'GBP'): Quote|MockObject
-    {
-        // getQuoteCurrencyCode and setTotalsCollectedFlag are DataObject magic methods.
+    private function makeQuote(
+        float $shippingDiscount = 0.0,
+        string $currency = 'GBP',
+        ?string $selectedMethod = null
+    ): Quote|MockObject {
+        // getQuoteCurrencyCode is a DataObject magic method.
         $quote = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
-            ->addMethods(['getQuoteCurrencyCode', 'setTotalsCollectedFlag'])
+            ->addMethods(['getQuoteCurrencyCode'])
             ->onlyMethods(['getId', 'getShippingAddress', 'collectTotals'])
             ->getMock();
         $quote->method('getId')->willReturn(1);
-        $quote->method('getShippingAddress')->willReturn($this->makeAddress($shippingDiscount));
+        $quote->method('getShippingAddress')->willReturn(
+            $this->makeAddress($shippingDiscount, $selectedMethod)
+        );
         $quote->method('getQuoteCurrencyCode')->willReturn($currency);
 
         return $quote;
@@ -99,7 +108,9 @@ class ShippingMethodServiceTest extends TestCase
         $this->shipmentEstimation->method('estimateByExtendedAddress')
             ->willReturn([$this->makeShippingMethod(7.50)]);
 
-        $result = $this->service->getAvailableShippingMethods($this->makeQuote(shippingDiscount: 0.0));
+        $result = $this->service->getAvailableShippingMethods(
+            $this->makeQuote(shippingDiscount: 0.0, selectedMethod: 'flatrate_flatrate')
+        );
 
         $this->assertCount(1, $result);
         $this->assertSame('7.50', $result[0]->getAmount());
@@ -112,7 +123,9 @@ class ShippingMethodServiceTest extends TestCase
         $this->shipmentEstimation->method('estimateByExtendedAddress')
             ->willReturn([$this->makeShippingMethod(7.50)]);
 
-        $result = $this->service->getAvailableShippingMethods($this->makeQuote(shippingDiscount: 7.50));
+        $result = $this->service->getAvailableShippingMethods(
+            $this->makeQuote(shippingDiscount: 7.50, selectedMethod: 'flatrate_flatrate')
+        );
 
         $this->assertCount(1, $result);
         $this->assertSame('0.00', $result[0]->getAmount());
@@ -125,7 +138,9 @@ class ShippingMethodServiceTest extends TestCase
         $this->shipmentEstimation->method('estimateByExtendedAddress')
             ->willReturn([$this->makeShippingMethod(10.00)]);
 
-        $result = $this->service->getAvailableShippingMethods($this->makeQuote(shippingDiscount: 3.00));
+        $result = $this->service->getAvailableShippingMethods(
+            $this->makeQuote(shippingDiscount: 3.00, selectedMethod: 'flatrate_flatrate')
+        );
 
         $this->assertCount(1, $result);
         $this->assertSame('7.00', $result[0]->getAmount());
@@ -138,10 +153,27 @@ class ShippingMethodServiceTest extends TestCase
         $this->shipmentEstimation->method('estimateByExtendedAddress')
             ->willReturn([$this->makeShippingMethod(0.00, 'freeshipping', 'freeshipping')]);
 
-        $result = $this->service->getAvailableShippingMethods($this->makeQuote(shippingDiscount: 0.0));
+        $result = $this->service->getAvailableShippingMethods(
+            $this->makeQuote(shippingDiscount: 0.0, selectedMethod: 'freeshipping_freeshipping')
+        );
 
         $this->assertCount(1, $result);
         $this->assertSame('0.00', $result[0]->getAmount());
+    }
+
+    // --- No method selected (express checkout start) — gross prices, no collectTotals side effect ---
+
+    public function testReturnsGrossPriceWhenNoMethodSelected(): void
+    {
+        $this->shipmentEstimation->method('estimateByExtendedAddress')
+            ->willReturn([$this->makeShippingMethod(7.50)]);
+
+        $result = $this->service->getAvailableShippingMethods(
+            $this->makeQuote(shippingDiscount: 7.50, selectedMethod: null)
+        );
+
+        $this->assertCount(1, $result);
+        $this->assertSame('7.50', $result[0]->getAmount());
     }
 
     // --- Methods with errors are excluded ---
@@ -182,26 +214,28 @@ class ShippingMethodServiceTest extends TestCase
                 $this->makeShippingMethod(20.00, 'ups', 'express'),
             ]);
 
-        $result = $this->service->getAvailableShippingMethods($this->makeQuote(shippingDiscount: 5.00));
+        $result = $this->service->getAvailableShippingMethods(
+            $this->makeQuote(shippingDiscount: 5.00, selectedMethod: 'flatrate_flatrate')
+        );
 
         $this->assertCount(2, $result);
         $this->assertSame('5.00', $result[0]->getAmount());
         $this->assertSame('15.00', $result[1]->getAmount());
     }
 
-    // --- collectTotals is called to populate discount amounts ---
+    // --- No collectTotals side effect inside the method ---
 
-    public function testCollectTotalsIsCalledAfterEstimation(): void
+    public function testCollectTotalsIsNeverCalledInsideGetAvailableShippingMethods(): void
     {
         $quote = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
-            ->addMethods(['getQuoteCurrencyCode', 'setTotalsCollectedFlag'])
+            ->addMethods(['getQuoteCurrencyCode'])
             ->onlyMethods(['getId', 'getShippingAddress', 'collectTotals'])
             ->getMock();
         $quote->method('getId')->willReturn(1);
-        $quote->method('getShippingAddress')->willReturn($this->makeAddress(0.0));
+        $quote->method('getShippingAddress')->willReturn($this->makeAddress(0.0, 'flatrate_flatrate'));
         $quote->method('getQuoteCurrencyCode')->willReturn('GBP');
-        $quote->expects($this->once())->method('collectTotals');
+        $quote->expects($this->never())->method('collectTotals');
 
         $this->shipmentEstimation->method('estimateByExtendedAddress')
             ->willReturn([$this->makeShippingMethod(7.50)]);
