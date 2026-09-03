@@ -141,13 +141,28 @@ class ShippingMethodService
         if (empty($shippingMethods)) {
             return [];
         }
+
+        // getShippingDiscountAmount() is only meaningful when a shipping method is already selected.
+        // collectTotals() calculates the discount against the selected method's cost — with no method
+        // selected (e.g. when the Apple Pay sheet opens before the customer confirms their address),
+        // the value is 0 regardless of any active discount rules. We fall back to 0.0 in that case
+        // so all methods show at gross price, which matches the behaviour before this PR.
+        $selectedMethod = $quote->getShippingAddress()->getShippingMethod();
+        $shippingDiscount = $selectedMethod
+            ? (float)$quote->getShippingAddress()->getShippingDiscountAmount()
+            : 0.0;
+
         $returnedShippingMethods = [];
         foreach ($shippingMethods as $shippingMethod) {
             if ($shippingMethod->getErrorMessage()) {
                 continue;
             }
 
-            $returnedShippingMethods[] = new ShippingMethod($shippingMethod, $quote->getQuoteCurrencyCode());
+            $returnedShippingMethods[] = new ShippingMethod(
+                $shippingMethod,
+                $quote->getQuoteCurrencyCode(),
+                $shippingDiscount
+            );
         }
         return $returnedShippingMethods;
     }

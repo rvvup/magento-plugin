@@ -264,10 +264,10 @@ class PaymentSessionService
         }
         if ($paymentSessionInput->getRequiresShipping() === true) {
             $paymentSessionInput->setShippingAddress($this->buildAddress($quote->getShippingAddress()));
-            $shippingAmount = $quote->getShippingAddress()->getShippingAmount();
-            if ($shippingAmount > 0) {
-                $paymentSessionInput->setShippingTotal($this->buildAmount($shippingAmount, $currency));
-            }
+            $shippingAmount = (float)$quote->getShippingAddress()->getShippingAmount();
+            $shippingDiscount = (float)$quote->getShippingAddress()->getShippingDiscountAmount();
+            $netShipping = max(0.0, $shippingAmount - $shippingDiscount);
+            $paymentSessionInput->setShippingTotal($this->buildAmount($netShipping, $currency));
         }
         return $paymentSessionInput;
     }

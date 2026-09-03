@@ -130,7 +130,11 @@ class OrderDataBuilder
         $payment->setAdditionalInformation(Method::CREATE_NEW, false);
         $this->paymentResource->save($payment);
         // As we have tangible products, the order will require shipping.
-        $orderDataArray['shippingTotal']['amount'] = $this->toCurrency($shippingAddress->getShippingAmount());
+        // Use net shipping (pre-discount minus any shipping discount) so the breakdown matches getGrandTotal(),
+        // which already has shipping discounts applied via custom total collectors.
+        $shippingAmount = (float)$shippingAddress->getShippingAmount();
+        $shippingDiscount = (float)$shippingAddress->getShippingDiscountAmount();
+        $orderDataArray['shippingTotal']['amount'] = $this->toCurrency(max(0.0, $shippingAmount - $shippingDiscount));
 
         return $orderDataArray;
     }
