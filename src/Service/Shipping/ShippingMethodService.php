@@ -142,8 +142,18 @@ class ShippingMethodService
             return [];
         }
 
-        // Collect totals so that shipping discount amounts are populated on the shipping address.
-        // estimateByExtendedAddress returns pre-discount prices; collectTotals applies promotions.
+        // collectTotals must run after estimateByExtendedAddress to populate getShippingDiscountAmount().
+        // estimateByExtendedAddress calls collectShippingRates() which does not reset the discount amount,
+        // so the value is stable once set. Callers that also call collectTotals() afterwards will trigger
+        // a second collection; this is idempotent. Refactoring to expose this as a caller responsibility
+        // would require extracting the estimation step — tracked as a follow-up.
+        //
+        // Known limitation: the discount value reflects the currently-selected shipping method. It is applied
+        // uniformly to all methods in the list. This is correct for blanket discounts (e.g. a free-shipping
+        // rule applying to all methods) but will show an incorrect discounted price for other methods if the
+        // discount is method-specific. When no method is selected (common at express checkout start),
+        // getShippingDiscountAmount() returns 0 and all methods show at gross price. Both cases are
+        // tracked as a follow-up.
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $shippingDiscount = (float)$quote->getShippingAddress()->getShippingDiscountAmount();
