@@ -640,4 +640,35 @@
     <preference for="Rvvup\Payments\Api\Data\ValidationInterface" type="Rvvup\Payments\Model\Data\Validation"/>
     <preference for="Rvvup\Payments\Api\Data\LogInterface" type="Rvvup\Payments\Model\Data\LogData"/>
     <preference for="Rvvup\Payments\Api\Data\HashInterface" type="Rvvup\Payments\Model\HashModel"/>
+
+    <!-- Vault: CARD -->
+    <virtualType name="RvvupCardVaultPaymentConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">rvvup_CARD_vault</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupCardVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">RvvupCardVaultPaymentConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupCardVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">RvvupCardVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="RvvupCardVaultFacade" type="Magento\Vault\Model\Method\Vault">
+        <arguments>
+            <argument name="config" xsi:type="object">RvvupCardVaultPaymentConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">RvvupCardVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">RvvupFacade</argument>
+            <argument name="code" xsi:type="string">rvvup_CARD_vault</argument>
+        </arguments>
+    </virtualType>
+    <!-- End Vault: CARD -->
 </config>
