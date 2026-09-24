@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rvvup\Payments\ViewModel;
 
 use Exception;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
@@ -23,6 +24,10 @@ use Rvvup\Payments\Service\ApiProvider;
 
 class Assets implements ArgumentInterface
 {
+    private const CHECKOUT_PAGE_FULL_ACTION_NAME = 'checkout_index_index';
+
+    private const CARD_METHOD_KEY = 'rvvup_card';
+
     /**
      * @var \Magento\Framework\Serialize\SerializerInterface
      */
@@ -86,6 +91,16 @@ class Assets implements ArgumentInterface
     private $shouldCreateCheckout = null;
 
     /**
+     * @var \Magento\Framework\App\Request\Http
+     */
+    private $request;
+
+    /**
+     * @var array|string[]
+     */
+    private $checkoutPageFullActionNames;
+
+    /**
      * @param SerializerInterface $serializer
      * @param ConfigInterface $config
      * @param PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
@@ -94,6 +109,8 @@ class Assets implements ArgumentInterface
      * @param LoggerInterface|RvvupLog $logger
      * @param ApiProvider $apiProvider
      * @param RvvupConfigurationInterface $rvvupConfiguration
+     * @param Http $request
+     * @param array|string[] $checkoutPageFullActionNames
      */
     public function __construct(
         SerializerInterface $serializer,
@@ -103,7 +120,9 @@ class Assets implements ArgumentInterface
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
         ApiProvider $apiProvider,
-        RvvupConfigurationInterface $rvvupConfiguration
+        RvvupConfigurationInterface $rvvupConfiguration,
+        Http $request,
+        array $checkoutPageFullActionNames = [self::CHECKOUT_PAGE_FULL_ACTION_NAME]
     ) {
         $this->serializer = $serializer;
         $this->config = $config;
@@ -113,6 +132,8 @@ class Assets implements ArgumentInterface
         $this->logger = $logger;
         $this->apiProvider = $apiProvider;
         $this->rvvupConfiguration = $rvvupConfiguration;
+        $this->request = $request;
+        $this->checkoutPageFullActionNames = $checkoutPageFullActionNames;
     }
 
     /**
@@ -131,6 +152,10 @@ class Assets implements ArgumentInterface
         }
 
         foreach ($this->getPaymentMethodsAssets($methodCodes) as $paymentMethod => $paymentMethodsAssets) {
+            if ($this->isCardScriptThatMustNotLoadInThePage($paymentMethod)) {
+                continue;
+            }
+
             $scripts[$paymentMethod] = [];
 
             foreach ($paymentMethodsAssets as $key => $asset) {
@@ -146,17 +171,17 @@ class Assets implements ArgumentInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPublishableKey(): string
+    public function getPublishableKey(): ?string
     {
         return $this->rvvupConfiguration->getMerchantId((string)$this->getStore()->getId());
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getCoreSdkUrl(): string
+    public function getCoreSdkUrl(): ?string
     {
         return $this->rvvupConfiguration->getJsSdkUrl((string)$this->getStore()->getId());
     }
@@ -173,9 +198,44 @@ class Assets implements ArgumentInterface
             $applePayExpressCheckoutEnabled =
                 $this->getPaymentMethodsSettings()["rvvup_apple_pay"]["checkout"]["express"]["enabled"] ?? false;
 
-            $this->shouldCreateCheckout = ($applePayFlow == 'INLINE') || $applePayExpressCheckoutEnabled;
+            $this->shouldCreateCheckout = ($applePayFlow == 'INLINE')
+                || $applePayExpressCheckoutEnabled
+                || $this->isCardInlineFlowOnCheckoutPage();
         }
         return $this->shouldCreateCheckout;
+    }
+
+    /**
+     * The card scripts (TrustPayments for hosted, Basis Theory for inline) are UMD bundles that
+     * break RequireJS when loaded as plain script tags. The hosted flow runs them inside the
+     * Rvvup iframe and the inline flow loads them through the JS SDK, so the page never needs them.
+     *
+     * @param string $paymentMethod
+     * @return bool
+     */
+    private function isCardScriptThatMustNotLoadInThePage(string $paymentMethod): bool
+    {
+        return $paymentMethod === self::CARD_METHOD_KEY;
+    }
+
+    /**
+     * Whether the card method is available with an inline flow and the current page is the checkout page.
+     *
+     * @return bool
+     */
+    private function isCardInlineFlowOnCheckoutPage(): bool
+    {
+        if (!in_array($this->request->getFullActionName(), $this->checkoutPageFullActionNames, true)) {
+            return false;
+        }
+
+        $settings = $this->getPaymentMethodsSettings();
+
+        if (!isset($settings[self::CARD_METHOD_KEY])) {
+            return false;
+        }
+
+        return ($settings[self::CARD_METHOD_KEY]['flow'] ?? 'HOSTED') === 'INLINE';
     }
 
     /**

@@ -12,6 +12,7 @@ define([
     'Magento_Checkout/js/model/payment/additional-validators',
     'Rvvup_Payments/js/view/payment/methods/place-order-helpers',
     'underscore',
+    'mage/translate',
 
     'domReady!'
     ], function (
@@ -28,6 +29,7 @@ define([
         additionalValidators,
         placeOrderHelpers,
         _,
+        $t,
     ) {
         'use strict';
 
@@ -68,13 +70,49 @@ define([
 
     let $redirectUrl = null;
 
+    /**
+     * The SDK accumulates event listeners and fires "ready" only once, while Magento can
+     * re-create the renderer whenever the payment list re-renders. Handlers are therefore
+     * registered exactly once here and delegate to the active component instance.
+     */
+    let activeComponent = null;
+    let renderable = ko.observable(false);
+
+    applePayPromise.then(function (applePay) {
+        if (!applePay) {
+            return;
+        }
+        applePay.on("ready", async () => {
+            renderable(await applePay.canMakePayment());
+        });
+        applePay.on("click", () => {
+            applePay.update({total: getQuoteTotal()})
+        });
+        applePay.on("validate", () => {
+            return placeOrderHelpers.validate(activeComponent, additionalValidators);
+        });
+        applePay.on("beforePaymentAuth", async () => {
+            return await activeComponent.beforePayment(activeComponent)
+        });
+        applePay.on("paymentAuthorized", (data) => {
+            activeComponent.paymentAuthorized(data);
+        });
+        applePay.on("paymentFailed", (data) => {
+            errorProcessor.process({
+                    responseText:
+                        JSON.stringify({message: $t('Payment %1').replace('%1', data.reason)})
+                },
+                activeComponent.messageContainer);
+        });
+    });
+
         return Component.extend({
             defaults: {
                 templates: {
                     rvvupPlaceOrderTemplate: 'Rvvup_Payments/payment/method/apple-pay/place-order',
                 },
             },
-            renderable: ko.observable(false),
+            renderable: renderable,
             canRender: function () {
                 return this.renderable;
             },
@@ -82,38 +120,12 @@ define([
                 return false;
             },
 
-            initialize: function () {
-                this._super();
-                let self = this;
-                applePayPromise.then(async function (applePay) {
-                    applePay.on("ready", async () => {
-                        self.renderable(await applePay.canMakePayment());
-                    });
-                });
-            },
-
             mountApplePayButton: function () {
-                let self = this;
+                activeComponent = this;
                 applePayPromise.then(async function (applePay) {
-                    applePay.on("click", () => {
-                        applePay.update({total: getQuoteTotal()})
-                    });
-                    applePay.on("validate", () => {
-                        return placeOrderHelpers.validate(self, additionalValidators);
-                    });
-                    applePay.on("beforePaymentAuth", async () => {
-                        return await self.beforePayment(self)
-                    });
-                    applePay.on("paymentAuthorized", (data) => {
-                        self.paymentAuthorized(data);
-                    });
-                    applePay.on("paymentFailed", (data) => {
-                        errorProcessor.process({
-                                responseText:
-                                    JSON.stringify({message: 'Payment ' + data.reason})
-                            },
-                            self.messageContainer);
-                    });
+                    if (!applePay) {
+                        return;
+                    }
                     await applePay.mount({
                         selector: "#rvvup-apple-pay-button",
                     });
@@ -136,7 +148,7 @@ define([
                 } catch (e) {
                     errorProcessor.process({
                             responseText:
-                                JSON.stringify({message: 'Error creating payment, ' + e})
+                                JSON.stringify({message: $t('Error creating payment, %1').replace('%1', e)})
                         },
                         component.messageContainer);
                     console.error("Error creating payment", e);

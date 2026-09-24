@@ -130,10 +130,9 @@ class Result
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId, $storeId);
 
-            if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
-                if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {
-                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData, $origin);
-                }
+            if ($this->shouldProcessOrderStatus($rvvupData)) {
+                $this->processorPool->findProcessor($rvvupData['status'])
+                    ?->execute($order, $rvvupData, $origin);
             }
 
             $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
@@ -177,6 +176,17 @@ class Result
                 ['_secure' => true]
             );
         }
+    }
+
+    /**
+     * @param array $rvvupData
+     * @return bool
+     */
+    private function shouldProcessOrderStatus(array $rvvupData): bool
+    {
+        $paymentStatus = $rvvupData['payments'][0]['status'];
+
+        return $rvvupData['status'] !== $paymentStatus && $paymentStatus !== Method::STATUS_AUTHORIZED;
     }
 
     /**

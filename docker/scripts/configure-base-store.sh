@@ -30,5 +30,6 @@ bin/magento config:set system/smtp/port $MAGENTO_SMTP_PORT
 echo "Registering Test Users"
 bin/magento admin:user:create --admin-user=e2e-tests-refunds --admin-password=password1 --admin-email=e2etestsrefund@rvvup.com --admin-firstname=E2E --admin-lastname=Refunds
 bin/magento admin:user:create --admin-user=e2e-tests-partial-refunds --admin-password=password1 --admin-email=e2etestspartialrefunds@rvvup.com --admin-firstname=E2E --admin-lastname=PartialRefunds
+bin/magento admin:user:create --admin-user=e2e-tests-order-status --admin-password=password1 --admin-email=e2etestsorderstatus@rvvup.com --admin-firstname=E2E --admin-lastname=OrderStatus
 
 bin/magento sampledata:deploy

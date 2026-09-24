@@ -35,6 +35,8 @@ services:
       - MAGENTO_REPO_PRIVATE_KEY=$MAGENTO_REPO_PRIVATE_KEY
       - MAGENTO_SMTP_HOST=mailpit
       - MAGENTO_SMTP_PORT=1025
+    volumes:
+      - ".:/rvvup/local-plugin:ro"
     build:
       context: .
       dockerfile: Dockerfile
