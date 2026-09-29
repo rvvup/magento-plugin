@@ -642,6 +642,13 @@
     <preference for="Rvvup\Payments\Api\Data\HashInterface" type="Rvvup\Payments\Model\HashModel"/>
 
     <!-- Vault: CARD -->
+    <!-- Tokens are stored against the dynamic rvvup_CARD method, so the vault provider must carry that code -->
+    <virtualType name="RvvupCardFacade" type="RvvupFacade">
+        <arguments>
+            <argument name="code" xsi:type="string">rvvup_CARD</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="RvvupCardVaultPaymentConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">rvvup_CARD_vault</argument>
@@ -666,7 +673,7 @@
         <arguments>
             <argument name="config" xsi:type="object">RvvupCardVaultPaymentConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">RvvupCardVaultValueHandlerPool</argument>
-            <argument name="vaultProvider" xsi:type="object">RvvupFacade</argument>
+            <argument name="vaultProvider" xsi:type="object">RvvupCardFacade</argument>
             <argument name="code" xsi:type="string">rvvup_CARD_vault</argument>
         </arguments>
     </virtualType>

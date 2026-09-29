@@ -44,6 +44,10 @@
                     <pay_by_link><![CDATA[This order requires payment, please pay using following button: ]]></pay_by_link>
                 </email>
             </rvvup>
+            <rvvup_CARD_vault>
+                <model>RvvupCardVaultFacade</model>
+                <title>Stored Cards (Rvvup)</title>
+            </rvvup_CARD_vault>
             <rvvup_payment-link>
                 <active>1</active>
                 <title>Rvvup Payment Link</title>
