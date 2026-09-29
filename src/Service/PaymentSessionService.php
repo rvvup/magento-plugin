@@ -18,6 +18,8 @@ use Rvvup\Api\Model\ItemRestriction;
 use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Api\Model\PaymentSessionCreateInput;
 use Rvvup\Api\Model\PaymentType;
+use Rvvup\Payments\Model\Payment\VaultDataBuilder;
+use Rvvup\Payments\Model\Payment\VaultPaymentSessionCreateInput;
 use Rvvup\ApiException;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
@@ -44,25 +46,31 @@ class PaymentSessionService
     /** @var TaxRateCalculator */
     private $taxRateCalculator;
 
+    /** @var VaultDataBuilder */
+    private $vaultDataBuilder;
+
     /**
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
      * @param ApiProvider $apiProvider
      * @param UrlFactory $urlFactory
      * @param TaxRateCalculator $taxRateCalculator
+     * @param VaultDataBuilder $vaultDataBuilder
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
         ApiProvider $apiProvider,
         UrlFactory $urlFactory,
-        TaxRateCalculator $taxRateCalculator
+        TaxRateCalculator $taxRateCalculator,
+        VaultDataBuilder $vaultDataBuilder
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
         $this->apiProvider = $apiProvider;
         $this->urlFactory = $urlFactory;
         $this->taxRateCalculator = $taxRateCalculator;
+        $this->vaultDataBuilder = $vaultDataBuilder;
     }
 
     /**
@@ -218,13 +226,13 @@ class PaymentSessionService
      * @param string $checkoutId
      * @param Quote $quote
      * @param string $paymentType
-     * @return PaymentSessionCreateInput
+     * @return VaultPaymentSessionCreateInput
      */
     private function buildPaymentSession(
         string $checkoutId,
         Quote $quote,
         string $paymentType
-    ): PaymentSessionCreateInput {
+    ): VaultPaymentSessionCreateInput {
         $discountTotal = $quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount();
         $taxTotal = $quote->getTotals()['tax']->getValue();
         $taxTotal = is_float($taxTotal) ? $taxTotal : 0.0;
@@ -236,7 +244,7 @@ class PaymentSessionService
         if ($captureType != 'MANUAL') {
             $captureType = 'AUTOMATIC_PLUGIN';
         }
-        $paymentSessionInput = new PaymentSessionCreateInput();
+        $paymentSessionInput = new VaultPaymentSessionCreateInput();
         $secureBaseUrl = $quote->getStore()->getBaseUrl(
             UrlInterface::URL_TYPE_WEB,
             true
@@ -269,6 +277,9 @@ class PaymentSessionService
                 $paymentSessionInput->setShippingTotal($this->buildAmount($shippingAmount, $currency));
             }
         }
+
+        $this->vaultDataBuilder->build($paymentSessionInput, $payment, (int) $quote->getCustomerId());
+
         return $paymentSessionInput;
     }
 }
