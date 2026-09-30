@@ -15,6 +15,11 @@ class VaultDataBuilder
      * Applies saveTokenScope to the payment session input when the shopper opted in and is logged in.
      * Also marks the payment so the post-payment handler knows a token was requested.
      * When the shopper did not opt in, any marker left by an earlier attempt on the same quote is cleared.
+     *
+     * @param PaymentSessionCreateInput $input
+     * @param InfoInterface $payment
+     * @param int $customerId
+     * @return void
      */
     public function build(PaymentSessionCreateInput $input, InfoInterface $payment, int $customerId): void
     {
