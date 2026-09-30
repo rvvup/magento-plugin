@@ -46,7 +46,7 @@
             </rvvup>
             <rvvup_CARD_vault>
                 <model>RvvupCardVaultFacade</model>
-                <title>Stored Cards (Rvvup)</title>
+                <title>Stored Cards</title>
             </rvvup_CARD_vault>
             <rvvup_payment-link>
                 <active>1</active>
