@@ -19,7 +19,6 @@ use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Api\Model\PaymentSessionCreateInput;
 use Rvvup\Api\Model\PaymentType;
 use Rvvup\Payments\Model\Payment\VaultDataBuilder;
-use Rvvup\Payments\Model\Payment\VaultPaymentSessionCreateInput;
 use Rvvup\ApiException;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
@@ -226,13 +225,13 @@ class PaymentSessionService
      * @param string $checkoutId
      * @param Quote $quote
      * @param string $paymentType
-     * @return VaultPaymentSessionCreateInput
+     * @return PaymentSessionCreateInput
      */
     private function buildPaymentSession(
         string $checkoutId,
         Quote $quote,
         string $paymentType
-    ): VaultPaymentSessionCreateInput {
+    ): PaymentSessionCreateInput {
         $discountTotal = $quote->getBaseSubtotal() - $quote->getBaseSubtotalWithDiscount();
         $taxTotal = $quote->getTotals()['tax']->getValue();
         $taxTotal = is_float($taxTotal) ? $taxTotal : 0.0;
@@ -244,7 +243,7 @@ class PaymentSessionService
         if ($captureType != 'MANUAL') {
             $captureType = 'AUTOMATIC_PLUGIN';
         }
-        $paymentSessionInput = new VaultPaymentSessionCreateInput();
+        $paymentSessionInput = new PaymentSessionCreateInput();
         $secureBaseUrl = $quote->getStore()->getBaseUrl(
             UrlInterface::URL_TYPE_WEB,
             true
