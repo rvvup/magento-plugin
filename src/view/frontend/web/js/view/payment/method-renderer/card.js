@@ -215,7 +215,24 @@ define([
             initialize: function () {
                 this._super();
                 this.formReady = ko.observable(false);
+                this.savePaymentMethod = ko.observable(false);
                 return this;
+            },
+
+            showSaveCard: function () {
+                return customer.isLoggedIn() &&
+                    !!(rvvup_parameters.settings &&
+                        rvvup_parameters.settings.card &&
+                        rvvup_parameters.settings.card.savedCardsEnabled);
+            },
+
+            getData: function () {
+                return {
+                    method: this.getCode(),
+                    additional_data: {
+                        save_payment_method: this.savePaymentMethod()
+                    }
+                };
             },
 
             canRender: function () {
