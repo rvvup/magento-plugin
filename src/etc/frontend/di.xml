@@ -41,9 +41,13 @@
         </arguments>
     </type>
 
-    <type name="Rvvup\Payments\Controller\CardPayments\Confirm">
+    <type name="Rvvup\Payments\ViewModel\Assets">
         <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+            <argument name="checkoutPageFullActionNames" xsi:type="array">
+                <item name="magento_checkout" xsi:type="string">checkout_index_index</item>
+                <item name="firecheckout" xsi:type="string">firecheckout_index_index</item>
+                <item name="onestepcheckout" xsi:type="string">onestepcheckout_index_index</item>
+            </argument>
         </arguments>
     </type>
 
