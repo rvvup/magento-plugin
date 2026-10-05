@@ -146,7 +146,7 @@ class VaultDetailsHandlerTest extends TestCase
         $this->assertSame($expected, $this->handler->mapCardType($brand));
     }
 
-    public function brandProvider(): array
+    public static function brandProvider(): array
     {
         return [
             ['visa', 'VI'],

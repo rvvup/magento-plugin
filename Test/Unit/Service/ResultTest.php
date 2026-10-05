@@ -143,7 +143,7 @@ class ResultTest extends TestCase
         $this->whenTheOrderResultIsProcessed();
     }
 
-    public function tokenPaymentStatusProvider(): array
+    public static function tokenPaymentStatusProvider(): array
     {
         return [['SUCCEEDED'], ['AUTHORIZED']];
     }
