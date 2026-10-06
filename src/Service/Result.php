@@ -19,6 +19,7 @@ use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\Cancel;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Service\Card\CardMetaService;
+use Rvvup\Payments\Service\Card\VaultDetailsHandler;
 
 class Result
 {
@@ -57,6 +58,9 @@ class Result
     /** @var CardMetaService */
     private $cardMetaService;
 
+    /** @var VaultDetailsHandler */
+    private $vaultDetailsHandler;
+
     /**
      * @param ResultFactory $resultFactory
      * @param SessionManagerInterface $checkoutSession
@@ -68,6 +72,7 @@ class Result
      * @param LoggerInterface $logger
      * @param Payment $paymentResource
      * @param CardMetaService $cardMetaService
+     * @param VaultDetailsHandler $vaultDetailsHandler
      */
     public function __construct(
         ResultFactory $resultFactory,
@@ -79,7 +84,8 @@ class Result
         Emulation $emulation,
         LoggerInterface $logger,
         Payment $paymentResource,
-        CardMetaService $cardMetaService
+        CardMetaService $cardMetaService,
+        VaultDetailsHandler $vaultDetailsHandler
     ) {
         $this->resultFactory = $resultFactory;
         $this->checkoutSession = $checkoutSession;
@@ -91,6 +97,7 @@ class Result
         $this->logger = $logger;
         $this->paymentResource = $paymentResource;
         $this->cardMetaService = $cardMetaService;
+        $this->vaultDetailsHandler = $vaultDetailsHandler;
     }
 
     /**
@@ -130,10 +137,9 @@ class Result
             // Then get the Rvvup Order by its ID. Rvvup's Redirect In action should always have the correct ID.
             $rvvupData = $this->paymentDataGet->execute($rvvupId, $storeId);
 
-            if ($rvvupData['status'] != $rvvupData['payments'][0]['status']) {
-                if ($rvvupData['payments'][0]['status'] !== Method::STATUS_AUTHORIZED) {
-                    $this->processorPool->getProcessor($rvvupData['status'])->execute($order, $rvvupData, $origin);
-                }
+            if ($this->shouldProcessOrderStatus($rvvupData)) {
+                $this->processorPool->findProcessor($rvvupData['status'])
+                    ?->execute($order, $rvvupData, $origin);
             }
 
             $processor = $this->processorPool->getProcessor($rvvupData['payments'][0]['status']);
@@ -148,6 +154,10 @@ class Result
             $payment->setAdditionalInformation(Method::DASHBOARD_URL, $dashboardUrl);
             $this->cardMetaService->process($rvvupData['payments'][0], $order);
             $this->paymentResource->save($payment);
+
+            if (in_array($rvvupData['payments'][0]['status'], VaultDetailsHandler::TOKEN_PAYMENT_STATUSES, true)) {
+                $this->vaultDetailsHandler->process($order, $rvvupId);
+            }
 
             if (get_class($processor) == Cancel::class) {
                 return $this->processResultPage($result, true);
@@ -177,6 +187,17 @@ class Result
                 ['_secure' => true]
             );
         }
+    }
+
+    /**
+     * @param array $rvvupData
+     * @return bool
+     */
+    private function shouldProcessOrderStatus(array $rvvupData): bool
+    {
+        $paymentStatus = $rvvupData['payments'][0]['status'];
+
+        return $rvvupData['status'] !== $paymentStatus && $paymentStatus !== Method::STATUS_AUTHORIZED;
     }
 
     /**
