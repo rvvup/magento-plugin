@@ -37,7 +37,11 @@ if (window.crypto && !crypto.randomUUID && crypto.getRandomValues) {
 }
 JS
 chmod 644 pub/media/crypto-uuid-mock-polyfill.js
-bin/magento config:set design/head/includes '<script src="/media/crypto-uuid-mock-polyfill.js"></script>'
+# design/head/includes isn't in system.xml, so bin/magento config:set rejects it ("path doesn't exist").
+mysql -h "$MAGENTO_DATABASE_HOST" -P "$MAGENTO_DATABASE_PORT_NUMBER" -u "$MAGENTO_DATABASE_USER" "$MAGENTO_DATABASE_NAME" -e "
+INSERT INTO core_config_data (scope, scope_id, path, value) VALUES
+  ('default', 0, 'design/head/includes', '<script src=\"/media/crypto-uuid-mock-polyfill.js\"></script>')
+ON DUPLICATE KEY UPDATE value = VALUES(value);"
 
 echo "Configuring SMTP settings to point to $MAGENTO_SMTP_HOST:$MAGENTO_SMTP_PORT"
 bin/magento config:set system/smtp/disable 0
