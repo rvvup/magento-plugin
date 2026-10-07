@@ -45,6 +45,7 @@
                 </email>
             </rvvup>
             <rvvup_CARD_vault>
+                <active>1</active>
                 <model>RvvupCardVaultFacade</model>
                 <title>Stored Cards</title>
             </rvvup_CARD_vault>
