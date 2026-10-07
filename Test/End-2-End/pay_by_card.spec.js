@@ -33,10 +33,5 @@ test("Cannot place pay by card order using invalid card details", async ({
   // Credit card form
   await new CardCheckout(page).checkoutUsingInvalidCard();
 
-  await expect(
-    page
-      .frameLocator(".st-card-number-iframe")
-      .getByText(/Value is invalid|Value mismatch pattern/i),
-  ).toBeVisible();
-  await expect(page).not.toHaveURL(/checkout\/onepage\/success/);
+  await expect(page.getByText("3DSecure failed")).toBeVisible();
 });

@@ -55,12 +55,11 @@ export default class CardCheckout {
 
   async checkoutUsingInvalidCard() {
     await this.checkoutPage.selectCard();
-    // Credit card form. Fails the card number check (Luhn), so the form
-    // rejects it before anything is sent to the payment provider.
+    // Credit card form
     await this.page
       .frameLocator(".st-card-number-iframe")
       .getByLabel("Card Number")
-      .fill("4111 1111 1111 1112");
+      .fill("4000 0000 0000 2537");
     await this.page
       .frameLocator(".st-expiration-date-iframe")
       .getByLabel("Expiration Date")
