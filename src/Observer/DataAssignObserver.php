@@ -19,6 +19,7 @@ class DataAssignObserver extends AbstractDataAssignObserver
         Method::EXPRESS_PAYMENT_DATA_KEY,
         Method::TRANSACTION_ID,
         Method::SAVE_PAYMENT_METHOD,
+        Method::PUBLIC_HASH,
     ];
 
     /**
@@ -39,6 +40,10 @@ class DataAssignObserver extends AbstractDataAssignObserver
         }
 
         $paymentInfo = $this->readPaymentModelArgument($observer);
+
+        // Additional information outlives the request on the quote payment. A saved card must only be used by
+        // the request that names it, not by a later payment with a new card.
+        $paymentInfo->unsAdditionalInformation(Method::PUBLIC_HASH);
 
         foreach ($this->additionalInformationList as $additionalInformationKey) {
             if (isset($additionalData[$additionalInformationKey])) {
