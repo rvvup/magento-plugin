@@ -28,7 +28,7 @@ jobs:
       RVVUP_PLUGIN_VERSION: ${{ github.event.inputs.rvvupPluginVersion || format('dev-{0}', github.head_ref || github.ref_name) }}
       MAGENTO_REPO_PUBLIC_KEY: ${{ secrets.REPO_PUB_KEY }}
       MAGENTO_REPO_PRIVATE_KEY: ${{ secrets.REPO_SEC_KEY }}
-      RVVUP_API_KEY: ${{ secrets.RVVUP_API_KEY_3DS_TEST }}
+      RVVUP_API_KEY: ${{ secrets.RVVUP_API_KEY }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
