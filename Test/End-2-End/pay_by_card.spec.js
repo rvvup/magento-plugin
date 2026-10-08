@@ -10,6 +10,7 @@ test("Can place an inline pay by card order with 3DS challenge", async ({
   await new VisitCheckoutPayment(page).visit();
 
   await new CardCheckout(page).checkout();
+  await expect(page.frameLocator("#rvvup_iframe-rvvup_CARD").getByText("Payment being processed")).toBeVisible();
   await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 

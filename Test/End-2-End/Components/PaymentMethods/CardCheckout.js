@@ -12,7 +12,7 @@ export default class CardCheckout {
     await this.page
       .frameLocator(".st-card-number-iframe")
       .getByLabel("Card Number")
-      .fill("4111 1111 1111 1111");
+      .fill("4900 4900 0000 0667");
     await this.page
       .frameLocator(".st-expiration-date-iframe")
       .getByLabel("Expiration Date")
@@ -25,11 +25,11 @@ export default class CardCheckout {
     await this.checkoutPage.pressPlaceOrder();
     // OTP form
     await this.page
-      .frameLocator('iframe[title="Bank Authentication"]')
-      .getByPlaceholder(" Enter Code Here")
+      .frameLocator("#tp-3ds-challenge-iframe")
+      .getByPlaceholder("Enter code here")
       .fill("1234");
     await this.page
-      .frameLocator('iframe[title="Bank Authentication"]')
+      .frameLocator("#tp-3ds-challenge-iframe")
       .getByRole("button", { name: "SUBMIT" })
       .click();
   }
