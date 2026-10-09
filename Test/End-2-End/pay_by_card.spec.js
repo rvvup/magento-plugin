@@ -10,6 +10,7 @@ test("Can place an inline pay by card order with 3DS challenge", async ({
   await new VisitCheckoutPayment(page).visit();
 
   await new CardCheckout(page).checkout();
+  await expect(page.frameLocator("#rvvup_iframe-rvvup_CARD").getByText("Payment being processed")).toBeVisible();
   await new OrderConfirmation(page).expectOnOrderConfirmation();
 });
 
@@ -32,6 +33,19 @@ test("Cannot place pay by card order using invalid card details", async ({
 
   // Credit card form
   await new CardCheckout(page).checkoutUsingInvalidCard();
+
+  await expect(page.getByText("3DSecure failed")).toBeVisible();
+});
+
+test("Cannot place pay by card order using invalid card details with 3DS challenge", async ({
+  page,
+}) => {
+  await new VisitCheckoutPayment(page).visit();
+
+  await new CheckoutPage(page).selectCard();
+
+  // Credit card form
+  await new CardCheckout(page).checkoutUsingInvalidCardFailsAt3DS();
 
   await expect(page.getByText("3DSecure failed")).toBeVisible();
 });

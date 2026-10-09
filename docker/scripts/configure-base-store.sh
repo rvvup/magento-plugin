@@ -22,6 +22,27 @@ if [ "$RVVUP_PLUGIN_VERSION" == "local" ]; then
   composer config allow-plugins.wikimedia/composer-merge-plugin true
   composer require wikimedia/composer-merge-plugin
 fi
+# crypto.randomUUID is only exposed in secure contexts (https/localhost), but the store is
+# served over plain http on a custom host. Trust Payments' JS calls it, so polyfill it ahead
+# of every other script via design/head/includes. Served as a same-origin file because the
+# store's CSP blocks inline scripts but allows 'self'. Test/local store only, not part of the plugin.
+echo "Adding crypto.randomUUID polyfill"
+cat > pub/media/crypto-uuid-mock-polyfill.js <<'JS'
+if (window.crypto && !crypto.randomUUID && crypto.getRandomValues) {
+    crypto.randomUUID = function () {
+        return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, function (c) {
+            return (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16);
+        });
+    };
+}
+JS
+chmod 644 pub/media/crypto-uuid-mock-polyfill.js
+# design/head/includes isn't in system.xml, so bin/magento config:set rejects it ("path doesn't exist").
+mysql -h "$MAGENTO_DATABASE_HOST" -P "$MAGENTO_DATABASE_PORT_NUMBER" -u "$MAGENTO_DATABASE_USER" "$MAGENTO_DATABASE_NAME" -e "
+INSERT INTO core_config_data (scope, scope_id, path, value) VALUES
+  ('default', 0, 'design/head/includes', '<script src=\"/media/crypto-uuid-mock-polyfill.js\"></script>')
+ON DUPLICATE KEY UPDATE value = VALUES(value);"
+
 echo "Configuring SMTP settings to point to $MAGENTO_SMTP_HOST:$MAGENTO_SMTP_PORT"
 bin/magento config:set system/smtp/disable 0
 bin/magento config:set system/smtp/transport smtp
