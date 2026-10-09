@@ -36,3 +36,16 @@ test("Cannot place pay by card order using invalid card details", async ({
 
   await expect(page.getByText("3DSecure failed")).toBeVisible();
 });
+
+test("Cannot place pay by card order using invalid card details with 3DS challenge", async ({
+  page,
+}) => {
+  await new VisitCheckoutPayment(page).visit();
+
+  await new CheckoutPage(page).selectCard();
+
+  // Credit card form
+  await new CardCheckout(page).checkoutUsingInvalidCardFailsAt3DS();
+
+  await expect(page.getByText("3DSecure failed")).toBeVisible();
+});

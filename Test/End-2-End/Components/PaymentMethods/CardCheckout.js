@@ -59,7 +59,7 @@ export default class CardCheckout {
     await this.page
       .frameLocator(".st-card-number-iframe")
       .getByLabel("Card Number")
-      .fill("4000 0000 0000 2537");
+      .fill("4900490000000519");
     await this.page
       .frameLocator(".st-expiration-date-iframe")
       .getByLabel("Expiration Date")
@@ -70,5 +70,33 @@ export default class CardCheckout {
       .fill("123");
 
     await this.checkoutPage.pressPlaceOrder();
+  }
+
+  async checkoutUsingInvalidCardFailsAt3DS() {
+    await this.checkoutPage.selectCard();
+    // Credit card form
+    await this.page
+      .frameLocator(".st-card-number-iframe")
+      .getByLabel("Card Number")
+      .fill("4900490000000568");
+    await this.page
+      .frameLocator(".st-expiration-date-iframe")
+      .getByLabel("Expiration Date")
+      .fill("1233");
+    await this.page
+      .frameLocator(".st-security-code-iframe")
+      .getByLabel("Security Code")
+      .fill("123");
+
+    await this.checkoutPage.pressPlaceOrder();
+
+    await this.page
+      .frameLocator("#tp-3ds-challenge-iframe")
+      .getByPlaceholder("Enter code here")
+      .fill("1234");
+    await this.page
+      .frameLocator("#tp-3ds-challenge-iframe")
+      .getByRole("button", { name: "SUBMIT" })
+      .click();
   }
 }
