@@ -19,8 +19,10 @@ export default class ClearpayCheckout {
     const passwordInput = clearpayFrame.getByTestId("login-password-input");
     await passwordInput.waitFor();
 
-    // The consent banner varies by environment: "Accept All" locally, only "Close" on CI
+    // The consent banner varies by environment: "Accept All" locally, only "Close" on CI.
+    // Scoped to the Privacy dialog, as the popup has its own "Close" that cancels the order.
     await clearpayFrame
+      .getByRole("dialog", { name: "Privacy" })
       .getByRole("button", { name: /Accept All|Close/ })
       .first()
       .click({ timeout: 5000 })
