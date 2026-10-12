@@ -34,6 +34,13 @@ module.exports = defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     ignoreHTTPSErrors: true,
+
+    launchOptions: {
+      /* Clearpay's JS loads the IQ analytics pixel from hbiq.net. It's a UMD bundle with an
+       * anonymous define(), which RequireJS rejects as a mismatched define and then fails the
+       * next knockout template load on the page (minicart, totals, etc). Not needed in tests. */
+      args: ['--host-resolver-rules=MAP hbiq.net ~NOTFOUND'],
+    },
   },
 
   /* Configure projects for major browsers */
