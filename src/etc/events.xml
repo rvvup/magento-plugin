@@ -59,6 +59,11 @@
                   shared="false" />
     </event>
 
+    <event name="vault_payment_token_save_after">
+        <observer name="Rvvup_Payments::revokeDeactivatedVaultToken"
+                  instance="Rvvup\Payments\Observer\RevokeDeactivatedVaultToken"/>
+    </event>
+
     <event name="admin_system_config_save">
         <observer name="Rvvup_Payments::Observer\Webhook"
                   instance="Rvvup\Payments\Observer\Webhook"
