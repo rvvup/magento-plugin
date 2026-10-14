@@ -100,5 +100,13 @@
         </arguments>
     </type>
     <preference for="Magento\Sales\Block\Order\View" type="Rvvup\Payments\Block\Order\View"/>
+    <!-- Vault: CARD. Registered in the frontend area as the area's argument replaces the global one when compiled -->
+    <type name="Magento\Vault\Model\Ui\TokensConfigProvider">
+        <arguments>
+            <argument name="tokenUiComponentProviders" xsi:type="array">
+                <item name="rvvup_CARD" xsi:type="object">Rvvup\Payments\Model\Ui\TokenUiComponentProvider</item>
+            </argument>
+        </arguments>
+    </type>
     <preference for="Magento\Sales\Block\Order\Info" type="Rvvup\Payments\Block\Order\Info"/>
 </config>
