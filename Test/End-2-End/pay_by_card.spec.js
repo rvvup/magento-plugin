@@ -261,4 +261,15 @@ test.describe("hosted card flow (Rvvup modal) regression", () => {
 
     await new OrderConfirmation(page).expectOnOrderConfirmation();
   });
+
+  test("it shows a 3DSecure failure when the hosted card fails the 3ds challenge", async ({
+    page,
+  }) => {
+    await new VisitCheckoutPayment(page).visit();
+    await skipUnlessCardFlowIs(page, "HOSTED");
+
+    await new HostedCardCheckout(page).checkoutUsingInvalidCardFailsAt3DS();
+
+    await expect(page.getByText("3DSecure failed")).toBeVisible();
+  });
 });
