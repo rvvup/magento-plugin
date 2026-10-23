@@ -3,6 +3,7 @@ import VisitCheckoutPayment from "./Pages/VisitCheckoutPayment";
 import Cart from "./Components/Cart";
 import OrderConfirmation from "./Components/OrderConfirmation";
 import GoTo from "./Components/GoTo";
+import { rejectCookies } from "./Components/CookieBanner";
 
 test("Changing quote on a different tab for an in progress order makes the payment invalid", async ({
   browser,
@@ -16,7 +17,7 @@ test("Changing quote on a different tab for an in progress order makes the payme
   const frame = mainPage.frameLocator(
     "#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD",
   );
-  await frame.getByRole("button", { name: "Pay now" }).isVisible();
+  await rejectCookies(frame);
 
   const duplicatePage = await context.newPage();
   const cart = new Cart(duplicatePage);
@@ -62,6 +63,7 @@ test("Cannot complete order in first tab, if the customer starts a new order in 
     secondTabFrame.getByRole("button", { name: "Pay now" }),
   ).toBeVisible();
 
+  await rejectCookies(firstTabFrame);
   await firstTabFrame.getByRole("button", { name: "Pay now" }).click();
   await expect(
     firstTab.getByText(
@@ -95,6 +97,7 @@ test("Cannot place order in one tab and then place the same order again in anoth
   const mainFrame = mainPage.frameLocator(
     "#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD",
   );
+  await rejectCookies(mainFrame);
   await mainFrame.getByRole("button", { name: "Pay now" }).click();
 
   await new OrderConfirmation(mainPage).expectOnOrderConfirmation();

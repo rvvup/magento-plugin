@@ -42,4 +42,38 @@ export default class HostedCardCheckout {
 
     await modalFrame.getByRole("button", { name: /pay|submit/i }).click();
   }
+
+  async checkoutUsingInvalidCardFailsAt3DS() {
+    await this.checkoutPage.selectCard();
+    await this.checkoutPage.pressPlaceOrder();
+
+    const modalFrame = this.page.frameLocator(
+      HOSTED_CARD_MODAL_IFRAME_SELECTOR,
+    );
+
+    // Card that fails the 3DS challenge, same TODO as above about the hosted page selectors.
+    await modalFrame
+      .frameLocator(".st-card-number-iframe")
+      .getByLabel("Card Number")
+      .fill("4900490000000568");
+    await modalFrame
+      .frameLocator(".st-expiration-date-iframe")
+      .getByLabel("Expiration Date")
+      .fill("1233");
+    await modalFrame
+      .frameLocator(".st-security-code-iframe")
+      .getByLabel("Security Code")
+      .fill("123");
+
+    await modalFrame.getByRole("button", { name: /pay|submit/i }).click();
+
+    await modalFrame
+      .frameLocator("#tp-3ds-challenge-iframe")
+      .getByPlaceholder("Enter code here")
+      .fill("1234");
+    await modalFrame
+      .frameLocator("#tp-3ds-challenge-iframe")
+      .getByRole("button", { name: "SUBMIT" })
+      .click();
+  }
 }

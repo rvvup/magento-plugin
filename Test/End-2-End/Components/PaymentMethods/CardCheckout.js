@@ -10,7 +10,7 @@ export const CARD_ERROR_MESSAGE_SELECTOR = '[data-ui-id="message-error"]';
 export const FOUR_ONE_ONE_ONE_TEST_CARD_NUMBER = "4111 1111 1111 1111";
 
 // Acquirer's challenge test card, runs the full 3DS journey and then authorises.
-export const THREE_DS_TEST_CARD_NUMBER = "4761 3699 8032 0253";
+export const THREE_DS_TEST_CARD_NUMBER = "5200 0000 0000 1104";
 
 // The Ravelin sandbox ACS accepts this passcode, it is shown as the placeholder of the
 // challenge input ("hint: 1234").
