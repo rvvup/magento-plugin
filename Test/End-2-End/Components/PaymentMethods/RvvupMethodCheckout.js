@@ -6,6 +6,7 @@ export default class RvvupMethodCheckout {
   constructor(page) {
     this.page = page;
     this.checkoutPage = new CheckoutPage(page);
+    rejectRvvupCookieBanner(page);
   }
 
   async checkout() {
@@ -15,7 +16,6 @@ export default class RvvupMethodCheckout {
     const frame = this.page.frameLocator(
       "#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD",
     );
-    await rejectRvvupCookieBanner(frame);
     await frame.getByRole("button", { name: "Pay now" }).click();
   }
 }

@@ -10,6 +10,7 @@ test("Changing quote on a different tab for an in progress order makes the payme
 }) => {
   const context = await browser.newContext();
   const mainPage = await context.newPage();
+  rejectRvvupCookieBanner(mainPage);
   const visitCheckoutPayment = new VisitCheckoutPayment(mainPage);
   await visitCheckoutPayment.visit();
   await mainPage.getByLabel("Rvvup Payment Method").click();
@@ -17,7 +18,6 @@ test("Changing quote on a different tab for an in progress order makes the payme
   const frame = mainPage.frameLocator(
     "#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD",
   );
-  await rejectRvvupCookieBanner(frame);
   await frame.getByRole("button", { name: "Pay now" }).isVisible();
 
   const duplicatePage = await context.newPage();
@@ -41,6 +41,7 @@ test("Cannot complete order in first tab, if the customer starts a new order in 
 
   // Start the checkout on the first tab
   const firstTab = await context.newPage();
+  rejectRvvupCookieBanner(firstTab);
   await new VisitCheckoutPayment(firstTab).visit();
 
   await firstTab.getByLabel("Rvvup Payment Method").click();
@@ -48,10 +49,10 @@ test("Cannot complete order in first tab, if the customer starts a new order in 
   const firstTabFrame = firstTab.frameLocator(
     "#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD",
   );
-  await rejectRvvupCookieBanner(firstTabFrame);
 
   // Start the checkout on the second tab
   const secondTab = await context.newPage();
+  rejectRvvupCookieBanner(secondTab);
   await new GoTo(secondTab).checkout();
 
   await secondTab.getByRole("button", { name: "Next" }).click();
@@ -80,6 +81,7 @@ test("Cannot place order in one tab and then place the same order again in anoth
 
   // Start the checkout on the first tab
   const mainPage = await context.newPage();
+  rejectRvvupCookieBanner(mainPage);
   await new VisitCheckoutPayment(mainPage).visit();
   await mainPage.getByLabel("Rvvup Payment Method").click();
 
@@ -98,7 +100,6 @@ test("Cannot place order in one tab and then place the same order again in anoth
   const mainFrame = mainPage.frameLocator(
     "#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD",
   );
-  await rejectRvvupCookieBanner(mainFrame);
   await mainFrame.getByRole("button", { name: "Pay now" }).click();
 
   await new OrderConfirmation(mainPage).expectOnOrderConfirmation();
