@@ -6,7 +6,6 @@ export default class PayByBankCheckout {
   constructor(page) {
     this.page = page;
     this.checkoutPage = new CheckoutPage(page);
-    rejectRvvupCookieBanner(page);
   }
 
   /*
@@ -17,6 +16,7 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectRvvupCookieBanner(frame);
     await frame.getByRole("button", { name: "Mock Bank" }).click();
     await frame.getByRole("button", { name: "Continue on desktop" }).click();
   }
@@ -26,6 +26,7 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectRvvupCookieBanner(frame);
     await frame.getByRole("button", { name: "Natwest" }).click();
     await frame.getByRole("button", { name: "Continue on desktop" }).click();
 
@@ -38,6 +39,7 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectRvvupCookieBanner(frame);
     await frame.getByRole("button", { name: "Natwest" }).click();
     await frame.getByRole("button", { name: "Continue on desktop" }).click();
 
@@ -69,6 +71,7 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectRvvupCookieBanner(frame);
     await frame.getByRole("button", { name: "Natwest" }).click();
 
     // we want to open modal, open natwest in a new tab, close modal,

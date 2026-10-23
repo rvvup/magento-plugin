@@ -17,7 +17,6 @@ export default class HostedCardCheckout {
   constructor(page) {
     this.page = page;
     this.checkoutPage = new CheckoutPage(page);
-    rejectRvvupCookieBanner(page);
   }
 
   async checkout() {
@@ -27,6 +26,7 @@ export default class HostedCardCheckout {
     const modalFrame = this.page.frameLocator(
       HOSTED_CARD_MODAL_IFRAME_SELECTOR,
     );
+    await rejectRvvupCookieBanner(modalFrame);
 
     // TODO: confirm the exact hosted card page field selectors against a live sandbox run.
     await modalFrame
@@ -52,6 +52,7 @@ export default class HostedCardCheckout {
     const modalFrame = this.page.frameLocator(
       HOSTED_CARD_MODAL_IFRAME_SELECTOR,
     );
+    await rejectRvvupCookieBanner(modalFrame);
 
     // Card that fails the 3DS challenge, same TODO as above about the hosted page selectors.
     await modalFrame
