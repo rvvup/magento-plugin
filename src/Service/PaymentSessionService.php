@@ -18,6 +18,8 @@ use Rvvup\Api\Model\ItemRestriction;
 use Rvvup\Api\Model\MoneyInput;
 use Rvvup\Api\Model\PaymentSessionCreateInput;
 use Rvvup\Api\Model\PaymentType;
+use Rvvup\Payments\Model\Payment\SavedTokenDataBuilder;
+use Rvvup\Payments\Model\Payment\VaultDataBuilder;
 use Rvvup\ApiException;
 use Rvvup\Payments\Controller\Redirect\In;
 use Rvvup\Payments\Gateway\Method;
@@ -44,25 +46,37 @@ class PaymentSessionService
     /** @var TaxRateCalculator */
     private $taxRateCalculator;
 
+    /** @var VaultDataBuilder */
+    private $vaultDataBuilder;
+
+    /** @var SavedTokenDataBuilder */
+    private $savedTokenDataBuilder;
+
     /**
      * @param QuotePreparationService $quotePreparationService
      * @param Payment $paymentResource
      * @param ApiProvider $apiProvider
      * @param UrlFactory $urlFactory
      * @param TaxRateCalculator $taxRateCalculator
+     * @param VaultDataBuilder $vaultDataBuilder
+     * @param SavedTokenDataBuilder $savedTokenDataBuilder
      */
     public function __construct(
         QuotePreparationService     $quotePreparationService,
         Payment                     $paymentResource,
         ApiProvider $apiProvider,
         UrlFactory $urlFactory,
-        TaxRateCalculator $taxRateCalculator
+        TaxRateCalculator $taxRateCalculator,
+        VaultDataBuilder $vaultDataBuilder,
+        SavedTokenDataBuilder $savedTokenDataBuilder
     ) {
         $this->quotePreparationService = $quotePreparationService;
         $this->paymentResource = $paymentResource;
         $this->apiProvider = $apiProvider;
         $this->urlFactory = $urlFactory;
         $this->taxRateCalculator = $taxRateCalculator;
+        $this->vaultDataBuilder = $vaultDataBuilder;
+        $this->savedTokenDataBuilder = $savedTokenDataBuilder;
     }
 
     /**
@@ -87,7 +101,19 @@ class PaymentSessionService
 
         $paymentSessionInput = $this->buildPaymentSession($checkoutId, $quote, $paymentType);
 
-        $result = $this->apiProvider->getSdk($storeId)->paymentSessions()->create($checkoutId, $paymentSessionInput);
+        try {
+            $result = $this->apiProvider->getSdk($storeId)
+                ->paymentSessions()
+                ->create($checkoutId, $paymentSessionInput);
+        } catch (ApiException $e) {
+            if ($paymentSessionInput->getSavedTokenId() !== null
+                && $this->savedTokenDataBuilder->isTokenRejection($e)
+            ) {
+                // Missing, revoked and expired tokens all mean the same to the shopper.
+                throw new LocalizedException($this->savedTokenDataBuilder->getUnusableMessage(), $e);
+            }
+            throw $e;
+        }
 
         $payment = $quote->getPayment();
         $payment->setAdditionalInformation(Method::ORDER_ID, $result['id']);
@@ -269,6 +295,19 @@ class PaymentSessionService
                 $paymentSessionInput->setShippingTotal($this->buildAmount($shippingAmount, $currency));
             }
         }
+
+        $customerId = (int) $quote->getCustomerId();
+
+        if (!$this->savedTokenDataBuilder->build(
+            $paymentSessionInput,
+            $payment,
+            $customerId,
+            $checkoutId,
+            (string) $quote->getReservedOrderId()
+        )) {
+            $this->vaultDataBuilder->build($paymentSessionInput, $payment, $customerId);
+        }
+
         return $paymentSessionInput;
     }
 }

@@ -9,6 +9,7 @@ RUN if grep -q 'VERSION_CODENAME=bullseye' /etc/os-release; then \
     unzip \
     vim \
     jq \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["/rvvup/scripts/entrypoint.sh"]

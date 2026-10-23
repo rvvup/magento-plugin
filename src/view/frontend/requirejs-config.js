@@ -24,12 +24,4 @@ var config = {
             }
         }
     },
-    map: {
-        '*': {
-            'cardPayment': 'Rvvup_Payments/js/method/pay-by-card/card'
-        }
-    },
-    paths: {
-        cardPayment: 'Rvvup_Payments/js/method/pay-by-card/card',
-    },
 };

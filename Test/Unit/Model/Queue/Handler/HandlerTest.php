@@ -22,6 +22,7 @@ use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Card\CardMetaService;
+use Rvvup\Payments\Service\Card\VaultDetailsHandler;
 
 class HandlerTest extends TestCase
 {
@@ -34,6 +35,7 @@ class HandlerTest extends TestCase
     private $cartRepository;
     private $queueContextCleaner;
     private $cardMetaService;
+    private $vaultDetailsHandler;
 
     private $quoteMock;
     private $methodInstanceMock;
@@ -55,6 +57,7 @@ class HandlerTest extends TestCase
         $this->cartRepository = $this->createMock(CartRepositoryInterface::class);
         $this->queueContextCleaner = $this->createMock(QueueContextCleaner::class);
         $this->cardMetaService = $this->createMock(CardMetaService::class);
+        $this->vaultDetailsHandler = $this->createMock(VaultDetailsHandler::class);
 
         $this->handler = new Handler(
             $this->webhookRepository,
@@ -70,7 +73,8 @@ class HandlerTest extends TestCase
             $this->orderRepository,
             $this->cartRepository,
             $this->queueContextCleaner,
-            $this->cardMetaService
+            $this->cardMetaService,
+            $this->vaultDetailsHandler
         );
 
         $this->quoteMock = $this->createMock(Quote::class);
@@ -145,6 +149,9 @@ class HandlerTest extends TestCase
         $this->cardMetaService->expects($this->once())
             ->method('process')
             ->with($rvvupData['payments'][0], $this->orderMock);
+        $this->vaultDetailsHandler->expects($this->once())
+            ->method('process')
+            ->with($this->orderMock, 'OR123');
 
         $this->handler->execute(json_encode(['id' => 1]));
     }

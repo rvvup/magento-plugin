@@ -23,6 +23,7 @@ use Rvvup\Payments\Model\Webhook\WebhookEventType;
 use Rvvup\Payments\Service\Cache;
 use Rvvup\Payments\Service\Capture;
 use Rvvup\Payments\Service\Card\CardMetaService;
+use Rvvup\Payments\Service\Card\VaultDetailsHandler;
 
 class Handler
 {
@@ -68,6 +69,9 @@ class Handler
     /** @var CardMetaService */
     private $cardMetaService;
 
+    /** @var VaultDetailsHandler */
+    private $vaultDetailsHandler;
+
     /**
      * @param WebhookRepositoryInterface $webhookRepository
      * @param SerializerInterface $serializer
@@ -83,6 +87,7 @@ class Handler
      * @param CartRepositoryInterface $cartRepository
      * @param QueueContextCleaner $queueContextCleaner
      * @param CardMetaService $cardMetaService
+     * @param VaultDetailsHandler $vaultDetailsHandler
      */
     public function __construct(
         WebhookRepositoryInterface $webhookRepository,
@@ -98,7 +103,8 @@ class Handler
         OrderRepositoryInterface $orderRepository,
         CartRepositoryInterface $cartRepository,
         QueueContextCleaner $queueContextCleaner,
-        CardMetaService $cardMetaService
+        CardMetaService $cardMetaService,
+        VaultDetailsHandler $vaultDetailsHandler
     ) {
         $this->webhookRepository = $webhookRepository;
         $this->serializer = $serializer;
@@ -114,6 +120,7 @@ class Handler
         $this->cartRepository = $cartRepository;
         $this->queueContextCleaner = $queueContextCleaner;
         $this->cardMetaService = $cardMetaService;
+        $this->vaultDetailsHandler = $vaultDetailsHandler;
     }
 
     /**
@@ -215,6 +222,7 @@ class Handler
                     $order = $this->orderRepository->get($orderId);
                     $rvvupData = $this->paymentDataGet->execute($rvvupOrderId, $storeId);
                     $this->cardMetaService->process($rvvupData['payments'][0], $order);
+                    $this->saveCardToken($order, $rvvupOrderId, $rvvupData['payments'][0]['status']);
                 }
                 return;
             }
@@ -311,6 +319,21 @@ class Handler
                 $rvvupData,
                 $origin
             );
+        }
+
+        $this->saveCardToken($order, $rvvupOrderId, $rvvupData['payments'][0]['status']);
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param string $rvvupOrderId
+     * @param string $paymentStatus
+     * @return void
+     */
+    private function saveCardToken(OrderInterface $order, string $rvvupOrderId, string $paymentStatus): void
+    {
+        if (in_array($paymentStatus, VaultDetailsHandler::TOKEN_PAYMENT_STATUSES, true)) {
+            $this->vaultDetailsHandler->process($order, $rvvupOrderId);
         }
     }
 }
