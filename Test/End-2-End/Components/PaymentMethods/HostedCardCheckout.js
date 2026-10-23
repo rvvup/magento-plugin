@@ -1,5 +1,4 @@
 import CheckoutPage from "../CheckoutPage";
-import { rejectRvvupCookieBanner } from "../RvvupCookieBanner";
 import { FOUR_ONE_ONE_ONE_TEST_CARD_NUMBER } from "./CardCheckout";
 
 export const HOSTED_CARD_MODAL_IFRAME_SELECTOR = "#rvvup_iframe-rvvup_CARD";
@@ -17,7 +16,6 @@ export default class HostedCardCheckout {
   constructor(page) {
     this.page = page;
     this.checkoutPage = new CheckoutPage(page);
-    rejectRvvupCookieBanner(page);
   }
 
   async checkout() {

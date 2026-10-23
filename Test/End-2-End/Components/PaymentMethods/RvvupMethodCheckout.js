@@ -1,12 +1,10 @@
 import { expect } from "@playwright/test";
 import CheckoutPage from "../CheckoutPage";
-import { rejectRvvupCookieBanner } from "../RvvupCookieBanner";
 
 export default class RvvupMethodCheckout {
   constructor(page) {
     this.page = page;
     this.checkoutPage = new CheckoutPage(page);
-    rejectRvvupCookieBanner(page);
   }
 
   async checkout() {

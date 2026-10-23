@@ -5,11 +5,6 @@ on:
   schedule:
     - cron:  '0 8 * * *'
   workflow_dispatch:
-    inputs:
-      test_args:
-        description: 'Extra args for playwright test, e.g. pay_by_card.spec.js'
-        required: false
-        default: ''
 jobs:
   end-2-end-tests:
     strategy:
@@ -44,9 +39,7 @@ jobs:
         run: bash scripts/helpers/wait-for-server-startup.sh
 
       - name: Run Playwright tests
-        env:
-          TEST_ARGS: ${{ inputs.test_args }}
-        run: TEST_BASE_URL=http://localhost npx playwright test $TEST_ARGS
+        run: TEST_BASE_URL=http://localhost npx playwright test
 
       - name: Prepare logs
         if: always()
