@@ -89,13 +89,13 @@ Covered by:
 - `it reflects the inline card payment in the admin order status`
 - `it still completes a hosted card payment through the modal flow`
 
-### 4761 3699 8032 0253 - 3DS challenge happy path
+### 5200 0000 0000 1104 - 3DS challenge happy path
 
 This card runs the full 3DS challenge journey and then authorises:
 
 1. Add a product to the cart and go to checkout.
 2. Fill in shipping details and select "Pay by Card".
-3. Enter card number `4761 3699 8032 0253`, any future expiry (e.g. `12/33`) and any CVC
+3. Enter card number `5200 0000 0000 1104`, any future expiry (e.g. `12/33`) and any CVC
    (e.g. `123`).
 4. Submit the payment.
 5. The challenge opens in `iframe#challengeIframe`, which embeds Basis Theory's
