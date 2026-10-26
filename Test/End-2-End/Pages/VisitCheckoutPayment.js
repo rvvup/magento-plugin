@@ -40,9 +40,15 @@ export default class VisitCheckoutPayment {
 
     await new GoTo(this.page).checkout();
 
+    // The address form or the saved address renders asynchronously, so wait for one of them
+    // before deciding, otherwise isVisible() can run too early and skip filling the form.
+    const firstName = this.page.getByLabel("First name");
+    await expect(
+      firstName.or(this.page.locator(".shipping-address-item.selected-item")),
+    ).toBeVisible();
     await expect(this.page.getByLabel("Fixed")).toBeVisible();
 
-    if (await this.page.getByLabel("First name").isVisible()) {
+    if (await firstName.isVisible()) {
       await this.page.getByLabel("First name").fill("John");
       await this.page.getByLabel("Last name").fill("Doe");
       await this.page.getByLabel("Street Address: Line 1").fill("123 Main St");
