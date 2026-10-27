@@ -2,7 +2,7 @@
 set -euo pipefail
 
 URL="${1:-http://local.dev.rvvuptech.com/magento_version}"
-TIMEOUT="${2:-500}"
+TIMEOUT="${2:-900}"
 
 start=$(date +%s)
 attempt=1

@@ -44,7 +44,9 @@ export default class VisitCheckoutPayment {
     // before deciding, otherwise isVisible() can run too early and skip filling the form.
     const firstName = this.page.getByLabel("First name");
     await expect(
-      firstName.or(this.page.locator(".shipping-address-item.selected-item")),
+      firstName
+        .or(this.page.locator(".shipping-address-item.selected-item"))
+        .first(),
     ).toBeVisible();
     await expect(this.page.getByLabel("Fixed")).toBeVisible();
 

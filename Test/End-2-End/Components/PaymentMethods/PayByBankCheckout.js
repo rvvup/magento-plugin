@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import CheckoutPage from "../CheckoutPage";
-import { clickDismissingCookies } from "../CookieBanner";
+import { clickDismissingCookies, rejectCookies } from "../CookieBanner";
 
 export default class PayByBankCheckout {
   constructor(page) {
@@ -16,9 +16,11 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectCookies(frame);
     await clickDismissingCookies(
       frame,
       frame.getByRole("button", { name: "Mock Bank" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
     );
     await clickDismissingCookies(
       frame,
@@ -31,9 +33,11 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectCookies(frame);
     await clickDismissingCookies(
       frame,
       frame.getByRole("button", { name: "Natwest" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
     );
     await clickDismissingCookies(
       frame,
@@ -49,9 +53,11 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectCookies(frame);
     await clickDismissingCookies(
       frame,
       frame.getByRole("button", { name: "Natwest" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
     );
     await clickDismissingCookies(
       frame,
@@ -86,9 +92,11 @@ export default class PayByBankCheckout {
     await this.checkoutPage.pressPlaceOrder();
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
+    await rejectCookies(frame);
     await clickDismissingCookies(
       frame,
       frame.getByRole("button", { name: "Natwest" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
     );
 
     // we want to open modal, open natwest in a new tab, close modal,

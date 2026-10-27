@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import CheckoutPage from "../CheckoutPage";
-import { clickDismissingCookies } from "../CookieBanner";
+import { clickDismissingCookies, rejectCookies } from "../CookieBanner";
 
 export default class RvvupMethodCheckout {
   constructor(page) {
@@ -15,6 +15,7 @@ export default class RvvupMethodCheckout {
     const frame = this.page.frameLocator(
       "#rvvup_iframe-rvvup_FAKE_PAYMENT_METHOD",
     );
+    await rejectCookies(frame);
     await clickDismissingCookies(
       frame,
       frame.getByRole("button", { name: "Pay now" }),
