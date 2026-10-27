@@ -13,13 +13,23 @@ export default class Customer {
   }
 
   async register() {
-    await this.page.goto("./customer/account/create");
-    await this.page.locator("#firstname").fill("Saved");
-    await this.page.locator("#lastname").fill("Cards");
-    await this.page.locator("#email_address").fill(`${uuidv7()}@example.com`);
-    await this.page.locator("#password").fill(PASSWORD);
-    await this.page.locator("#password-confirmation").fill(PASSWORD);
-    await this.page.getByRole("button", { name: "Create an Account" }).click();
+    // The form is only usable once the page scripts have run: input typed before that is lost when
+    // they initialise, and the click then does nothing. So the whole attempt is retried on a fresh
+    // page until the registration redirects to the account, each attempt with its own email.
+    await expect(async () => {
+      await this.page.goto("./customer/account/create");
+      await this.page.waitForLoadState("networkidle");
+      await this.page.locator("#firstname").fill("Saved");
+      await this.page.locator("#lastname").fill("Cards");
+      await this.page.locator("#email_address").fill(`${uuidv7()}@example.com`);
+      await this.page.locator("#password").fill(PASSWORD);
+      await this.page.locator("#password-confirmation").fill(PASSWORD);
+      await this.page.getByRole("button", { name: "Create an Account" }).click();
+      await expect(this.page).toHaveURL(/customer\/account\/?$/, {
+        timeout: 15000,
+      });
+    }).toPass({ timeout: 90000 });
+
     await expect(this.page.getByText("Thank you for registering")).toBeVisible();
   }
 
