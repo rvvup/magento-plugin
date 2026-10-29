@@ -9,6 +9,10 @@ export const CARD_ERROR_MESSAGE_SELECTOR = '[data-ui-id="message-error"]';
 // See Test/End-2-End/CARD_TESTING.md.
 export const FOUR_ONE_ONE_ONE_TEST_CARD_NUMBER = "4111 1111 1111 1111";
 
+// Acquirer's frictionless 3DS test card (Mastercard), authorised without a challenge. Used by the
+// saved card tests, which cannot rely on the challenge tests that currently fail.
+export const THREE_DS_FRICTIONLESS_TEST_CARD_NUMBER = "5204 2477 5000 1471";
+
 // Acquirer's challenge test card, runs the full 3DS journey and then authorises.
 export const THREE_DS_TEST_CARD_NUMBER = "5200 0000 0000 1104";
 

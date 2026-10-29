@@ -19,6 +19,7 @@ use Rvvup\Payments\Model\Payment\PaymentDataGetInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorInterface;
 use Rvvup\Payments\Model\ProcessOrder\ProcessorPool;
 use Rvvup\Payments\Service\Card\CardMetaService;
+use Rvvup\Payments\Service\Card\VaultDetailsHandler;
 use Rvvup\Payments\Service\Result;
 
 class ResultTest extends TestCase
@@ -40,6 +41,9 @@ class ResultTest extends TestCase
     /** @var Order|MockObject */
     private $orderMock;
 
+    /** @var VaultDetailsHandler|MockObject */
+    private $vaultDetailsHandlerMock;
+
     /** @var Result */
     private $result;
 
@@ -48,6 +52,7 @@ class ResultTest extends TestCase
         $this->processorPoolMock = $this->createMock(ProcessorPool::class);
         $this->paymentDataGetMock = $this->createMock(PaymentDataGetInterface::class);
         $this->loggerMock = $this->createMock(Logger::class);
+        $this->vaultDetailsHandlerMock = $this->createMock(VaultDetailsHandler::class);
 
         $this->orderMock = $this->createMock(Order::class);
         $this->orderMock->method('getPayment')->willReturn($this->createMock(OrderPayment::class));
@@ -71,7 +76,8 @@ class ResultTest extends TestCase
             $this->createMock(Emulation::class),
             $this->loggerMock,
             $this->createMock(Payment::class),
-            $this->createMock(CardMetaService::class)
+            $this->createMock(CardMetaService::class),
+            $this->vaultDetailsHandlerMock
         );
     }
 
@@ -117,6 +123,38 @@ class ResultTest extends TestCase
             ->method('getProcessor')
             ->with('AUTHORIZED')
             ->willReturn($this->aProcessor());
+
+        $this->whenTheOrderResultIsProcessed();
+    }
+
+    /**
+     * @dataProvider tokenPaymentStatusProvider
+     */
+    public function testSavesTheCardTokenWhenThePaymentHasSucceeded(string $paymentStatus): void
+    {
+        $this->givenRvvupData($paymentStatus, $paymentStatus);
+        $this->processorPoolMock->method('findProcessor')->willReturn(null);
+        $this->processorPoolMock->method('getProcessor')->willReturn($this->aProcessor());
+
+        $this->vaultDetailsHandlerMock->expects($this->once())
+            ->method('process')
+            ->with($this->orderMock, self::RVVUP_ID);
+
+        $this->whenTheOrderResultIsProcessed();
+    }
+
+    public static function tokenPaymentStatusProvider(): array
+    {
+        return [['SUCCEEDED'], ['AUTHORIZED']];
+    }
+
+    public function testDoesNotSaveTheCardTokenWhenThePaymentIsPending(): void
+    {
+        $this->givenRvvupData('PENDING', 'PENDING');
+        $this->processorPoolMock->method('findProcessor')->willReturn(null);
+        $this->processorPoolMock->method('getProcessor')->willReturn($this->aProcessor());
+
+        $this->vaultDetailsHandlerMock->expects($this->never())->method('process');
 
         $this->whenTheOrderResultIsProcessed();
     }

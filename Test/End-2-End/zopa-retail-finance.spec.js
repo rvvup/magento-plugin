@@ -57,8 +57,22 @@ test("renders the ZRF widget on the configurable product page", async ({
   await expect(container).toBeVisible();
   const priceAtSmall = await monthlyPrice(container);
 
-  await selectSwatchWithRetry(page, "XL");
+  // M costs less than S (dataset: S is £100, the other sizes keep the default price), both within
+  // the ZRF limits, so the monthly price must change.
+  await selectSwatchWithRetry(page, "M");
   await expect.poll(() => monthlyPrice(container)).not.toBe(priceAtSmall);
+
+  // XL is £90,000, above the ZRF maximum: the widget has no monthly price for it.
+  const xlWidgetRequest = page.waitForRequest(
+    /api\..*\/widget\?.*amount=90000/,
+  );
+  await selectSwatchWithRetry(page, "XL");
+  await xlWidgetRequest;
+  await expect
+    .poll(async () =>
+      (await container.isVisible()) ? container.innerText() : "",
+    )
+    .not.toMatch(/p\/m/);
 
   await selectSwatchWithRetry(page, "Black");
   await expect(
