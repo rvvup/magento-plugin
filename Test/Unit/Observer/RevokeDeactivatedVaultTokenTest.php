@@ -120,7 +120,7 @@ class RevokeDeactivatedVaultTokenTest extends TestCase
         $this->execute($this->aToken(['customerId' => 7]));
     }
 
-    public function contextWithoutACustomerProvider(): array
+    public static function contextWithoutACustomerProvider(): array
     {
         return [
             'admin' => [UserContextInterface::USER_TYPE_ADMIN, 1],
