@@ -100,3 +100,64 @@ jobs:
         with:
           php-version: 8.4
           magento-version: magento/project-community-edition:2.4.8
+
+  # Magento 2.4.9 is the newest supported release and the one that supports PHP 8.5.
+  # PHP Stan and PHP Unit also run on 8.5 as separate jobs, so the existing job names (which
+  # branch protection may require) stay unchanged.
+  php-stan-php85:
+    name: PHP Stan (PHP 8.5)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+
+      - name: Configure
+        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+
+      - name: Install dependencies
+        run: composer install --no-ansi --no-interaction --no-progress --no-scripts
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan -v
+
+  php-unit-php85:
+    name: PHP Unit (PHP 8.5)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+
+      - name: Configure
+        run: composer config repositories.repo.magento.com composer https://repo.magento.com && composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+
+      - name: Install dependencies
+        run: composer install --no-ansi --no-interaction --no-progress --no-scripts
+
+      - name: Run PHPUnit
+        run: ./vendor/bin/phpunit --testdox
+
+  build-php85-magento-ce-249:
+    name: Build (Magento Community 2.4.9 w/ PHP 8.5)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Configure
+        run: composer config -g http-basic.repo.magento.com ${{ secrets.REPO_PUB_KEY }} ${{ secrets.REPO_SEC_KEY }}
+
+      - name: Build
+        uses: ./.github/actions/magento-build
+        with:
+          php-version: 8.5
+          magento-version: magento/project-community-edition:2.4.9
