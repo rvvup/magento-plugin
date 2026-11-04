@@ -1,12 +1,23 @@
-import { expect } from "@playwright/test";
+import { errors, expect } from "@playwright/test";
 
 /*
  * The Rvvup hosted payment page shows a OneTrust cookie banner inside the
  * payment iframe. It sits over the page and intercepts pointer events, so it
  * has to be dismissed before clicking anything in the iframe.
+ *
+ * Whether the banner is shown depends on where the page is loaded from, so a banner that never
+ * appears is fine: give it a short while and carry on.
  */
 export async function rejectCookies(frame) {
-  await frame.getByRole("button", { name: "Reject all cookies" }).click();
+  try {
+    await frame
+      .getByRole("button", { name: "Reject all cookies" })
+      .click({ timeout: 15000 });
+  } catch (e) {
+    if (!(e instanceof errors.TimeoutError)) {
+      throw e;
+    }
+  }
 }
 
 /*

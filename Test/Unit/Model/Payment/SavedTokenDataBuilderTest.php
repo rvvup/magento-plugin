@@ -137,7 +137,7 @@ class SavedTokenDataBuilderTest extends TestCase
         }
     }
 
-    public function unusableTokenProvider(): array
+    public static function unusableTokenProvider(): array
     {
         return [
             'inactive' => [['active' => false]],
@@ -166,7 +166,7 @@ class SavedTokenDataBuilderTest extends TestCase
         $this->assertSame($expected, $this->builder->isTokenRejection($e));
     }
 
-    public function rejectionProvider(): array
+    public static function rejectionProvider(): array
     {
         return [
             'not found in message' => [400, 'Saved token not found', null, true],

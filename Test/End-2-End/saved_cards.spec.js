@@ -100,7 +100,7 @@ test.describe("saved cards", () => {
   test("a customer cannot pay with the saved card of another customer", async ({
     page,
     browser,
-  }, testInfo) => {
+  }) => {
     await saveCardAsNewCustomer(page);
 
     // The client only ever sees the public hash of a saved card, never the Rvvup token.
@@ -110,10 +110,7 @@ test.describe("saved cards", () => {
     );
     expect(publicHash).toBeTruthy();
 
-    // A context created here is not traced by Playwright, trace it so a failure can be diagnosed.
     const otherContext = await browser.newContext();
-    await otherContext.tracing.start({ screenshots: true, snapshots: true });
-    let failed = true;
     try {
       const otherPage = await otherContext.newPage();
       await new Customer(otherPage).register();
@@ -141,15 +138,7 @@ test.describe("saved cards", () => {
 
       expect(response.status).toBe(400);
       expect(response.body).toContain("This saved card can no longer be used");
-      failed = false;
     } finally {
-      if (failed) {
-        await otherContext.tracing.stop({
-          path: testInfo.outputPath("other-customer-trace.zip"),
-        });
-      } else {
-        await otherContext.tracing.stop();
-      }
       await otherContext.close();
     }
   });
