@@ -21,14 +21,25 @@ class PaymentMethodsAvailableGet implements PaymentMethodsAvailableGetInterface
     private $logger;
 
     /**
+     * @var \Rvvup\Payments\Model\StorefrontRequestOptions|null
+     */
+    private $requestOptions;
+
+    /**
      * @param \Rvvup\Payments\Model\SdkProxy $sdkProxy
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Rvvup\Payments\Model\StorefrontRequestOptions|null $requestOptions Set only for storefront widgets
+     *     that must not wait on a slow API (see the Storefront* virtual types in di.xml). Leave null for checkout.
      * @return void
      */
-    public function __construct(SdkProxy $sdkProxy, LoggerInterface $logger)
-    {
+    public function __construct(
+        SdkProxy $sdkProxy,
+        LoggerInterface $logger,
+        ?StorefrontRequestOptions $requestOptions = null
+    ) {
         $this->sdkProxy = $sdkProxy;
         $this->logger = $logger;
+        $this->requestOptions = $requestOptions;
     }
 
     /**
@@ -43,7 +54,9 @@ class PaymentMethodsAvailableGet implements PaymentMethodsAvailableGetInterface
         try {
             $methods = [];
 
-            foreach ($this->sdkProxy->getMethods($value, $currency) as $method) {
+            $inputOptions = $this->requestOptions === null ? null : $this->requestOptions->get();
+
+            foreach ($this->sdkProxy->getMethods($value, $currency, $inputOptions) as $method) {
                 $methods[mb_strtolower(Method::PAYMENT_TITLE_PREFIX . $method['name'])] = $method;
             }
 

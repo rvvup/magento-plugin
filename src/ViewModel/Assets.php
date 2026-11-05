@@ -101,6 +101,19 @@ class Assets implements ArgumentInterface
     private $checkoutPageFullActionNames;
 
     /**
+     * Same lookups as the default ones, but time bounded. Used on every page except checkout, where the settings and
+     * scripts are required, so a slow API must be waited for.
+     *
+     * @var \Rvvup\Payments\Api\PaymentMethodsSettingsGetInterface|null
+     */
+    private $storefrontPaymentMethodsSettingsGet;
+
+    /**
+     * @var \Rvvup\Payments\Api\PaymentMethodsAssetsGetInterface|null
+     */
+    private $storefrontPaymentMethodsAssetsGet;
+
+    /**
      * @param SerializerInterface $serializer
      * @param ConfigInterface $config
      * @param PaymentMethodsAssetsGetInterface $paymentMethodsAssetsGet
@@ -111,6 +124,8 @@ class Assets implements ArgumentInterface
      * @param RvvupConfigurationInterface $rvvupConfiguration
      * @param Http $request
      * @param array|string[] $checkoutPageFullActionNames
+     * @param PaymentMethodsSettingsGetInterface|null $storefrontPaymentMethodsSettingsGet
+     * @param PaymentMethodsAssetsGetInterface|null $storefrontPaymentMethodsAssetsGet
      */
     public function __construct(
         SerializerInterface $serializer,
@@ -122,8 +137,12 @@ class Assets implements ArgumentInterface
         ApiProvider $apiProvider,
         RvvupConfigurationInterface $rvvupConfiguration,
         Http $request,
-        array $checkoutPageFullActionNames = [self::CHECKOUT_PAGE_FULL_ACTION_NAME]
+        array $checkoutPageFullActionNames = [self::CHECKOUT_PAGE_FULL_ACTION_NAME],
+        ?PaymentMethodsSettingsGetInterface $storefrontPaymentMethodsSettingsGet = null,
+        ?PaymentMethodsAssetsGetInterface $storefrontPaymentMethodsAssetsGet = null
     ) {
+        $this->storefrontPaymentMethodsSettingsGet = $storefrontPaymentMethodsSettingsGet;
+        $this->storefrontPaymentMethodsAssetsGet = $storefrontPaymentMethodsAssetsGet;
         $this->serializer = $serializer;
         $this->config = $config;
         $this->paymentMethodsAssetsGet = $paymentMethodsAssetsGet;
@@ -330,9 +349,59 @@ class Assets implements ArgumentInterface
             return [];
         }
 
-        $this->settings = $this->paymentMethodsSettingsGet->execute('0', $this->getStoreCurrency());
+        $this->settings = $this->getSettingsLookup()->execute('0', $this->getStoreCurrency());
 
         return $this->settings;
+    }
+
+    /**
+     * The time bounded settings lookup on every page except a checkout page, where the settings are required, so a
+     * slow API must be waited for. Also the default one when no time bounded lookup is wired.
+     *
+     * @return PaymentMethodsSettingsGetInterface
+     */
+    private function getSettingsLookup(): PaymentMethodsSettingsGetInterface
+    {
+        if ($this->storefrontPaymentMethodsSettingsGet !== null && !$this->isCheckoutPage()) {
+            return $this->storefrontPaymentMethodsSettingsGet;
+        }
+
+        return $this->paymentMethodsSettingsGet;
+    }
+
+    /**
+     * The time bounded assets lookup on every page except a checkout page, where the scripts are required, so a
+     * slow API must be waited for. Also the default one when no time bounded lookup is wired.
+     *
+     * @return PaymentMethodsAssetsGetInterface
+     */
+    private function getAssetsLookup(): PaymentMethodsAssetsGetInterface
+    {
+        if ($this->storefrontPaymentMethodsAssetsGet !== null && !$this->isCheckoutPage()) {
+            return $this->storefrontPaymentMethodsAssetsGet;
+        }
+
+        return $this->paymentMethodsAssetsGet;
+    }
+
+    /**
+     * Whether the current page is a checkout page.
+     *
+     * Besides the configured checkout pages, any other page whose action name mentions "checkout" counts (third party
+     * checkouts such as Hyvä or other one step checkouts), except the cart, so an unknown checkout is never time
+     * bounded by mistake.
+     *
+     * @return bool
+     */
+    private function isCheckoutPage(): bool
+    {
+        $fullActionName = (string) $this->request->getFullActionName();
+
+        if (in_array($fullActionName, $this->checkoutPageFullActionNames, true)) {
+            return true;
+        }
+
+        return stripos($fullActionName, 'checkout') !== false && strpos($fullActionName, 'checkout_cart_') !== 0;
     }
 
     /**
@@ -348,7 +417,7 @@ class Assets implements ArgumentInterface
             return [];
         }
 
-        return $this->paymentMethodsAssetsGet->execute('0', $this->getStoreCurrency(), $methodCodes);
+        return $this->getAssetsLookup()->execute('0', $this->getStoreCurrency(), $methodCodes);
     }
 
     /**

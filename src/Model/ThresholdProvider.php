@@ -10,14 +10,19 @@ class ThresholdProvider
     private $thresholds = [];
     /** @var SdkProxy */
     private $sdkProxy;
+    /** @var StorefrontRequestOptions|null */
+    private $requestOptions;
 
     /**
      * @param SdkProxy $sdkProxy
+     * @param StorefrontRequestOptions|null $requestOptions Time bounds the lookup, set in di.xml. Null = unbounded.
      */
     public function __construct(
-        SdkProxy $sdkProxy
+        SdkProxy $sdkProxy,
+        ?StorefrontRequestOptions $requestOptions = null
     ) {
         $this->sdkProxy = $sdkProxy;
+        $this->requestOptions = $requestOptions;
     }
 
     /**
@@ -44,7 +49,11 @@ class ThresholdProvider
      */
     private function init(?string $currency = null): void
     {
-        $methods = $this->sdkProxy->getMethods('0', $currency ?? 'GBP');
+        $methods = $this->sdkProxy->getMethods(
+            '0',
+            $currency ?? 'GBP',
+            $this->requestOptions === null ? null : $this->requestOptions->get()
+        );
         foreach ($methods as $method) {
             $this->thresholds[$method['name']] = [];
             if (isset($method['limits']['total'])) {

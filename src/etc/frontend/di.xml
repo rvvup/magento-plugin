@@ -48,6 +48,10 @@
                 <item name="firecheckout" xsi:type="string">firecheckout_index_index</item>
                 <item name="onestepcheckout" xsi:type="string">onestepcheckout_index_index</item>
             </argument>
+            <argument name="storefrontPaymentMethodsSettingsGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsSettingsGet</argument>
+            <argument name="storefrontPaymentMethodsAssetsGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsAssetsGet</argument>
         </arguments>
     </type>
 

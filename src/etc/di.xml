@@ -288,6 +288,8 @@
     <type name="Rvvup\Payments\Model\SdkProxy">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+            <!-- Lets SdkProxy keep a page rendered after a storefront lookup timed out out of full page cache. -->
+            <argument name="response" xsi:type="object">Magento\Framework\App\Response\Http\Proxy</argument>
         </arguments>
     </type>
 
@@ -400,6 +402,76 @@
     <type name="Rvvup\Payments\Model\PaymentMethodsAvailableGet">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+        </arguments>
+    </type>
+
+    <!--
+        Time bounded variants of the payment method lookups, used only by storefront widgets (head scripts, PayPal
+        and Clearpay on product, cart and mini basket). They give up after a few seconds so a slow Rvvup API cannot
+        hold the page up. Checkout and order placement keep using the unbounded services above.
+    -->
+    <type name="Rvvup\Payments\Model\StorefrontRequestOptions">
+        <arguments>
+            <argument name="timeout" xsi:type="number">3</argument>
+            <argument name="connectTimeout" xsi:type="number">1</argument>
+        </arguments>
+    </type>
+    <virtualType name="Rvvup\Payments\Model\StorefrontPaymentMethodsAvailableGet"
+                 type="Rvvup\Payments\Model\PaymentMethodsAvailableGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+            <argument name="requestOptions"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Rvvup\Payments\Model\StorefrontPaymentMethodsSettingsGet"
+                 type="Rvvup\Payments\Model\PaymentMethodsSettingsGet">
+        <arguments>
+            <argument name="paymentMethodsAvailableGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsAvailableGet</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Rvvup\Payments\Model\StorefrontPaymentMethodsAssetsGet"
+                 type="Rvvup\Payments\Model\PaymentMethodsAssetsGet">
+        <arguments>
+            <argument name="paymentMethodsSettingsGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsSettingsGet</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable"
+                 type="Rvvup\Payments\Model\IsPaymentMethodAvailable">
+        <arguments>
+            <argument name="paymentMethodsAvailableGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsAvailableGet</argument>
+        </arguments>
+    </virtualType>
+    <!--
+        Consumers are wired here, in the global scope, and not in frontend/di.xml: the Clearpay widget reads its
+        availability from GET /rest/{store}/V1/rvvup/clearpay, which runs in the webapi_rest area and never loads
+        frontend/di.xml. PaymentCreateExpress and the checkout flows keep the unbounded IsPaymentMethodAvailable.
+    -->
+    <type name="Rvvup\Payments\ViewModel\PayPal">
+        <arguments>
+            <argument name="isPaymentMethodAvailable"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\ClearpayAvailability">
+        <arguments>
+            <argument name="isPaymentMethodAvailable"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\ThresholdProvider">
+        <arguments>
+            <argument name="requestOptions"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\ApiSettingsProvider">
+        <arguments>
+            <argument name="requestOptions"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
         </arguments>
     </type>
 
