@@ -4,8 +4,8 @@ namespace Rvvup\Payments\Test\Unit\ViewModel;
 
 use Magento\Catalog\Helper\Data;
 use Magento\Catalog\Model\Product;
+use Magento\Catalog\Pricing\Price\FinalPrice;
 use Magento\Framework\Pricing\Amount\AmountInterface;
-use Magento\Framework\Pricing\Price\PriceInterface;
 use Magento\Framework\Pricing\PriceInfoInterface;
 use Magento\Tax\Model\Config as TaxConfig;
 use PHPUnit\Framework\TestCase;
@@ -65,7 +65,7 @@ class PriceTest extends TestCase
         ?AmountInterface $minimal = null,
         string $type = 'simple'
     ): Product {
-        $finalPrice = $this->createMock(PriceInterface::class);
+        $finalPrice = $this->createMock(FinalPrice::class);
         $finalPrice->method('getAmount')->willReturn($amount);
         $finalPrice->method('getMinimalPrice')->willReturn($minimal ?? $amount);
 
