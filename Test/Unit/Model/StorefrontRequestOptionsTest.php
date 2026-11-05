@@ -26,6 +26,22 @@ class StorefrontRequestOptionsTest extends TestCase
         );
     }
 
+    public function testItAcceptsNumbersAsStringsBecauseDiXmlPassesThemThatWay(): void
+    {
+        $this->assertSame(
+            ['timeout' => 4.0, 'connect_timeout' => 1.5],
+            (new StorefrontRequestOptions('4', '1.5'))->get()
+        );
+    }
+
+    public function testItFallsBackToTheDefaultsForValuesThatAreNotNumbers(): void
+    {
+        $this->assertSame(
+            ['timeout' => 3.0, 'connect_timeout' => 1.0],
+            (new StorefrontRequestOptions('soon', null))->get()
+        );
+    }
+
     public function testItFallsBackToTheDefaultsForZeroOrNegativeValuesBecauseGuzzleReadsThemAsNoTimeout(): void
     {
         $this->assertSame(

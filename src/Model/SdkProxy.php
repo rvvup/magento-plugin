@@ -14,6 +14,12 @@ use Rvvup\Sdk\GraphQlSdk;
 
 class SdkProxy
 {
+    /**
+     * How long, after a time bounded lookup timed out, further bounded lookups for the same store and currency are
+     * skipped. Covers the rest of a normal request, and lets long running processes recover.
+     */
+    private const TIMED_OUT_MEMORY_SECONDS = 30;
+
     /** @var RvvupConfigurationInterface */
     private $config;
     /** @var UserAgentBuilder */
@@ -41,11 +47,11 @@ class SdkProxy
     private $monetizedMethods = [];
 
     /**
-     * Whether a time bounded lookup already timed out during this request.
+     * When a time bounded lookup last timed out, per store and currency (microtime).
      *
-     * @var bool
+     * @var array<string, float>
      */
-    private $boundedLookupTimedOut = false;
+    private $boundedLookupTimedOutAt = [];
 
     /**
      * @param RvvupConfigurationInterface $config
@@ -78,7 +84,7 @@ class SdkProxy
     {
         $this->methods = null;
         $this->monetizedMethods = [];
-        $this->boundedLookupTimedOut = false;
+        $this->boundedLookupTimedOutAt = [];
         $this->subject = [];
     }
 
@@ -280,9 +286,10 @@ class SdkProxy
         }
 
         $threshold = $this->getTimeoutThreshold($inputOptions);
+        $timeoutKey = $threshold === null ? null : $this->getTimeoutKey($currency);
 
-        // An earlier bounded lookup in this request already timed out, don't make the page wait again.
-        if ($threshold !== null && $this->boundedLookupTimedOut) {
+        // An earlier bounded lookup for this store and currency timed out moments ago, don't make the page wait again.
+        if ($timeoutKey !== null && $this->hasRecentlyTimedOut($timeoutKey)) {
             return [];
         }
 
@@ -292,12 +299,12 @@ class SdkProxy
         );
 
         // The SDK swallows request errors and returns an empty list, so a timeout can only be recognised by an
-        // empty result that took at least as long as the timeout.
-        if ($threshold !== null && $methods === [] && (microtime(true) - $startedAt) >= $threshold) {
-            $this->boundedLookupTimedOut = true;
+        // empty result that took at least as long as the timeout. An empty answer that arrives sooner is a real one.
+        if ($timeoutKey !== null && $methods === [] && (microtime(true) - $startedAt) >= $threshold) {
+            $this->boundedLookupTimedOutAt[$timeoutKey] = microtime(true);
             $this->logger->warning(
                 'Rvvup payment methods lookup returned nothing after hitting the storefront timeout, '
-                . 'skipping further bounded lookups for this request.',
+                . 'skipping further bounded lookups for this store and currency for a short while.',
                 ['value' => $value, 'currency' => $currency, 'threshold_seconds' => $threshold]
             );
 
@@ -311,7 +318,11 @@ class SdkProxy
     }
 
     /**
-     * The shortest timeout in the given SDK options (seconds), or null when the lookup is not time bounded.
+     * The overall timeout in the given SDK options (seconds), or null when the lookup is not time bounded.
+     *
+     * Only the overall timeout is used, so an empty answer that took longer than the connect timeout but finished
+     * within the overall one is not mistaken for a timeout. A connect timeout alone is not detected, which costs at
+     * most the connect timeout per distinct lookup.
      *
      * @param array|null $inputOptions
      * @return float|null
@@ -322,15 +333,32 @@ class SdkProxy
             return null;
         }
 
-        $timeouts = [];
-
         foreach (['timeout', 'connect_timeout'] as $key) {
             if (isset($inputOptions[$key]) && (float) $inputOptions[$key] > 0) {
-                $timeouts[] = (float) $inputOptions[$key];
+                return (float) $inputOptions[$key];
             }
         }
 
-        return $timeouts === [] ? null : min($timeouts);
+        return null;
+    }
+
+    /**
+     * @param string $currency
+     * @return string
+     */
+    private function getTimeoutKey(string $currency): string
+    {
+        return $this->storeManager->getStore()->getId() . '|' . $currency;
+    }
+
+    /**
+     * @param string $timeoutKey
+     * @return bool
+     */
+    private function hasRecentlyTimedOut(string $timeoutKey): bool
+    {
+        return isset($this->boundedLookupTimedOutAt[$timeoutKey])
+            && (microtime(true) - $this->boundedLookupTimedOutAt[$timeoutKey]) < self::TIMED_OUT_MEMORY_SECONDS;
     }
 
     /**

@@ -60,7 +60,7 @@ class SdkProxyTest extends TestCase
         $this->sdkMock->method('getMethods')->willReturnCallback(function () use (&$calls) {
             $calls++;
             // The SDK swallows request errors, so a timeout looks like an empty list after waiting.
-            usleep(60000);
+            usleep(100000);
 
             return [];
         });
@@ -77,7 +77,7 @@ class SdkProxyTest extends TestCase
     {
         $this->sdkMock->method('getMethods')->willReturnCallback(function ($value, $currency, $options) {
             if ($options !== null) {
-                usleep(60000);
+                usleep(100000);
 
                 return [];
             }
@@ -126,7 +126,7 @@ class SdkProxyTest extends TestCase
         $calls = 0;
         $this->sdkMock->method('getMethods')->willReturnCallback(function () use (&$calls) {
             $calls++;
-            usleep(60000);
+            usleep(100000);
 
             return [];
         });
@@ -143,7 +143,7 @@ class SdkProxyTest extends TestCase
         $calls = 0;
         $this->sdkMock->method('getMethods')->willReturnCallback(function () use (&$calls) {
             $calls++;
-            usleep(60000);
+            usleep(100000);
 
             return [];
         });
@@ -155,15 +155,52 @@ class SdkProxyTest extends TestCase
         $this->assertSame(2, $calls);
     }
 
+    public function testAnEmptyAnswerSlowerThanTheConnectTimeoutButWithinTheTimeoutIsNotATimeout(): void
+    {
+        $calls = 0;
+        $this->sdkMock->method('getMethods')->willReturnCallback(function () use (&$calls) {
+            $calls++;
+            usleep(50000);
+
+            return [];
+        });
+        $this->loggerMock->expects($this->never())->method('warning');
+
+        $options = ['timeout' => 5.0, 'connect_timeout' => 0.02];
+        $this->sdkProxy->getMethods('0', 'GBP', $options);
+        $this->sdkProxy->getMethods('49.99', 'GBP', $options);
+
+        $this->assertSame(2, $calls);
+    }
+
+    public function testATimeoutForOneCurrencyDoesNotBlockLookupsForAnother(): void
+    {
+        $currencies = [];
+        $this->sdkMock->method('getMethods')->willReturnCallback(function ($value, $currency) use (&$currencies) {
+            $currencies[] = $currency;
+            usleep(100000);
+
+            return [];
+        });
+
+        $this->sdkProxy->getMethods('0', 'GBP', $this->boundedOptions());
+        $this->sdkProxy->getMethods('0', 'EUR', $this->boundedOptions());
+        // GBP is now skipped, EUR is skipped too after its own timeout.
+        $this->sdkProxy->getMethods('49.99', 'GBP', $this->boundedOptions());
+        $this->sdkProxy->getMethods('49.99', 'EUR', $this->boundedOptions());
+
+        $this->assertSame(['GBP', 'EUR'], $currencies);
+    }
+
     /**
-     * Tiny timeouts, so the mocked lookups that sleep for 60ms count as having timed out. The proxy only compares
+     * Tiny timeouts, so the mocked lookups that sleep for 100ms count as having timed out. The proxy only compares
      * these values with the time the lookup took.
      *
      * @return array
      */
     private function boundedOptions(): array
     {
-        return ['timeout' => 0.03, 'connect_timeout' => 0.02];
+        return ['timeout' => 0.05, 'connect_timeout' => 0.02];
     }
 
     /**

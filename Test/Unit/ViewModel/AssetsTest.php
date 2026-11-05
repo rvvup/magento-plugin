@@ -189,6 +189,52 @@ class AssetsTest extends TestCase
         $this->assertFalse($assets->shouldCreateCheckout());
     }
 
+    public function testItNeverUsesTheTimeBoundedLookupsOnACheckoutPageThatIsNotConfigured(): void
+    {
+        $storefrontSettingsGet = $this->createMock(PaymentMethodsSettingsGetInterface::class);
+        $storefrontSettingsGet->expects($this->never())->method('execute');
+
+        $storefrontAssetsGet = $this->createMock(PaymentMethodsAssetsGetInterface::class);
+        $storefrontAssetsGet->expects($this->never())->method('execute');
+
+        $assets = $this->buildAssets(
+            'acme_onepage_checkout_index',
+            ['rvvup_paypal' => ['source' => 'default']],
+            [
+                'rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/default.js']],
+            ],
+            ['checkout_index_index'],
+            $storefrontSettingsGet,
+            $storefrontAssetsGet
+        );
+
+        $scripts = $assets->getPaymentMethodsScriptAssets();
+
+        $this->assertSame('https://example.test/default.js', $scripts['rvvup_paypal']['paypal']['url']);
+    }
+
+    public function testItUsesTheTimeBoundedLookupsOnTheCartPageEvenThoughItsActionNameMentionsCheckout(): void
+    {
+        $assets = $this->buildAssets(
+            self::CART_PAGE,
+            [],
+            [
+                'rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/default.js']],
+            ],
+            ['checkout_index_index'],
+            $this->createSettingsGet([]),
+            $this->createAssetsGet([
+                'rvvup_paypal' => [
+                    'paypal' => ['assetType' => 'script', 'url' => 'https://example.test/storefront.js'],
+                ],
+            ])
+        );
+
+        $scripts = $assets->getPaymentMethodsScriptAssets();
+
+        $this->assertSame('https://example.test/storefront.js', $scripts['rvvup_paypal']['paypal']['url']);
+    }
+
     public function testItFallsBackToTheDefaultLookupsWhenNoTimeBoundedOnesAreWired(): void
     {
         $assets = $this->buildAssets(

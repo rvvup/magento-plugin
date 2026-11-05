@@ -349,23 +349,59 @@ class Assets implements ArgumentInterface
             return [];
         }
 
-        $settingsGet = $this->isCheckoutPage() || $this->storefrontPaymentMethodsSettingsGet === null
-            ? $this->paymentMethodsSettingsGet
-            : $this->storefrontPaymentMethodsSettingsGet;
-
-        $this->settings = $settingsGet->execute('0', $this->getStoreCurrency());
+        $this->settings = $this->getSettingsLookup()->execute('0', $this->getStoreCurrency());
 
         return $this->settings;
     }
 
     /**
-     * Whether the current page is the checkout page, where the lookups must not be time bounded.
+     * The time bounded settings lookup on every page except a checkout page, where the settings are required, so a
+     * slow API must be waited for. Also the default one when no time bounded lookup is wired.
+     *
+     * @return PaymentMethodsSettingsGetInterface
+     */
+    private function getSettingsLookup(): PaymentMethodsSettingsGetInterface
+    {
+        if ($this->storefrontPaymentMethodsSettingsGet !== null && !$this->isCheckoutPage()) {
+            return $this->storefrontPaymentMethodsSettingsGet;
+        }
+
+        return $this->paymentMethodsSettingsGet;
+    }
+
+    /**
+     * The time bounded assets lookup on every page except a checkout page, where the scripts are required, so a
+     * slow API must be waited for. Also the default one when no time bounded lookup is wired.
+     *
+     * @return PaymentMethodsAssetsGetInterface
+     */
+    private function getAssetsLookup(): PaymentMethodsAssetsGetInterface
+    {
+        if ($this->storefrontPaymentMethodsAssetsGet !== null && !$this->isCheckoutPage()) {
+            return $this->storefrontPaymentMethodsAssetsGet;
+        }
+
+        return $this->paymentMethodsAssetsGet;
+    }
+
+    /**
+     * Whether the current page is a checkout page.
+     *
+     * Besides the configured checkout pages, any other page whose action name mentions "checkout" counts (third party
+     * checkouts such as Hyvä or other one step checkouts), except the cart, so an unknown checkout is never time
+     * bounded by mistake.
      *
      * @return bool
      */
     private function isCheckoutPage(): bool
     {
-        return in_array($this->request->getFullActionName(), $this->checkoutPageFullActionNames, true);
+        $fullActionName = (string) $this->request->getFullActionName();
+
+        if (in_array($fullActionName, $this->checkoutPageFullActionNames, true)) {
+            return true;
+        }
+
+        return stripos($fullActionName, 'checkout') !== false && strpos($fullActionName, 'checkout_cart_') !== 0;
     }
 
     /**
@@ -381,11 +417,7 @@ class Assets implements ArgumentInterface
             return [];
         }
 
-        $assetsGet = $this->isCheckoutPage() || $this->storefrontPaymentMethodsAssetsGet === null
-            ? $this->paymentMethodsAssetsGet
-            : $this->storefrontPaymentMethodsAssetsGet;
-
-        return $assetsGet->execute('0', $this->getStoreCurrency(), $methodCodes);
+        return $this->getAssetsLookup()->execute('0', $this->getStoreCurrency(), $methodCodes);
     }
 
     /**

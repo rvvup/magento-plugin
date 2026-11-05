@@ -54,31 +54,6 @@
                       xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsAssetsGet</argument>
         </arguments>
     </type>
-    <!-- Storefront only widgets, see the Storefront* virtual types in the global di.xml -->
-    <type name="Rvvup\Payments\ViewModel\PayPal">
-        <arguments>
-            <argument name="isPaymentMethodAvailable"
-                      xsi:type="object">Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable</argument>
-        </arguments>
-    </type>
-    <type name="Rvvup\Payments\Model\ClearpayAvailability">
-        <arguments>
-            <argument name="isPaymentMethodAvailable"
-                      xsi:type="object">Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable</argument>
-        </arguments>
-    </type>
-    <type name="Rvvup\Payments\Model\ThresholdProvider">
-        <arguments>
-            <argument name="requestOptions"
-                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
-        </arguments>
-    </type>
-    <type name="Rvvup\Payments\Model\ApiSettingsProvider">
-        <arguments>
-            <argument name="requestOptions"
-                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
-        </arguments>
-    </type>
 
     <type name="Rvvup\Payments\CustomerData\ExpressPayment">
         <arguments>

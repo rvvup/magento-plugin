@@ -443,6 +443,35 @@
                       xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsAvailableGet</argument>
         </arguments>
     </virtualType>
+    <!--
+        Consumers are wired here, in the global scope, and not in frontend/di.xml: the Clearpay widget reads its
+        availability from GET /rest/{store}/V1/rvvup/clearpay, which runs in the webapi_rest area and never loads
+        frontend/di.xml. PaymentCreateExpress and the checkout flows keep the unbounded IsPaymentMethodAvailable.
+    -->
+    <type name="Rvvup\Payments\ViewModel\PayPal">
+        <arguments>
+            <argument name="isPaymentMethodAvailable"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\ClearpayAvailability">
+        <arguments>
+            <argument name="isPaymentMethodAvailable"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\ThresholdProvider">
+        <arguments>
+            <argument name="requestOptions"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
+        </arguments>
+    </type>
+    <type name="Rvvup\Payments\Model\ApiSettingsProvider">
+        <arguments>
+            <argument name="requestOptions"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
+        </arguments>
+    </type>
 
     <type name="Rvvup\Payments\ViewModel\Assets">
         <arguments>

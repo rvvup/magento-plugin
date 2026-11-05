@@ -27,15 +27,22 @@ class StorefrontRequestOptions
     private $connectTimeout;
 
     /**
-     * @param float $timeout Overall request timeout in seconds.
-     * @param float $connectTimeout Connection timeout in seconds.
+     * The parameters are deliberately untyped: values set in di.xml with xsi:type="number" reach the constructor as
+     * strings, and a typed float parameter would throw a TypeError wherever the object is built in strict mode.
+     *
+     * @param float|int|string $timeout Overall request timeout in seconds.
+     * @param float|int|string $connectTimeout Connection timeout in seconds.
      */
     public function __construct(
-        float $timeout = self::DEFAULT_TIMEOUT,
-        float $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT
+        $timeout = self::DEFAULT_TIMEOUT,
+        $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT
     ) {
-        $this->timeout = $timeout > 0 ? $timeout : self::DEFAULT_TIMEOUT;
-        $this->connectTimeout = $connectTimeout > 0 ? $connectTimeout : self::DEFAULT_CONNECT_TIMEOUT;
+        $this->timeout = is_numeric($timeout) && (float) $timeout > 0
+            ? (float) $timeout
+            : self::DEFAULT_TIMEOUT;
+        $this->connectTimeout = is_numeric($connectTimeout) && (float) $connectTimeout > 0
+            ? (float) $connectTimeout
+            : self::DEFAULT_CONNECT_TIMEOUT;
     }
 
     /**
