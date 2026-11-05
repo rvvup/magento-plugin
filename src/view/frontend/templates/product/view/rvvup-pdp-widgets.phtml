@@ -13,7 +13,10 @@ if ($product === null) {
     return;
 }
 
-$initialPrice = number_format($product->getFinalPrice(), 2, '.', '');
+/** @var \Rvvup\Payments\ViewModel\Price $priceViewModel */
+$priceViewModel = $block->getData('price');
+// Price the customer pays (tax-aware), not the catalogue price which excludes VAT when prices are entered ex-tax.
+$initialPrice = number_format($priceViewModel->getPrice($product), 2, '.', '');
 $currencyCode = $block->getProduct()->getStore()->getCurrentCurrencyCode();
 $isRestricted = (bool) $product->getRvvupRestricted();
 if ($isRestricted) {
