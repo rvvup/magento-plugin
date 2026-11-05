@@ -288,6 +288,8 @@
     <type name="Rvvup\Payments\Model\SdkProxy">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+            <!-- Lets SdkProxy keep a page rendered after a storefront lookup timed out out of full page cache. -->
+            <argument name="response" xsi:type="object">Magento\Framework\App\Response\Http\Proxy</argument>
         </arguments>
     </type>
 

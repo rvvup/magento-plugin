@@ -3,6 +3,7 @@
 namespace Rvvup\Payments\Model;
 
 use GuzzleHttp\Client;
+use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -16,7 +17,9 @@ class SdkProxy
 {
     /**
      * How long, after a time bounded lookup timed out, further bounded lookups for the same store and currency are
-     * skipped. Covers the rest of a normal request, and lets long running processes recover.
+     * skipped. The memory lives in this object, so it spans the rest of one request (and, in a long running process
+     * that reuses the object, lets it recover after this long). It is not shared between PHP-FPM requests, so it is
+     * not a circuit breaker across requests.
      */
     private const TIMED_OUT_MEMORY_SECONDS = 30;
 
@@ -54,12 +57,28 @@ class SdkProxy
     private $boundedLookupTimedOutAt = [];
 
     /**
+     * Time bounded lookups that came back empty, by currency and value. Kept apart from $monetizedMethods, which
+     * lookups without a timeout also read: a bounded lookup that failed quickly must not hide the real answer from
+     * checkout.
+     *
+     * @var array
+     */
+    private $boundedEmptyMethods = [];
+
+    /**
+     * @var \Magento\Framework\App\ResponseInterface|null
+     */
+    private $response;
+
+    /**
      * @param RvvupConfigurationInterface $config
      * @param UserAgentBuilder $userAgent
      * @param GraphQlSdkFactory $sdkFactory
      * @param StoreManagerInterface $storeManager
      * @param GetEnvironmentVersionsInterface $getEnvironmentVersions
      * @param LoggerInterface $logger
+     * @param \Magento\Framework\App\ResponseInterface|null $response Used to keep a page rendered after a storefront
+     *     lookup timed out out of full page cache. Set in di.xml.
      */
     public function __construct(
         RvvupConfigurationInterface $config,
@@ -67,8 +86,10 @@ class SdkProxy
         GraphQlSdkFactory $sdkFactory,
         StoreManagerInterface $storeManager,
         GetEnvironmentVersionsInterface $getEnvironmentVersions,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ?\Magento\Framework\App\ResponseInterface $response = null
     ) {
+        $this->response = $response;
         $this->config = $config;
         $this->userAgent = $userAgent;
         $this->sdkFactory = $sdkFactory;
@@ -85,6 +106,7 @@ class SdkProxy
         $this->methods = null;
         $this->monetizedMethods = [];
         $this->boundedLookupTimedOutAt = [];
+        $this->boundedEmptyMethods = [];
         $this->subject = [];
     }
 
@@ -288,9 +310,14 @@ class SdkProxy
         $threshold = $this->getTimeoutThreshold($inputOptions);
         $timeoutKey = $threshold === null ? null : $this->getTimeoutKey($currency);
 
-        // An earlier bounded lookup for this store and currency timed out moments ago, don't make the page wait again.
-        if ($timeoutKey !== null && $this->hasRecentlyTimedOut($timeoutKey)) {
-            return [];
+        if ($timeoutKey !== null) {
+            // Bounded lookups that already came back empty are answered from their own memory, never the shared one.
+            if (isset($this->boundedEmptyMethods[$currency][$value])
+                // An earlier bounded lookup for this store and currency timed out moments ago, don't wait again.
+                || $this->hasRecentlyTimedOut($timeoutKey)
+            ) {
+                return [];
+            }
         }
 
         $startedAt = microtime(true);
@@ -298,23 +325,50 @@ class SdkProxy
             $this->getSdkForStore()->getMethods((string) round((float) $value, 2), $currency, $inputOptions)
         );
 
-        // The SDK swallows request errors and returns an empty list, so a timeout can only be recognised by an
-        // empty result that took at least as long as the timeout. An empty answer that arrives sooner is a real one.
-        if ($timeoutKey !== null && $methods === [] && (microtime(true) - $startedAt) >= $threshold) {
-            $this->boundedLookupTimedOutAt[$timeoutKey] = microtime(true);
-            $this->logger->warning(
-                'Rvvup payment methods lookup returned nothing after hitting the storefront timeout, '
-                . 'skipping further bounded lookups for this store and currency for a short while.',
-                ['value' => $value, 'currency' => $currency, 'threshold_seconds' => $threshold]
-            );
+        if ($timeoutKey !== null && $methods === []) {
+            // The SDK swallows request errors and returns an empty list, so a timeout can only be recognised by an
+            // empty result that took at least as long as the timeout. A sooner empty answer might be a real one, or a
+            // quick failure, so it is not trusted either: it is only remembered for later bounded lookups and never
+            // for lookups without a timeout (checkout), which must still ask the API.
+            if ((microtime(true) - $startedAt) >= $threshold) {
+                $this->onBoundedLookupTimedOut($timeoutKey, $value, $currency, (float) $threshold);
+            } else {
+                $this->boundedEmptyMethods[$currency][$value] = true;
+            }
 
-            // Not memoised, so a later lookup without a timeout in the same request still asks the API.
             return [];
         }
 
         $this->monetizedMethods[$currency][$value] = $methods;
 
         return $methods;
+    }
+
+    /**
+     * @param string $timeoutKey
+     * @param string $value
+     * @param string $currency
+     * @param float $threshold
+     * @return void
+     */
+    private function onBoundedLookupTimedOut(
+        string $timeoutKey,
+        string $value,
+        string $currency,
+        float $threshold
+    ): void {
+        $this->boundedLookupTimedOutAt[$timeoutKey] = microtime(true);
+
+        $this->logger->warning(
+            'Rvvup payment methods lookup returned nothing after hitting the storefront timeout, '
+            . 'skipping further bounded lookups for this store and currency for a short while.',
+            ['value' => $value, 'currency' => $currency, 'threshold_seconds' => $threshold]
+        );
+
+        // The page is about to be rendered without the Rvvup widgets. Don't let full page cache keep that version.
+        if ($this->response instanceof HttpResponse) {
+            $this->response->setNoCacheHeaders();
+        }
     }
 
     /**

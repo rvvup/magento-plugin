@@ -104,33 +104,80 @@ class StorefrontDiWiringTest extends TestCase
         );
     }
 
-    public function testCheckoutAndOrderPlacementKeepTheUnboundedLookups(): void
+    public function testOnlyTheIntendedClassesAreWiredToTheBoundedServices(): void
     {
-        $global = $this->load('di.xml');
-        $types = $this->types($global);
-        $bounded = [
-            self::NS . 'Model\\StorefrontIsPaymentMethodAvailable',
-            self::NS . 'Model\\StorefrontRequestOptions',
-        ];
+        // Checkout, order placement and express payment creation (PaymentCreateExpress, LoadMethodInstances,
+        // LoadPaymentMethods, ConfigProvider, JsLayout, ...) must keep the unbounded lookups. Any di.xml, in any area,
+        // that wires something else to a Storefront* service or to the options fails here, and so does a <preference>
+        // that would swap a default service for a bounded one.
+        $allowedTypes = array_merge(
+            array_keys(self::GLOBAL_CONSUMERS),
+            [self::NS . 'ViewModel\\Assets']
+        );
+        $found = 0;
 
-        // The express payment creation checks availability before taking payment, it must wait for the real answer.
-        $class = self::NS . 'Model\\Payment\\PaymentCreateExpress';
-        foreach (($types[$class] ?? []) as $argument => $value) {
-            $this->assertNotContains(
-                $value['value'],
-                $bounded,
-                sprintf('%s "%s" must not be bounded.', $class, $argument)
-            );
+        foreach ($this->diFiles() as $file) {
+            $xml = simplexml_load_file($file);
+            $this->assertNotFalse($xml, $file . ' is not valid XML.');
+
+            foreach ($xml->preference as $preference) {
+                $this->assertStringNotContainsString(
+                    'Storefront',
+                    (string) $preference['type'] . (string) $preference['for'],
+                    $file . ' has a <preference> that wires a Storefront* service.'
+                );
+            }
+
+            foreach ($xml->type as $type) {
+                $name = (string) $type['name'];
+                $references = array_filter(
+                    $this->arguments($type),
+                    static function (array $argument): bool {
+                        return strpos($argument['value'], 'Storefront') !== false;
+                    }
+                );
+
+                if ($name === self::NS . 'Model\\StorefrontRequestOptions' || $references === []) {
+                    continue;
+                }
+
+                $found++;
+                $this->assertContains($name, $allowedTypes, sprintf('%s wires %s to a bounded service.', $file, $name));
+            }
         }
 
-        // The default services stay unbounded.
-        $defaults = [
-            self::NS . 'Model\\PaymentMethodsAvailableGet',
-            self::NS . 'Model\\IsPaymentMethodAvailable',
-        ];
-        foreach ($defaults as $class) {
-            $this->assertArrayNotHasKey('requestOptions', $types[$class] ?? [], $class . ' must stay unbounded.');
+        $this->assertGreaterThan(0, $found, 'No consumers of the bounded services found, the scan is broken.');
+    }
+
+    public function testSdkProxyGetsTheResponseUsedToKeepATimedOutPageOutOfFullPageCache(): void
+    {
+        $types = $this->types($this->load('di.xml'));
+        $class = self::NS . 'Model\\SdkProxy';
+
+        $this->assertArrayHasKey('response', $types[$class]);
+        $this->assertArgumentsExistOnConstructor($class, array_keys($types[$class]), $class);
+        $this->assertSame('Magento\\Framework\\App\\Response\\Http\\Proxy', $types[$class]['response']['value']);
+    }
+
+    /**
+     * @return string[]
+     */
+    private function diFiles(): array
+    {
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(dirname(__DIR__, 2) . '/src/etc', \FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->getFilename() === 'di.xml') {
+                $files[] = $file->getPathname();
+            }
         }
+
+        $this->assertNotEmpty($files);
+
+        return $files;
     }
 
     /**

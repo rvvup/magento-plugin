@@ -2,6 +2,7 @@
 
 namespace Rvvup\Payments\Test\Unit\Model;
 
+use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -32,7 +33,15 @@ class SdkProxyTest extends TestCase
     {
         $this->sdkMock = $this->getMockBuilder(GraphQlSdk::class)->disableOriginalConstructor()->getMock();
         $this->loggerMock = $this->createMock(LoggerInterface::class);
+        $this->sdkProxy = $this->createProxy();
+    }
 
+    /**
+     * @param HttpResponse|null $response
+     * @return SdkProxy
+     */
+    private function createProxy(?HttpResponse $response = null): SdkProxy
+    {
         $sdkFactoryMock = $this->getMockBuilder(GraphQlSdkFactory::class)->disableOriginalConstructor()->getMock();
         $sdkFactoryMock->method('create')->willReturn($this->sdkMock);
 
@@ -44,14 +53,56 @@ class SdkProxyTest extends TestCase
         $userAgentMock = $this->getMockBuilder(UserAgentBuilder::class)->disableOriginalConstructor()->getMock();
         $userAgentMock->method('get')->willReturn('RvvupMagentoPayments/test');
 
-        $this->sdkProxy = new SdkProxy(
+        return new SdkProxy(
             $this->createMock(RvvupConfigurationInterface::class),
             $userAgentMock,
             $sdkFactoryMock,
             $storeManagerMock,
             $this->createMock(GetEnvironmentVersionsInterface::class),
-            $this->loggerMock
+            $this->loggerMock,
+            $response
         );
+    }
+
+    public function testAQuickEmptyBoundedAnswerDoesNotHideTheRealAnswerFromALookupWithoutATimeout(): void
+    {
+        $this->sdkMock->method('getMethods')->willReturnCallback(function ($value, $currency, $options) {
+            // A quick failure on the bounded lookup (the SDK turns errors into an empty list), data otherwise.
+            return $options !== null ? [] : self::METHODS;
+        });
+
+        $this->assertSame([], $this->sdkProxy->getMethods('0', 'GBP', $this->generousOptions()));
+        // Checkout asks for the same amount and currency without a timeout and must reach the API.
+        $this->assertCount(2, $this->sdkProxy->getMethods('0', 'GBP'));
+    }
+
+    public function testItKeepsAPageThatLostItsWidgetsOutOfFullPageCacheAfterATimeout(): void
+    {
+        $response = $this->getMockBuilder(HttpResponse::class)->disableOriginalConstructor()->getMock();
+        $response->expects($this->once())->method('setNoCacheHeaders');
+        $proxy = $this->createProxy($response);
+
+        $this->sdkMock->method('getMethods')->willReturnCallback(function () {
+            usleep(100000);
+
+            return [];
+        });
+
+        $proxy->getMethods('0', 'GBP', $this->boundedOptions());
+        // Skipped lookups after the first timeout must not set the headers again.
+        $proxy->getMethods('49.99', 'GBP', $this->boundedOptions());
+    }
+
+    public function testItLeavesFullPageCacheAloneWhenNothingTimedOut(): void
+    {
+        $response = $this->getMockBuilder(HttpResponse::class)->disableOriginalConstructor()->getMock();
+        $response->expects($this->never())->method('setNoCacheHeaders');
+        $proxy = $this->createProxy($response);
+
+        $this->sdkMock->method('getMethods')->willReturn([]);
+
+        $proxy->getMethods('0', 'GBP', $this->generousOptions());
+        $proxy->getMethods('49.99', 'GBP', $this->generousOptions());
     }
 
     public function testItSkipsFurtherTimeBoundedLookupsAfterOneTimesOut(): void
