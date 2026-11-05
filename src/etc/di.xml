@@ -403,6 +403,47 @@
         </arguments>
     </type>
 
+    <!--
+        Time bounded variants of the payment method lookups, used only by storefront widgets (head scripts, PayPal
+        and Clearpay on product, cart and mini basket). They give up after a few seconds so a slow Rvvup API cannot
+        hold the page up. Checkout and order placement keep using the unbounded services above.
+    -->
+    <type name="Rvvup\Payments\Model\StorefrontRequestOptions">
+        <arguments>
+            <argument name="timeout" xsi:type="number">3</argument>
+            <argument name="connectTimeout" xsi:type="number">1</argument>
+        </arguments>
+    </type>
+    <virtualType name="Rvvup\Payments\Model\StorefrontPaymentMethodsAvailableGet"
+                 type="Rvvup\Payments\Model\PaymentMethodsAvailableGet">
+        <arguments>
+            <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>
+            <argument name="requestOptions"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontRequestOptions</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Rvvup\Payments\Model\StorefrontPaymentMethodsSettingsGet"
+                 type="Rvvup\Payments\Model\PaymentMethodsSettingsGet">
+        <arguments>
+            <argument name="paymentMethodsAvailableGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsAvailableGet</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Rvvup\Payments\Model\StorefrontPaymentMethodsAssetsGet"
+                 type="Rvvup\Payments\Model\PaymentMethodsAssetsGet">
+        <arguments>
+            <argument name="paymentMethodsSettingsGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsSettingsGet</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Rvvup\Payments\Model\StorefrontIsPaymentMethodAvailable"
+                 type="Rvvup\Payments\Model\IsPaymentMethodAvailable">
+        <arguments>
+            <argument name="paymentMethodsAvailableGet"
+                      xsi:type="object">Rvvup\Payments\Model\StorefrontPaymentMethodsAvailableGet</argument>
+        </arguments>
+    </virtualType>
+
     <type name="Rvvup\Payments\ViewModel\Assets">
         <arguments>
             <argument name="logger" xsi:type="object">Rvvup\Payments\Model\Logger</argument>

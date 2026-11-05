@@ -41,6 +41,13 @@ class SdkProxy
     private $monetizedMethods = [];
 
     /**
+     * Whether a time bounded lookup already timed out during this request.
+     *
+     * @var bool
+     */
+    private $boundedLookupTimedOut = false;
+
+    /**
      * @param RvvupConfigurationInterface $config
      * @param UserAgentBuilder $userAgent
      * @param GraphQlSdkFactory $sdkFactory
@@ -71,6 +78,7 @@ class SdkProxy
     {
         $this->methods = null;
         $this->monetizedMethods = [];
+        $this->boundedLookupTimedOut = false;
         $this->subject = [];
     }
 
@@ -267,13 +275,62 @@ class SdkProxy
      */
     private function getMethodsByValueAndCurrency(string $value, string $currency, ?array $inputOptions = null): array
     {
-        if (!isset($this->monetizedMethods[$currency][$value])) {
-            $methods = $this->getSdkForStore()->getMethods((string) round((float) $value, 2), $currency, $inputOptions);
-
-            $this->monetizedMethods[$currency][$value] = $this->filterApiMethods($methods);
+        if (isset($this->monetizedMethods[$currency][$value])) {
+            return $this->monetizedMethods[$currency][$value];
         }
 
-        return $this->monetizedMethods[$currency][$value];
+        $threshold = $this->getTimeoutThreshold($inputOptions);
+
+        // An earlier bounded lookup in this request already timed out, don't make the page wait again.
+        if ($threshold !== null && $this->boundedLookupTimedOut) {
+            return [];
+        }
+
+        $startedAt = microtime(true);
+        $methods = $this->filterApiMethods(
+            $this->getSdkForStore()->getMethods((string) round((float) $value, 2), $currency, $inputOptions)
+        );
+
+        // The SDK swallows request errors and returns an empty list, so a timeout can only be recognised by an
+        // empty result that took at least as long as the timeout.
+        if ($threshold !== null && $methods === [] && (microtime(true) - $startedAt) >= $threshold) {
+            $this->boundedLookupTimedOut = true;
+            $this->logger->warning(
+                'Rvvup payment methods lookup returned nothing after hitting the storefront timeout, '
+                . 'skipping further bounded lookups for this request.',
+                ['value' => $value, 'currency' => $currency, 'threshold_seconds' => $threshold]
+            );
+
+            // Not memoised, so a later lookup without a timeout in the same request still asks the API.
+            return [];
+        }
+
+        $this->monetizedMethods[$currency][$value] = $methods;
+
+        return $methods;
+    }
+
+    /**
+     * The shortest timeout in the given SDK options (seconds), or null when the lookup is not time bounded.
+     *
+     * @param array|null $inputOptions
+     * @return float|null
+     */
+    private function getTimeoutThreshold(?array $inputOptions): ?float
+    {
+        if ($inputOptions === null) {
+            return null;
+        }
+
+        $timeouts = [];
+
+        foreach (['timeout', 'connect_timeout'] as $key) {
+            if (isset($inputOptions[$key]) && (float) $inputOptions[$key] > 0) {
+                $timeouts[] = (float) $inputOptions[$key];
+            }
+        }
+
+        return $timeouts === [] ? null : min($timeouts);
     }
 
     /**
