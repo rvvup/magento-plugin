@@ -20,4 +20,13 @@ export default class OrderConfirmation {
       .replace("Your order # is: ", "")
       .replace(".", "");
   }
+
+  // A signed in customer's confirmation reads "Your order number is: 000000001.", unlike the guest one.
+  async expectOnOrderConfirmationAsCustomer() {
+    await expect(
+      this.page.getByRole("heading", { name: "Thank you for your purchase!" }),
+    ).toBeVisible();
+    const text = await this.page.getByText(/Your order number is/).innerText();
+    return text.match(/Your order number is:\s*(\S+?)\.?$/m)[1];
+  }
 }

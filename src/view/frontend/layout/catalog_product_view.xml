@@ -33,6 +33,9 @@
                    template="Rvvup_Payments::product/view/rvvup-pdp-widgets.phtml"
                    ifconfig="payment/rvvup/active"
                    before="product.info">
+                <arguments>
+                    <argument name="price" xsi:type="object">Rvvup\Payments\ViewModel\Price</argument>
+                </arguments>
             </block>
         </referenceContainer>
         <!-- After add to cart -->

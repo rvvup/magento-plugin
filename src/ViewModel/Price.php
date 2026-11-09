@@ -38,4 +38,40 @@ class Price implements ArgumentInterface
 
         return $this->taxHelper->getTaxPrice($product, (float)$product->getFinalPrice());
     }
+
+    /**
+     * Price the customer pays including tax, regardless of the store's tax display setting.
+     * Dynamic bundles with nothing selected report 0, so fall back to their minimal price.
+     *
+     * @param ProductInterface&\Magento\Catalog\Model\Product $product
+     */
+    public function getPriceIncludingTax(ProductInterface $product): float
+    {
+        $finalPrice = $product->getPriceInfo()->getPrice('final_price');
+        $amount = $this->inclusive($product, $finalPrice->getAmount());
+
+        if ($amount <= 0.0 && $product->getTypeId() === 'bundle') {
+            $amount = $this->inclusive($product, $finalPrice->getMinimalPrice());
+        }
+
+        if ($amount <= 0.0) {
+            $amount = (float)$this->taxHelper->getTaxPrice($product, (float)$product->getFinalPrice(), true);
+        }
+
+        return $amount;
+    }
+
+    /**
+     * @param ProductInterface $product
+     * @param \Magento\Framework\Pricing\Amount\AmountInterface $amount
+     * @return float
+     */
+    private function inclusive(ProductInterface $product, $amount): float
+    {
+        if ($this->taxConfig->getPriceDisplayType() == TaxConfig::DISPLAY_TYPE_EXCLUDING_TAX) {
+            return (float)$this->taxHelper->getTaxPrice($product, (float)$amount->getBaseAmount(), true);
+        }
+
+        return (float)$amount->getValue();
+    }
 }

@@ -42,6 +42,10 @@ class Method extends Adapter
     public const EXPRESS_PAYMENT_KEY = 'is_rvvup_express_payment';
     public const EXPRESS_PAYMENT_DATA_KEY = 'rvvup_express_payment_data';
 
+    public const SAVE_PAYMENT_METHOD = 'save_payment_method';
+    public const SAVE_TOKEN_REQUESTED = '_rvvup_save_token_requested';
+    public const PUBLIC_HASH = 'public_hash';
+
     /**
      * Curative list of available RVVUP Status constants.
      *

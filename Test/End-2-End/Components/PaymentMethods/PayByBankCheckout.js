@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import CheckoutPage from "../CheckoutPage";
-import { rejectCookies } from "../CookieBanner";
+import { clickDismissingCookies, rejectCookies } from "../CookieBanner";
 
 export default class PayByBankCheckout {
   constructor(page) {
@@ -17,8 +17,15 @@ export default class PayByBankCheckout {
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
     await rejectCookies(frame);
-    await frame.getByRole("button", { name: "Mock Bank" }).click();
-    await frame.getByRole("button", { name: "Continue on desktop" }).click();
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Mock Bank" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
   }
 
   async cancel() {
@@ -27,8 +34,15 @@ export default class PayByBankCheckout {
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
     await rejectCookies(frame);
-    await frame.getByRole("button", { name: "Natwest" }).click();
-    await frame.getByRole("button", { name: "Continue on desktop" }).click();
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Natwest" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
 
     await this.page.getByRole("button", { name: "Cancel" }).click();
     await expect(this.page.getByText("Payment Failed")).toBeVisible();
@@ -40,8 +54,15 @@ export default class PayByBankCheckout {
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
     await rejectCookies(frame);
-    await frame.getByRole("button", { name: "Natwest" }).click();
-    await frame.getByRole("button", { name: "Continue on desktop" }).click();
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Natwest" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
 
     await this.page
       .locator("input#customer-number")
@@ -72,11 +93,18 @@ export default class PayByBankCheckout {
 
     const frame = this.page.frameLocator("#rvvup_iframe-rvvup_YAPILY");
     await rejectCookies(frame);
-    await frame.getByRole("button", { name: "Natwest" }).click();
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Natwest" }),
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
 
     // we want to open modal, open natwest in a new tab, close modal,
     // complete natwest transaction, see where the redirect sends us to
-    await frame.getByRole("button", { name: "Continue on desktop" }).click();
+    await clickDismissingCookies(
+      frame,
+      frame.getByRole("button", { name: "Continue on desktop" }),
+    );
 
     await this.page
       .locator("input#customer-number")

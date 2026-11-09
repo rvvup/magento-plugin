@@ -130,6 +130,11 @@ class ConfigProvider implements ConfigProviderInterface
                 }
             }
 
+            // For Inline Card, use dedicated SDK component
+            if ($method['name'] === 'CARD' && ($method['settings']['flow'] ?? 'HOSTED') === 'INLINE') {
+                $component = 'Rvvup_Payments/js/view/payment/method-renderer/card';
+            }
+
             $items[Method::PAYMENT_TITLE_PREFIX . $method['name']] = [
                 'component' => $component,
                 'isBillingAddressRequired' => true,

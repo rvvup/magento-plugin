@@ -222,23 +222,6 @@ class SdkProxy
     /**
      * {@inheritdoc}
      */
-    public function confirmCardAuthorization(
-        string $paymentId,
-        string $orderId,
-        string $authorizationResponse,
-        ?string $threeDSecureResponse
-    ): array {
-        return $this->getSdkForStore()->confirmCardAuthorization(
-            $paymentId,
-            $orderId,
-            $authorizationResponse,
-            $threeDSecureResponse
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function ping(): bool
     {
         return $this->getSdkForStore()->ping();
