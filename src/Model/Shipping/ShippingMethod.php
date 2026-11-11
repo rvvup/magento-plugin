@@ -24,13 +24,18 @@ class ShippingMethod
     /**
      * @param ShippingMethodInterface $shippingMethod
      * @param string $currency
+     * @param float $shippingDiscount
      */
-    public function __construct(ShippingMethodInterface $shippingMethod, string $currency)
-    {
+    public function __construct(
+        ShippingMethodInterface $shippingMethod,
+        string $currency,
+        float $shippingDiscount = 0.0
+    ) {
         // Magento sets the shipping method using this format: `carrier_code`_`method_code`.
         $this->id = $shippingMethod->getCarrierCode() . '_' . $shippingMethod->getMethodCode();
         $this->label = $this->generateLabel($shippingMethod);
-        $this->amount = number_format($shippingMethod->getPriceInclTax(), 2, '.', '');
+        $grossAmount = (float)$shippingMethod->getPriceInclTax();
+        $this->amount = number_format(max(0.0, $grossAmount - $shippingDiscount), 2, '.', '');
         $this->currency = $currency;
     }
 
