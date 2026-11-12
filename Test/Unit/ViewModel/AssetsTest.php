@@ -138,11 +138,139 @@ class AssetsTest extends TestCase
         $this->assertFalse($assets->shouldCreateCheckout());
     }
 
+    public function testItUsesTheTimeBoundedLookupsOutsideTheCheckoutPage(): void
+    {
+        $storefrontSettings = ['rvvup_paypal' => ['source' => 'storefront']];
+        $storefrontAssets = [
+            'rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/storefront.js']],
+        ];
+
+        $assets = $this->buildAssets(
+            self::CATALOG_PRODUCT_PAGE,
+            ['rvvup_paypal' => ['source' => 'default']],
+            [
+                'rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/default.js']],
+            ],
+            ['checkout_index_index'],
+            $this->createSettingsGet($storefrontSettings),
+            $this->createAssetsGet($storefrontAssets)
+        );
+
+        $scripts = $assets->getPaymentMethodsScriptAssets();
+
+        $this->assertSame(
+            'https://example.test/storefront.js',
+            $scripts['rvvup_paypal']['paypal']['url']
+        );
+    }
+
+    public function testItNeverUsesTheTimeBoundedLookupsOnTheCheckoutPage(): void
+    {
+        $storefrontSettingsGet = $this->createMock(PaymentMethodsSettingsGetInterface::class);
+        $storefrontSettingsGet->expects($this->never())->method('execute');
+
+        $storefrontAssetsGet = $this->createMock(PaymentMethodsAssetsGetInterface::class);
+        $storefrontAssetsGet->expects($this->never())->method('execute');
+
+        $assets = $this->buildAssets(
+            self::CHECKOUT_PAGE,
+            ['rvvup_paypal' => ['source' => 'default']],
+            [
+                'rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/default.js']],
+            ],
+            ['checkout_index_index'],
+            $storefrontSettingsGet,
+            $storefrontAssetsGet
+        );
+
+        $scripts = $assets->getPaymentMethodsScriptAssets();
+
+        $this->assertSame('https://example.test/default.js', $scripts['rvvup_paypal']['paypal']['url']);
+        $this->assertFalse($assets->shouldCreateCheckout());
+    }
+
+    public function testItNeverUsesTheTimeBoundedLookupsOnACheckoutPageThatIsNotConfigured(): void
+    {
+        $storefrontSettingsGet = $this->createMock(PaymentMethodsSettingsGetInterface::class);
+        $storefrontSettingsGet->expects($this->never())->method('execute');
+
+        $storefrontAssetsGet = $this->createMock(PaymentMethodsAssetsGetInterface::class);
+        $storefrontAssetsGet->expects($this->never())->method('execute');
+
+        $assets = $this->buildAssets(
+            'acme_onepage_checkout_index',
+            ['rvvup_paypal' => ['source' => 'default']],
+            [
+                'rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/default.js']],
+            ],
+            ['checkout_index_index'],
+            $storefrontSettingsGet,
+            $storefrontAssetsGet
+        );
+
+        $scripts = $assets->getPaymentMethodsScriptAssets();
+
+        $this->assertSame('https://example.test/default.js', $scripts['rvvup_paypal']['paypal']['url']);
+    }
+
+    public function testItUsesTheTimeBoundedLookupsOnTheCartPageEvenThoughItsActionNameMentionsCheckout(): void
+    {
+        $assets = $this->buildAssets(
+            self::CART_PAGE,
+            [],
+            [
+                'rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/default.js']],
+            ],
+            ['checkout_index_index'],
+            $this->createSettingsGet([]),
+            $this->createAssetsGet([
+                'rvvup_paypal' => [
+                    'paypal' => ['assetType' => 'script', 'url' => 'https://example.test/storefront.js'],
+                ],
+            ])
+        );
+
+        $scripts = $assets->getPaymentMethodsScriptAssets();
+
+        $this->assertSame('https://example.test/storefront.js', $scripts['rvvup_paypal']['paypal']['url']);
+    }
+
+    public function testItFallsBackToTheDefaultLookupsWhenNoTimeBoundedOnesAreWired(): void
+    {
+        $assets = $this->buildAssets(
+            self::CATALOG_PRODUCT_PAGE,
+            [],
+            ['rvvup_paypal' => ['paypal' => ['assetType' => 'script', 'url' => 'https://example.test/default.js']]]
+        );
+
+        $scripts = $assets->getPaymentMethodsScriptAssets();
+
+        $this->assertSame('https://example.test/default.js', $scripts['rvvup_paypal']['paypal']['url']);
+    }
+
+    private function createSettingsGet(array $settings): PaymentMethodsSettingsGetInterface
+    {
+        $mock = $this->createMock(PaymentMethodsSettingsGetInterface::class);
+        $mock->method('execute')->willReturn($settings);
+
+        return $mock;
+    }
+
+    private function createAssetsGet(array $assets): PaymentMethodsAssetsGetInterface
+    {
+        $mock = $this->createMock(PaymentMethodsAssetsGetInterface::class);
+        $mock->method('execute')->willReturn($assets);
+
+        return $mock;
+    }
+
     private function buildAssets(
         string $fullActionName,
         array $settings,
         array $methodAssets = [],
-        array $checkoutPageFullActionNames = ['checkout_index_index']
+        array $checkoutPageFullActionNames = ['checkout_index_index'],
+        ?PaymentMethodsSettingsGetInterface $storefrontSettingsGet = null,
+        ?PaymentMethodsAssetsGetInterface $storefrontAssetsGet = null
     ): Assets {
         $serializerMock = $this->createMock(SerializerInterface::class);
 
@@ -182,7 +310,9 @@ class AssetsTest extends TestCase
             $apiProviderMock,
             $rvvupConfigurationMock,
             $requestMock,
-            $checkoutPageFullActionNames
+            $checkoutPageFullActionNames,
+            $storefrontSettingsGet,
+            $storefrontAssetsGet
         );
     }
 }

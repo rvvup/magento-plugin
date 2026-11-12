@@ -10,15 +10,21 @@ class ApiSettingsProvider extends \Magento\Framework\DataObject
     /** @var array */
     private $apiData = [];
 
+    /** @var StorefrontRequestOptions|null */
+    private $requestOptions;
+
     /**
      * @param SdkProxy $sdk
      * @param array $data
+     * @param StorefrontRequestOptions|null $requestOptions Time bounds the lookup, set in di.xml. Null = unbounded.
      */
     public function __construct(
         SdkProxy $sdk,
-        array $data = []
+        array $data = [],
+        ?StorefrontRequestOptions $requestOptions = null
     ) {
         $this->sdk = $sdk;
+        $this->requestOptions = $requestOptions;
         parent::__construct($data);
     }
 
@@ -30,7 +36,7 @@ class ApiSettingsProvider extends \Magento\Framework\DataObject
     public function getByPath(string $method, string $path)
     {
         $this->loadSdkData();
-        $this->_data = $this->apiData[$method];
+        $this->_data = $this->apiData[$method] ?? [];
         return $this->getDataByPath($path);
     }
 
@@ -40,7 +46,11 @@ class ApiSettingsProvider extends \Magento\Framework\DataObject
     private function loadSdkData(): void
     {
         if (!$this->apiData) {
-            $methods = $this->sdk->getMethods('0', 'GBP');
+            $methods = $this->sdk->getMethods(
+                '0',
+                'GBP',
+                $this->requestOptions === null ? null : $this->requestOptions->get()
+            );
             foreach ($methods as $method) {
                 if (isset($method['name'])) {
                     $this->apiData[$method['name']] = $method;
